@@ -3,8 +3,22 @@ test_tree rsync . gcc
 test_tree distcc . gcc
 test_tree ccache . gcc
 
+# only attempt samba4 if we have perl
 if which perl > /dev/null; then
   test_tree samba4 source gcc
+fi
+
+# if cc is not a gcc varient, then try that too
+if cc -v 2>&1 | grep gcc.version > /dev/null; then
+  test_tree samba_3_0 source gcc
+  test_tree rsync . gcc
+  test_tree distcc . gcc
+  test_tree ccache . gcc
+
+  # only attempt samba4 if we have perl
+  if which perl > /dev/null; then
+    test_tree samba4 source gcc
+  fi
 fi
 
 # by default build ppp only on SunOS or Linux systems
