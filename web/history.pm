@@ -244,18 +244,37 @@ sub svn_diff($$$)
 	fatal("unknown revision");
     }
 
+    my $log = util::LoadStructure("$HISTORYDIR/history.$tree");
+    my $entry;
+
+    # backwards? why? well, usually our users are looking for the newest
+    # stuff, so it's most likely to be found sooner
+    my $i = $#{$log};
+    for (; $i >= 0; $i--) {
+	    if ($log->[$i]->{REVISION} eq $revision) {
+		    $entry = $log->[$i];
+	    }
+    }
 
     # get information about the current diff
     if ($text_html eq "html") {
 	print "<h2>SVN Diff in $tree for revision r$revision</h2>\n";
 	print "<div class=\"history row\">\n";
 
-#	history_row($entry, $tree);
+	if (!defined($entry->{REVISION})) {
+	    print "Unable to locate commit information.\n";
+	} else {
+	    history_row($entry, $tree);
+	}
 
 	print "</div>\n";
     }
     else {
-#	history_row_text($entry, $tree);
+	if (!defined($entry->{REVISION})) {
+	    print "Unable to locate commit information.\n";
+	} else {
+	    history_row_text($entry, $tree);
+	}
     }
 
 
