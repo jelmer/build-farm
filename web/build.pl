@@ -55,6 +55,7 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 
 	       'aix1' => "AIX 4.3 PPC",
 	       'mungera' => "AIX 5.2 IBM POWER4+",
+	       'oehmesrs6k' => "AIX 5.2",
 
 	       'us4'  => "IRIX 6.5 MIPS", 
 	       'au2'  => "IRIX 6.4 MIPS",
@@ -70,7 +71,9 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 	       'samba-s390' => "Debian Linux 3.0 stable s390",
 
 	       'fusberta' => "Debian Linux 3.0 Alpha",
-
+	       'superego' => "Debian PPC/64 (Power3)",
+	       'quango' => "Debian PPC/32 (Power3)",
+	       'cl012' => "Debian Testing/Unstable i386",
 	       'tux' => "Debian Linux sid/unstable HP PA-RISC",
 
 	       'sparc-woody' => "Debian Linux 3.0 (woody) Sparc64",
@@ -86,7 +89,7 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 
 	       'gc8'  => "FreeBSD 3.3-RELEASE i386",
 	       'gc4'  => "FreeBSD 4.3-STABLE i386",
-		   'gwalcmai' => "FreeBSD 5.2-RELEASE i586",
+	       'gwalcmai' => "FreeBSD 5.2-RELEASE i586",
 
 	       'manhattan' => "FreeBSD 4.8-RELEASE i386",
 
@@ -104,6 +107,8 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 	       'manjra' => "RedHat 8.0 i686",
 	       'lacroix' => "RedHat 9.0 i686 SMP",
 	       'delacruz'=> "RedHat 9.0 i686",
+
+	       'berks' => "Fedora Core 1",
 
 	       'suse71ppc' => "SuSE 7.1 ppc gcc2.95.2",
 	       'metze01' => "SuSE 8.2 i386 (athlon)",
@@ -124,19 +129,11 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 	       'mundroo' => "Solaris 8 i386",
 	       'cat' => "Solaris 9 i386",
 
-
-	       'superego' => "Debian PPC/64 (Power3)",
-	       'quango' => "Debian PPC/32 (Power3)",
-
 	       'packetstorm' => "Slackware Linux 9.0 i386",
 
-	       'tardis' => "Gentoo i686",
-	       
-	       # added for vl --metze
-	       'oehmesrs6k' => "AIX 5.2",
+	       'tardis' => "Gentoo i686"
 
-	       # for bryce@osdl.org
-	       'cl012' => "Debian Testing/Unstable i386"
+
 	       );
 
 
