@@ -73,6 +73,8 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 
 	       'fusberta' => "Debian Linux 3.0 Alpha",
 
+	       'tux' => "Debian Linux sid/unstable HP PA-RISC",
+
 	       'sparc-woody' => "Debian Linux 3.0 (woody) Sparc64",
 	       'sparc-sarge' => "Debian Linux sarge/testing Sparc64",
 	       'sparc-sid' => "Debian Linux sid/unstable Sparc64",

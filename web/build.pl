@@ -77,6 +77,8 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 	       'sparc-sarge' => "Debian Linux sarge/testing Sparc64",
 	       'sparc-sid' => "Debian Linux sid/unstable Sparc64",
 
+	       'tux' => "Debian Linux sid/unstable HP PA-RISC",
+
 	       'flame'  => "OpenBSD 3.0 Sparc",
 	       'pandemonium' => "OpenBSD-current Sparc64",
 
