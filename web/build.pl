@@ -45,7 +45,7 @@ my $DEADAGE = 60*60*24*4;
 ##############################################
 # this defines what it is possible to build 
 # and what boxes. Should be in a config file
-my $compilers = ['cc', 'gcc', 'gcc3', 'gcc-3.4', 'gcc-4.0', 'icc'];
+my $compilers = ['cc', 'gcc', 'gcc3', 'gcc-3.4', 'gcc-4.0', 'icc', 'tcc'];
 
 my (%hosts) = ('sun1' => "Solaris 8 UltraSparc", 
 	       'Isis' => "Solaris 8 i386",
