@@ -411,6 +411,7 @@ test_tree() {
 		    cd $srcdir
 		    export srcdir
 		    df .
+		    vmstat
 
 		    ( action_$action )
 		    action_status=$?
