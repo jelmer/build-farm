@@ -174,37 +174,21 @@ if ($myself =~ /http:\/\/.*\/(.*)/) {
     $myself = $1;
 }
 
-$myself = "http://build.samba.org/";
+#$myself = "http://build.samba.org/";
 
 ################################################
 # start CGI headers
 sub cgi_headers() {
     print "Content-type: text/html\r\n";
+    #print "Content-type: application/xhtml+xml\r\n";
 
     util::cgi_gzip();
 
-    print '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<link rel="shortcut icon" href="/favicon.ico" />
-<link rel="stylesheet" href="/build_farm.css" type="text/css" media="all" />
-<script type="text/javascript" defer="defer" src="/build_farm.js" />
-<title>samba.org build farm</title></head>
-<body>
-<table>
-<tr>
-<td><img alt="Samba Banner" src="http://www.samba.org/samba/images/samba_banner.gif" /></td>
-<td>
-<ul>
-<li><a href="about.html">About the build farm</a></li>
-<li><a href="instructions.html">Adding a new machine</a></li>
-<li><a href="http://pserver.samba.org/">Samba CVS repository</a></li>
-<li><a href="http://www.samba.org/">Samba Web pages</a></li>
-</ul>
-</td>
-</tr>
-</table>';
+    print util::FileLoad("$BASEDIR/web/header.html");
+    print '<title>samba.org build farm</title>';
+    print util::FileLoad("$BASEDIR/web/header2.html");
+    main_menu();
+    print util::FileLoad("$BASEDIR/web/header3.html");
 
     if (1) {
       print '
@@ -212,6 +196,7 @@ sub cgi_headers() {
 build farm</a> instead. Or, if you really want the xhtml version, play around
 with <a href="http://build.vlankhaar.dyndns.org/build_xhtml.pl">Vance\'s non-functional testing build farm</a>.
 ';
+      cgi_footers();
       exit 1;
     }
 }
@@ -226,8 +211,7 @@ sub cgi_headers_diff() {
 ################################################
 # end CGI
 sub cgi_footers() {
-    print "</body>";
-    print "</html>\n";
+  print util::FileLoad("$BASEDIR/web/footer.html");
 }
 
 ################################################
@@ -336,7 +320,7 @@ sub build_status($$$)
 
     my $st1 = stat("$file.log");
     my $st2 = stat("$cachefile.status");
-    
+
     if ($st1 && $st2 && $st1->ctime <= $st2->ctime) {
 	return util::FileLoad("$cachefile.status");
     }
@@ -463,17 +447,21 @@ sub view_summary() {
 	    for my $tree (sort keys %trees) {
 		my $status = build_status($host, $tree, $compiler);
 		my $age = build_age($host, $tree, $compiler);
+
 		if ($age != -1 && $age < $DEADAGE) {
 		    $host_count{$tree}++;
 		}
+
 		if ($age < $DEADAGE && $status =~ /status failed/) {
 		    if (!$broken) {
 			$broken_table .= <<EOHEADER;
-<h1 class="tableTitle">Currently broken builds:</h1>
-<table id="summary">
+
+<div id="build-broken-summary" class="build-section">
+<h2>Currently broken builds:</h2>
+<table class="summary">
   <thead>
     <tr>
-      <th colspan="3">Target</th><th>Build&nbsp;Age</th><th>Status<br />config/build/install/test</th><th>warnings</th>
+      <th colspan="3">Target</th><th>Build&nbsp;Age</th><th>Status<br />config/build<br />install/test</th><th>Warnings</th>
     </tr>
   </thead>
   <tbody>
@@ -486,7 +474,7 @@ EOHEADER
 		    }
 		    my $warnings = err_count($host, $tree, $compiler);
 		    
-		    $broken_table .= "<tr>";
+		    $broken_table .= "    <tr>";
 		    
 		    $host_os = $hosts{$host};
 		    if ($host eq $last_host) {
@@ -494,7 +482,7 @@ EOHEADER
 		    } else {
 			$broken_table .= "<td>$host_os</td><td><a href=\"#$host\">$host</a></td>";
 		    }
-		    $broken_table .= "<td>$tree/$compiler</td><td>" . red_age($age) . "</td><td>$status</td><td>$warnings</td></tr>\n";
+		    $broken_table .= "<td><span class=\"tree\">$tree</span>/$compiler</td><td class=\"age\">" . red_age($age) . "</td><td class=\"status\">$status</td><td>$warnings</td></tr>\n";
 		    
 		    $last_host = $host;
 		    
@@ -504,12 +492,14 @@ EOHEADER
     }
     
     if ($broken) {
-	$broken_table .= "</tbody></table>\n";
+	$broken_table .= "  </tbody>\n</table>\n</div>\n";
     }
-
-    print "<h1 class=\"tableTitle\">Build counts:</h1>";
     print <<EOHEADER;
-<table id="count">
+
+
+<div id="build-counts" class="build-section">
+<h2>Build counts:</h2>
+<table>
   <thead>
     <tr>
       <th>Tree</th><th>Total</th><th>Broken</th><th>Panic</th>
@@ -518,24 +508,25 @@ EOHEADER
   <tbody>
 EOHEADER
     for my $tree (sort keys %trees) {
-	print "<tr><td>$tree</td><td>$host_count{$tree}</td><td>$broken_count{$tree}</td>";
+	print "    <tr><td>$tree</td><td>$host_count{$tree}</td><td>$broken_count{$tree}</td>";
 	my $panic = "";
 	if ($panic_count{$tree}) {
 	  $panic = " class=\"panic\"";
 	}
 	print "<td$panic>$panic_count{$tree}</td></tr>\n";
     }
-    print "</tbody></table>\n";
+    print "  </tbody>\n</table></div>\n";
 
 
     print $broken_table;
 
-    print "<h1>Build summary:</h1>\n\n";
 
+    print "<div class=\"build-section\" id=\"build-summary\">\n";
+    print "<h2>Build summary:</h2>\n";
     for my $host (@hosts) {
 	# make sure we have some data from it
 	if (! ($list =~ /$host/)) {
-	    print "\n<!-- skipping $host -->\n"; 
+	    print "<!-- skipping $host -->\n"; 
 	    next;
 	}
 
@@ -550,29 +541,30 @@ EOHEADER
 		    if ($row == 0) {
 			print <<EOHEADER;
 <div class="host summary">
-  <a name="$host" />
-  <h2 class="tableTitle">$host - $hosts{$host}</h2>
+  <a id="$host" name="$host" />
+  <h3>$host - $hosts{$host}</h3>
   <table>
     <thead>
       <tr>
-        <th>Target</th><th>Build&nbsp;Age</th><th>Status<br />config/build<br />install/test</th><th>warnings</th>
+        <th>Target</th><th>Build&nbsp;Age</th><th>Status<br />config/build<br />install/test</th><th>Warnings</th>
       </tr>
     </thead>
     <tbody>
 EOHEADER
 		    }
-		    print "<tr><td>$tree/$compiler</td><td>" . red_age($age) . "</td><td>$status</td><td>$warnings</td></tr>\n";
+		    print "    <tr><td><span class=\"tree\">$tree</span>/$compiler</td><td class=\"age\">" . red_age($age) . "</td><td class=\"status\">$status</td><td>$warnings</td></tr>\n";
 		    $row++;
 		}
 	    }
 	}
 	if ($row != 0) {
-	    print "</tbody></table></div>\n";
+	    print "  </tbody>\n</table></div>\n";
 	    $i++;
 	} else {
 	    push(@deadhosts, $host);
 	}
     }
+    print "</div>\n\n";
 
     draw_dead_hosts(@deadhosts);
 }
@@ -610,11 +602,13 @@ sub view_recent_builds() {
   
 
     print <<EOHEADER;
+
+    <div id="recent-builds" class="build-section">
     <h2>Recent builds of $tree</h2>
-      <table id="recentBuilds">
+      <table>
 	<thead>
 	  <tr>
-            <th>Age</th><th>Revision</th><th colspan=4>Target</th><th>Status</th>
+            <th>Age</th><th>Revision</th><th colspan="4">Target</th><th>Status</th>
 	  </tr>
 	</thead>
         <tbody>
@@ -624,13 +618,13 @@ EOHEADER
     for my $build (@all_builds) {
 	my $age = $$build[0];
 	my $rev = $$build[6];
-	print "<tr>",
+	print "    <tr>",
 	  "<td>" . util::dhm_time($age). "</td>",
-	  "<td>$rev",
-	  join "</td><td>", @$build[4, 1, 2, 3, 5],
+	  "<td>$rev</td><td>",
+	  join("</td><td>", @$build[4, 1, 2, 3, 5]),
 	  "</td></tr>\n";
     }
-    print "</tbody></table>\n";
+    print "  </tbody>\n</table>\n</div>\n";
 }
 
 
@@ -645,8 +639,9 @@ sub draw_dead_hosts() {
     }
 
     print <<EOHEADER;
-<h1 class="tableTitle">Dead Hosts:</h1>
-<table id="deadHosts">
+<div class="build-section" id="dead-hosts">
+<h2>Dead Hosts:</h2>
+<table>
 <thead>
 <tr><th>Host</th><th>OS</th><th>Min Age</th></tr>
 </thead>
@@ -654,9 +649,9 @@ sub draw_dead_hosts() {
 EOHEADER
     for my $host (@deadhosts) {
 	my $age = host_age($host);
-	print "<tr><td>$host</td><td>$hosts{$host}</td><td>", util::dhm_time($age), "</td></tr>";
+	print "    <tr><td>$host</td><td>$hosts{$host}</td><td>", util::dhm_time($age), "</td></tr>";
     }
-    print "</tbody></table>\n";
+    print "  </tbody>\n</table>\n</div>\n";
 }
 
 
@@ -703,7 +698,7 @@ sub view_build() {
 <tr><td>Uname:</td><td>$uname</td></tr>
 <tr><td>Tree:</td><td>$tree</td></tr>
 <tr><td>Build Revision:</td><td>" . $rev . "</td></tr>
-<tr><td>Build age:</td><td>" . red_age($age) . "</td></tr>
+<tr><td>Build age:</td><td class=\"age\">" . red_age($age) . "</td></tr>
 <tr><td>Status:</td><td>$status</td></tr>
 <tr><td>Compiler:</td><td>$compiler</td></tr>
 <tr><td>CFLAGS:</td><td>$cflags</td></tr>
@@ -793,7 +788,7 @@ sub make_test_html {
   my $return =  "</pre>" . # don't want the pre openned by action affecting us
                "<div class=\"test unit \L$status\E\" id=\"test-$id\">" .
                 "<a href=\"javascript:handle('$id');\">" .
-                 "<img id=\"img-$id\" src=\"";
+                 "<img id=\"img-$id\" name=\"img-$id\" src=\"";
   if (defined $status && $status eq "PASSED") {
     $return .= "icon_unhide_16.png";
   }
@@ -823,7 +818,7 @@ sub make_action_html {
   my $status = shift;
   my $return = "<div class=\"action unit \L$status\E\" id=\"action-$id\">" .
                 "<a href=\"javascript:handle('$id');\">" .
-                 "<img id=\"img-$id\" src=\"";
+                 "<img id=\"img-$id\" name=\"img-$id\" src=\"";
 
   if (defined $status && ($status =~ /failed/i)) {
     $return .= 'icon_hide_24.png';
@@ -852,60 +847,63 @@ sub make_action_html {
 # main page
 sub main_menu() {
     print $req->startform("GET");
+  print "<div id=\"build-menu\">\n";
     print $req->popup_menu(-name=>'host',
 			   -values=>\@hosts,
-			   -labels=>\%hosts);
-    print $req->popup_menu("tree", [sort keys %trees]);
-    print $req->popup_menu("compiler", $compilers);
+			   -labels=>\%hosts) . "\n";
+    print $req->popup_menu("tree", [sort keys %trees]) . "\n";
+    print $req->popup_menu("compiler", $compilers) . "\n";
 
-    print $req->submit('function', 'View Build');
-    print "&nbsp;&nbsp;" . $req->submit('function', 'Recent Checkins');
-    print "&nbsp;&nbsp;" . $req->submit('function', 'Summary');
-    print "&nbsp;&nbsp;" . $req->submit('function', 'Recent Builds');
-
-    print $req->endform();
+    print $req->submit('function', 'View Build') . "\n";
+    print "&nbsp;&nbsp;" . $req->submit('function', 'Recent Checkins') . "\n";
+    print "&nbsp;&nbsp;" . $req->submit('function', 'Summary') . "\n";
+    print "&nbsp;&nbsp;" . $req->submit('function', 'Recent Builds') . "\n";
+  print "</div>\n";
+    print $req->endform() . "\n";
 }
+
 
 ###############################################
 # display top of page
 sub page_top() {
     cgi_headers();
     chdir("$BASEDIR/data") || fatal("can't change to data directory");
-    main_menu();
 }
+
+
 ###############################################
 # main program
+my $fn_name = (defined $req->param('function')) ? $req->param('function') : '';
 
-if (defined $req->param("function")) {
-    my $fn_name = $req->param("function");
-    if ($fn_name eq "View Build") {
-	page_top();
-	view_build();
-	cgi_footers();
-    } elsif ($fn_name eq "Recent Builds") {
-	page_top();
-	view_recent_builds();
-	cgi_footers();
-    } elsif ($fn_name eq "Recent Checkins") {
-	page_top();
-	history::cvs_history($req->param('tree'));
-	cgi_footers();
-    } elsif ($fn_name eq "diff") {
-	page_top();
-	history::cvs_diff($req->param('author'), $req->param('date'), $req->param('tree'), "html");
-	cgi_footers();
-    } elsif ($fn_name eq "text_diff") {
-	cgi_headers_diff();
-	chdir("$BASEDIR/data") || fatal("can't change to data directory");	
-	history::cvs_diff($req->param('author'), $req->param('date'), $req->param('tree'), "text");	
-    } else {
-	page_top();
-	view_summary();
-	cgi_footers();
-    }
-} else {
-    page_top();
+if ($fn_name eq 'text_diff') {
+  cgi_headers_diff();
+  chdir("$BASEDIR/data") || fatal("can't change to data directory");
+  history::cvs_diff($req->param('author'),
+		    $req->param('date'),
+		    $req->param('tree'),
+		    "text");
+}
+else {
+  page_top();
+
+  if    ($fn_name eq "View Build") {
+    view_build();
+  }
+  elsif ($fn_name eq "Recent Builds") {
+    view_recent_builds();
+  }
+  elsif ($fn_name eq "Recent Checkins") {
+    history::cvs_history($req->param('tree'));
+  }
+  elsif ($fn_name eq "diff") {
+    history::cvs_diff($req->param('author'),
+		      $req->param('date'),
+		      $req->param('tree'),
+		      "html");
+  }
+  else {
     view_summary();
-    cgi_footers();
+  }
+  cgi_footers();
 }
 

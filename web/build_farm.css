@@ -1,7 +1,7 @@
 
 /* log is the id on the build log divisions */
 #log .name, #log .status {
-	display: inline;
+        display: inline;
 	font-weight: bold;
 	font-family: sans-serif;
 }
@@ -57,37 +57,33 @@
 .status.unknown { 
         color: rgb(0, 0, 255);
 }
-table thead { 
-        background-color: rgb(160, 160, 224)
+
+.summary td.status { 
+        text-align: center;
 }
-table td { 
-        border: 1px inset rgb(128, 128, 128);
-        padding: 2px;
+
+.summary .tree { 
+        font-weight: bold;
 }
-table { 
-        border: 2px solid rgb(0, 0, 0);
+
+.summary .age { 
+        text-align: right;
+}
+.age .old { 
+        color: rgb(210, 0, 0);
 }
 
 div.host.summary {
         float: left;
 }
-
+div.host.summary h3 { 
+        margin-bottom: 2px;
+}
 div.summary { 
         margin: 4px;
 }
-
-h2 { 
-        font-size: medium;
+div.build-section { 
+        clear: both;
+        width: 100%;
 }
 
-h1 { 
-        font-size: large;
-}
-
-.tableTitle { 
-        margin-bottom: 1px;
-}
-
-div { 
-        border: 1px solid purple;
-}
