@@ -1,6 +1,0 @@
-test_tree samba4 source cc
-
-export config="--with-utmp"
-test_tree samba_3_0 source cc
-config="" test_tree rsync . cc
-per_run_hook
