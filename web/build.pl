@@ -45,7 +45,7 @@ my $DEADAGE = 60*60*24*4;
 ##############################################
 # this defines what it is possible to build 
 # and what boxes. Should be in a config file
-my $compilers = ['cc', 'gcc', 'gcc3', 'gcc-3.4'];
+my $compilers = ['cc', 'gcc', 'gcc3', 'gcc-3.4', 'icc'];
 
 my (%hosts) = ('sun1' => "Solaris 8 UltraSparc", 
 	       'Isis' => "Solaris 8 i386",
@@ -87,6 +87,8 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 	       'kimchi'  => "NetBSD 1.5 i386",
 	       'poseidon' => 'NetBSD 1.6.2 Sparc32',
 	       'ares' => 'NetBSD 1.6.2 Sparc64',
+
+	       'aretna' => "FreeBSD 4.10-STABLE",
 
 	       'gc8'  => "FreeBSD 3.3-RELEASE i386",
 	       'gc4'  => "FreeBSD 4.3-STABLE i386",
