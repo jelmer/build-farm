@@ -81,6 +81,7 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 	       'sparc-sarge' => "Debian Linux sarge/testing Sparc64",
 	       'sparc-sid' => "Debian Linux sid/unstable Sparc64",
 
+	       'flock'  => "OpenBSD 3.6 i386",
 	       'flame'  => "OpenBSD 3.0 Sparc",
 	       'pandemonium' => "OpenBSD-current Sparc64",
 
@@ -96,7 +97,7 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 	       'manhattan' => "FreeBSD 4.8-RELEASE i386",
 
 	       'sbf' => "FreeBSD 5.2.1 i386",
-	       'smartserv1' => 'FreeBSD 5.3-RELEASE i386',
+	       'smartserv1' => 'FreeBSD 5.3-STABLE i386',
 
 	       'woko'  => "Cray SV1 UNICOS 10.0.0.8",
 
@@ -111,6 +112,7 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 	       'delacruz'=> "RedHat 9.0 i686",
 
 	       'berks' => "Fedora Core 1",
+	       'tango-one-mars' => "Fedora Core 2 i386",
 
 	       'suse71ppc' => "SuSE 7.1 ppc gcc2.95.2",
 	       'metze01' => "SuSE 8.2 i386 (athlon)",
