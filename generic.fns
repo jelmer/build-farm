@@ -1,5 +1,8 @@
 for compiler in gcc cc icc; do
-  if which $compiler > /dev/null; then
+
+  # arrgh, "which" gives no err code on solaris
+  path=`which $compiler`
+  if [ -x "$path" ]; then
 
     if $compiler -v 2>&1 | grep gcc.version > /dev/null; then
        isgcc=1
