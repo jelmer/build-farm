@@ -204,9 +204,16 @@ sub cgi_headers() {
 </ul>
 </td>
 </tr>
-</table>
-';
+</table>';
 
+    if (1) {
+      print '
+<h1>This is disabled. Visit <a href="http://build.samba.org/">the official
+build farm</a> instead. Or, if you really want the xhtml version, play around
+with <a href="http://build.vlankhaar.dyndns.org/build_xhtml.pl">Vance\'s non-functional testing build farm</a>.
+';
+      exit 1;
+    }
 }
 
 ################################################
