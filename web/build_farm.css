@@ -90,16 +90,6 @@ div.build-section {
         clear: both;
         width: 100%;
 }
-div.build-menu { 
-	position:absolute;
-	top:100;
-	left:0;
-        text-align: center;
-	height:90px;
-	width:100%;
-	padding-top:4px;
-        z-index: 10;
-}
 #logo>.build_logo { 
         background-image:url(build_logo.png);
         background-position:center;
@@ -141,7 +131,7 @@ div.build-menu {
         top: 0;
         left: 250px;
         margin-top: 5px;
-        zindex: 10px;
+        z-index: 10;
 }
 #build-menu input { 
         margin: 20px 10px 0px 0px;
