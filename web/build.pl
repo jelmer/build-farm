@@ -141,6 +141,7 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 	       'tardis' => "Gentoo i686",
 	       'wetlizard' => "Gentoo UltraSparc",
 	       'sol10' => "Solaris 10 x86",
+	       'shubnigurath' => "Solaris 10 UltraSparc",
 	       'dev4-003' => "Debian Unstable x86"
 	       );
 
