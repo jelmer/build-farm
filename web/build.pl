@@ -119,7 +119,7 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 	       'l390vme1' => "SuSE SLES 8 (S/390)",
 
 	       'opi' => "SuSE SLES 9 (x86_64)",
-	       'PCS1' => "SuSE Linux 9.1  Professional (i586)",
+	       'PCS1' => "SuSE Linux 9.2 Professional (i586)",
 
 	       'cyberone' => "Cygwin i686 (MS WinXP Pro)",
 
