@@ -440,6 +440,12 @@ sub view_summary($) {
     my $host_os;
     my $last_host = "";
 
+    # for the text report, include the current time
+    if ($output_type eq 'text') {
+	    my $time = gmtime();
+	    print "Build status as of $time\n\n";
+    }
+
     for my $host (@hosts) {
 	for my $compiler (@{$compilers}) {
 	    for my $tree (sort keys %trees) {
