@@ -38,7 +38,7 @@ FULL_RESULT_URL="http://build.samba.org/"
 
 # split into two parts to obfuscate from spam engines
 RESULT_EMAIL_USER="vance"
-RESULT_EMAIL_DOMAIN="localhost"
+RESULT_EMAIL_DOMAIN="samba.org"
 
 ##################################################
 # get the broken report from the build farm
