@@ -858,7 +858,7 @@ sub print_log_pretty() {
 	     }{make_test_html($1, $4, $id++, $5)}exgs;
 
 
-	print join('', $log) . "\n";
+	print "<tt><pre>" .join('', $log) . "</pre></tt><p>\n";
 }
 
 ##############################################
