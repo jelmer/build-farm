@@ -1,0 +1,93 @@
+
+/* log is the id on the build log divisions */
+#log .name, #log .status {
+	display: inline;
+	font-weight: bold;
+	font-family: sans-serif;
+}
+#log .status.failed {
+	color: rgb(153, 0, 0);;
+}
+#log .status.passed {
+	color: rgb(0, 153, 0);
+}
+#log .output {
+	color: rgb(0, 0, 0);
+	font-family: monospace;
+}
+#log div.unit {
+	margin: 5px;
+	padding: 10px;
+	border: 2px solid black;
+}
+#log div.unit.passed {
+	background-color: rgb(180, 255, 180);
+}
+#log div.unit.failed {
+	background-color: rgb(255, 180, 180);
+}
+#log .unit.failed .output {
+	display: block;
+}
+#log .unit.passed .output {
+	display: none;
+}
+#log div.output#output-stderr-0 {
+	display: none;
+}
+#log img {
+	border: none;
+}
+#log a {
+	text-decoration: none;
+}
+#log a:hover, #log a:active {
+	text-decoration: underline;
+}
+
+/* generically, status correspond to the ok/ok/ok/ok strings */
+.status.passed { 
+        color: rgb(0, 128, 0);
+}
+
+.status.failed { 
+        color: rgb(255, 0, 0);
+}
+
+.status.unknown { 
+        color: rgb(0, 0, 255);
+}
+table thead { 
+        background-color: rgb(160, 160, 224)
+}
+table td { 
+        border: 1px inset rgb(128, 128, 128);
+        padding: 2px;
+}
+table { 
+        border: 2px solid rgb(0, 0, 0);
+}
+
+div.host.summary {
+        float: left;
+}
+
+div.summary { 
+        margin: 4px;
+}
+
+h2 { 
+        font-size: medium;
+}
+
+h1 { 
+        font-size: large;
+}
+
+.tableTitle { 
+        margin-bottom: 1px;
+}
+
+div { 
+        border: 1px solid purple;
+}
