@@ -3,11 +3,13 @@ test_tree samba_3_0 source gcc
 test_tree rsync . gcc
 test_tree distcc . gcc
 test_tree ccache . gcc
+test_tree ppp . gcc
 
 test_tree samba4 source cc
 test_tree samba_3_0 source cc
 test_tree rsync . cc
 test_tree distcc . cc
 test_tree ccache . cc
+test_tree ppp . cc
 
 per_run_hook
