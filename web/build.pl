@@ -33,10 +33,10 @@ use util;
 use history;
 use POSIX;
 use Data::Dumper;
-use CGI::Form;
+use CGI;
 use File::stat;
 
-my $req = new CGI::Form;
+my $req = new CGI;
 
 my $HEADCOLOR = "#a0a0e0";
 my $OLDAGE = 60*60*4;
@@ -73,11 +73,11 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 
 	       'fusberta' => "Debian Linux 3.0 Alpha",
 
+	       'tux' => "Debian Linux sid/unstable HP PA-RISC",
+
 	       'sparc-woody' => "Debian Linux 3.0 (woody) Sparc64",
 	       'sparc-sarge' => "Debian Linux sarge/testing Sparc64",
 	       'sparc-sid' => "Debian Linux sid/unstable Sparc64",
-
-	       'tux' => "Debian Linux sid/unstable HP PA-RISC",
 
 	       'flame'  => "OpenBSD 3.0 Sparc",
 	       'pandemonium' => "OpenBSD-current Sparc64",
@@ -176,153 +176,21 @@ if ($myself =~ /http:\/\/.*\/(.*)/) {
     $myself = $1;
 }
 
-$myself = "http://build.samba.org/";
+#$myself = "http://build.samba.org/";
 
 ################################################
 # start CGI headers
 sub cgi_headers() {
     print "Content-type: text/html\r\n";
+    #print "Content-type: application/xhtml+xml\r\n";
 
     util::cgi_gzip();
 
-    print '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"> 
-<html>
-<head>
-<link rel="shortcut icon" href="/favicon.ico">
-<style type="text/css">  
-.entry {
-        background-color: #f0f0ff;
-        width: 80%;
-        text-align: left;
-        margin: 15px 0px 15px 0px;
-        border: 1px solid gray;
-}
-.entry TABLE {
-        width: 100%;
-}
-.entry TABLE TD {
-        vertical-align: top;
-	text-align: left;
-}
-.entry TABLE TH {
-        vertical-align: top;
-        width: 5em;
-        text-align: left;
-}
-
-TABLE.header {
-        border: 1px solid black;
-}
-TABLE.header TH {
-        font-weight: normal;
-        width: 12em;
-        text-align: left;
-}
-TABLE.header TD {
-}
-#log .name,.status {
-        display: inline;
-        font-weight: bold;
-        font-family: sans-serif;
-}
-#log .status.failed {
-        color: rgb(153, 0, 0);;
-}
-#log .status.passed {
-        color: rgb(0, 153, 0);
-}
-#log .output {
-        color: rgb(0, 0, 0);
-        font-family: monospace;
-}
-#log div.unit {
-        margin: 5px;
-        padding: 10px;
-        border: 2px solid black;
-}
-#log div.unit.passed {
-        background-color: rgb(180, 255, 180);
-}
-#log div.unit.failed {
-        background-color: rgb(255, 180, 180);
-}
-#log .unit.failed .output {
-        display: block;
-}
-#log .unit.passed .output {
-        display: none;
-}
-#log div.output#output-stderr-0 {
-        display: none;
-}
-
-#log img {
-        border: none;
-}
-#log a {
-        text-decoration: none;
-}
-#log a:hover,a:active {
-        text-decoration: underline;
-}
-</style>
-<script type="text/javascript">
-<!-- begin hiding from browsers
-
-
-function handle(name)
-{
-  action = document.getElementById("output-" + name);
-  img = document.getElementById("img-" + name);
-  old_src = img.getAttribute("src");
-
-  current_display = action.style.display;
-
-  // try to handle the case where the display is not explicitly set
-  if (current_display == "") {
-    if (action.currentStyle) { // ack, IE
-      current_display = action.currentStyle.display;
-    }
-    else if (document.defaultView.getComputedStyle) { // oooh, DOM
-      var style_list = document.defaultView.getComputedStyle(action, "");
-
-      // konqueor has getComputedStyle, but it does not work
-      if (style_list != null) {
-	current_display = style_list.getPropertyValue("display");
-      }
-    }
-    // in the case than neither works, we will do nothing. it just
-    // means the user will have to click twice to do the initial closing
-  }
-
-  if (current_display == "block") {
-    action.style.display = "none";
-    img.setAttribute("src", old_src.replace("hide", "unhide"));
-  }
-  else {
-    action.style.display = "block";
-    img.setAttribute("src", old_src.replace("unhide", "hide"));
-  }
-}
-// -- end hiding from browsers -->
-</script>
-<title>samba.org build farm</title></head>
-<body bgcolor="white" text="#000000" link="#0000EE" vlink="#551A8B" alink="#FF0000">
-<table border=0>
-<tr>
-<td><img alt="Samba Banner" border=0 align="left" src="http://www.samba.org/samba/images/samba_banner.gif"></td>
-<td>
-<ul>
-<li><a href="about.html">About the build farm</a>
-<li><a href="instructions.html">Adding a new machine</a>
-<li><a href="http://pserver.samba.org/">Samba CVS repository</a>
-<li><a href="http://www.samba.org/">Samba Web pages</a>
-</ul>
-</td>
-</tr>
-</table>
-';
-
+    print util::FileLoad("$BASEDIR/web/header.html");
+    print '<title>samba.org build farm</title>';
+    print util::FileLoad("$BASEDIR/web/header2.html");
+    main_menu();
+    print util::FileLoad("$BASEDIR/web/header3.html");
 }
 
 ################################################
@@ -335,15 +203,14 @@ sub cgi_headers_diff() {
 ################################################
 # end CGI
 sub cgi_footers() {
-    print "</body>";
-    print "</html>\n";
+  print util::FileLoad("$BASEDIR/web/footer.html");
 }
 
 ################################################
 # print an error on fatal errors
 sub fatal($) {
     my $msg=shift;
-    print "ERROR: $msg<br>\n";
+    print "ERROR: $msg<br />\n";
     cgi_footers();
     exit(0);
 }
@@ -421,7 +288,7 @@ sub red_age($)
 	my $age = shift;
 	
 	if ($age > $OLDAGE) { 
-		return sprintf("<font color=\"#b00000\">%s</font>",  util::dhm_time($age));
+		return sprintf("<span class=\"old\">%s</span>",  util::dhm_time($age));
 	}
 	return util::dhm_time($age);
 }
@@ -436,18 +303,16 @@ sub build_status($$$)
     my $compiler=shift;
     my $file="build.$tree.$host.$compiler";
     my $cachefile="$CACHEDIR/build.$tree.$host.$compiler";
-    my $cstatus = "?";
-    my $bstatus = "?";
-    my $istatus = "?";
-    my $tstatus = "?";
-    my $sstatus = "/?";
+    my ($cstatus, $bstatus, $istatus, $tstatus, $sstatus);
+    $cstatus = $bstatus = $istatus = $tstatus = $sstatus =
+      "<span class=\"status unknown\">?</span>";
 
     my $log;
     my $ret;
 
     my $st1 = stat("$file.log");
     my $st2 = stat("$cachefile.status");
-    
+
     if ($st1 && $st2 && $st1->ctime <= $st2->ctime) {
 	return util::FileLoad("$cachefile.status");
     }
@@ -457,9 +322,9 @@ sub build_status($$$)
     unlink("$CACHEDIR/FAILED.test.$tree.$host.$compiler");
     if ($log =~ /TEST STATUS:(.*)/) {
 	if ($1 == 0) {
-	    $tstatus = "<font color=green>ok</font>";
+	    $tstatus = "<span class=\"status passed\">ok</span>";
 	} else {
-	    $tstatus = "<font color=red>$1</font>";
+	    $tstatus = "<span class=\"status failed\">$1</span>";
 	    system("touch $CACHEDIR/FAILED.test.$tree.$host.$compiler");
 	}
     }
@@ -467,9 +332,9 @@ sub build_status($$$)
     unlink("$CACHEDIR/FAILED.install.$tree.$host.$compiler");
     if ($log =~ /INSTALL STATUS:(.*)/) {
 	if ($1 == 0) {
-	    $istatus = "<font color=green>ok</font>";
+	    $istatus = "<span class=\"status passed\">ok</span>";
 	} else {
-	    $istatus = "<font color=red>$1</font>";
+	    $istatus = "<span class=\"status failed\">$1</span>";
 	    system("touch $CACHEDIR/FAILED.install.$tree.$host.$compiler");
 	}
     }
@@ -477,9 +342,9 @@ sub build_status($$$)
     unlink("$CACHEDIR/FAILED.build.$tree.$host.$compiler");
     if ($log =~ /BUILD STATUS:(.*)/) {
 	if ($1 == 0) {
-	    $bstatus = "<font color=green>ok</font>";
+	    $bstatus = "<span class=\"status passed\">ok</span>";
 	} else {
-	    $bstatus = "<font color=red>$1</font>";
+	    $bstatus = "<span class=\"status failed\">$1</span>";
 	    system("touch $CACHEDIR/FAILED.build.$tree.$host.$compiler");
 	}
     }
@@ -487,22 +352,22 @@ sub build_status($$$)
     unlink("$CACHEDIR/FAILED.configure.$tree.$host.$compiler");
     if ($log =~ /CONFIGURE STATUS:(.*)/) {
 	if ($1 == 0) {
-	    $cstatus = "<font color=green>ok</font>";
+	    $cstatus = "<span class=\"status passed\">ok</span>";
 	} else {
-	    $cstatus = "<font color=red>$1</font>";
+	    $cstatus = "<span class=\"status failed\">$1</span>";
 	    system("touch $CACHEDIR/FAILED.configure.$tree.$host.$compiler");
 	}
     }
     
     unlink("$CACHEDIR/FAILED.internalerror.$tree.$host.$compiler");
     if ($log =~ /INTERNAL ERROR:(.*)/ || $log =~ /PANIC:(.*)/) {
-	$sstatus = "/<font color=red><b>PANIC</b></font>";
+	$sstatus = "/<span class=\"status panic\">PANIC</span>";
 	system("touch $CACHEDIR/FAILED.internalerror.$tree.$host.$compiler");
     } else {
 	$sstatus = "";
     }
     
-    $ret = "<a href=\"$myself?function=View+Build&host=$host&tree=$tree&compiler=$compiler\">$cstatus/$bstatus/$istatus/$tstatus$sstatus</a>";
+    $ret = "<a href=\"$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler\">$cstatus/$bstatus/$istatus/$tstatus$sstatus</a>";
 
 
     util::FileSave("$CACHEDIR/$file.status", $ret);
@@ -574,14 +439,25 @@ sub view_summary() {
 	    for my $tree (sort keys %trees) {
 		my $status = build_status($host, $tree, $compiler);
 		my $age = build_age($host, $tree, $compiler);
+
 		if ($age != -1 && $age < $DEADAGE) {
 		    $host_count{$tree}++;
 		}
-		if ($age < $DEADAGE && $status =~ /color=red/) {
+
+		if ($age < $DEADAGE && $status =~ /status failed/) {
 		    if (!$broken) {
-			$broken_table .= sprintf "<b>Currently broken builds:</b><p>\n";
-			$broken_table .= sprintf "<table border=2><tr
-      bgcolor=\"$HEADCOLOR\"><th colspan=3>Target</th><th>Build&nbsp;Age</th><th>Status<br>config/build/install/test</th><th>warnings</th></tr>\n";
+			$broken_table .= <<EOHEADER;
+
+<div id="build-broken-summary" class="build-section">
+<h2>Currently broken builds:</h2>
+<table class="summary real">
+  <thead>
+    <tr>
+      <th colspan="3">Target</th><th>Build&nbsp;Age</th><th>Status<br />config/build<br />install/test</th><th>Warnings</th>
+    </tr>
+  </thead>
+  <tbody>
+EOHEADER
 			$broken = 1;
 		    }
 		    $broken_count{$tree}++;
@@ -590,15 +466,15 @@ sub view_summary() {
 		    }
 		    my $warnings = err_count($host, $tree, $compiler);
 		    
-		    $broken_table .= sprintf "<tr>";
+		    $broken_table .= "    <tr>";
 		    
 		    $host_os = $hosts{$host};
 		    if ($host eq $last_host) {
-			$broken_table .= sprintf "<td colspan=2></td>";
+			$broken_table .= "<td colspan=\"2\" />";
 		    } else {
-			$broken_table .= sprintf "<td>$host_os</td><td><a href=\"#$host\">$host</a></td>";
+			$broken_table .= "<td>$host_os</td><td><a href=\"#$host\">$host</a></td>";
 		    }
-		    $broken_table .= sprintf "<td><b>$tree</b>/$compiler</td><td align=right>" . red_age($age) . "</td><td align=center>$status</td><td align=center>$warnings</td></tr>\n";
+		    $broken_table .= "<td><span class=\"tree\">$tree</span>/$compiler</td><td class=\"age\">" . red_age($age) . "</td><td class=\"status\">$status</td><td>$warnings</td></tr>\n";
 		    
 		    $last_host = $host;
 		    
@@ -608,39 +484,46 @@ sub view_summary() {
     }
     
     if ($broken) {
-	$broken_table .= sprintf("</table><p>\n");
+	$broken_table .= "  </tbody>\n</table>\n</div>\n";
     }
+    print <<EOHEADER;
 
-    print "<b>Build counts:</b><p>";
-    print "<table border=2 width=250><tr bgcolor=\"$HEADCOLOR\"><th>Tree</th><th>Total</th><th>Broken</th><th>Panic</th></tr>\n";
+
+<div id="build-counts" class="build-section">
+<h2>Build counts:</h2>
+<table class="real">
+  <thead>
+    <tr>
+      <th>Tree</th><th>Total</th><th>Broken</th><th>Panic</th>
+    </tr>
+  </thead>
+  <tbody>
+EOHEADER
     for my $tree (sort keys %trees) {
-	print "<tr><td>$tree</td><td align=center>$host_count{$tree}</td><td align=center>$broken_count{$tree}</td><td align=center>";
+	print "    <tr><td>$tree</td><td>$host_count{$tree}</td><td>$broken_count{$tree}</td>";
+	my $panic = "";
 	if ($panic_count{$tree}) {
-	    print "<font color=red><b>$panic_count{$tree}</b></font>";
-	} else {
-	    print "0";
+	  $panic = " class=\"panic\"";
 	}
-	print "</td></tr>\n";
+	print "<td$panic>$panic_count{$tree}</td></tr>\n";
     }
-    print "</table><p>\n";
+    print "  </tbody>\n</table></div>\n";
 
 
     print $broken_table;
 
-    print "<b>Build summary:</b>\n\n";
-    
-    print '<table border=0><tr>';
+
+    print "<div class=\"build-section\" id=\"build-summary\">\n";
+    print "<h2>Build summary:</h2>\n";
     for my $host (@hosts) {
 	# make sure we have some data from it
-	if (! ($list =~ /$host/)) { print "\n<!-- skipping $host --!>\n"; next; }
-	
-	if ($i == $cols) {
-	    $i = 0;
-	    print "</tr><tr>";
+	if (! ($list =~ /$host/)) {
+	    print "<!-- skipping $host -->\n"; 
+	    next;
 	}
 
 	my $row = 0;
-	
+
 	for my $compiler (@{$compilers}) {
 	    for my $tree (sort keys %trees) {
 		my $age = build_age($host, $tree, $compiler);
@@ -648,23 +531,32 @@ sub view_summary() {
 		if ($age != -1 && $age < $DEADAGE) {
 		    my $status = build_status($host, $tree, $compiler);
 		    if ($row == 0) {
-			print "<td valign=top><br><b><a name=\"$host\">$host</a> - $hosts{$host}</b><br><table border=2>
-<tr bgcolor=\"$HEADCOLOR\"><th>Target</th><th>Build&nbsp;Age</th><th>Status<br>config/build<br>install/test</th><th>warnings</th></tr>
-";
+			print <<EOHEADER;
+<div class="host summary">
+  <a id="$host" name="$host" />
+  <h3>$host - $hosts{$host}</h3>
+  <table class="real">
+    <thead>
+      <tr>
+        <th>Target</th><th>Build&nbsp;Age</th><th>Status<br />config/build<br />install/test</th><th>Warnings</th>
+      </tr>
+    </thead>
+    <tbody>
+EOHEADER
 		    }
-		    print "<tr align=center><td align=left><b>$tree</b>/$compiler</td><td align=right>" . red_age($age) . "</td><td>$status</td><td>$warnings</td></tr>\n";
+		    print "    <tr><td><span class=\"tree\">$tree</span>/$compiler</td><td class=\"age\">" . red_age($age) . "</td><td class=\"status\">$status</td><td>$warnings</td></tr>\n";
 		    $row++;
 		}
 	    }
 	}
 	if ($row != 0) {
-	    print "</table></td>\n";
+	    print "  </tbody>\n</table></div>\n";
 	    $i++;
 	} else {
 	    push(@deadhosts, $host);
 	}
     }
-    print '</tr></table>';
+    print "</div>\n\n";
 
     draw_dead_hosts(@deadhosts);
 }
@@ -693,7 +585,7 @@ sub view_recent_builds() {
 	  my $status = build_status($host, $tree, $compiler);
 	  my $age = build_age($host, $tree, $compiler);
 	  my $revision = build_revision($host, $tree, $compiler);
-	  push @all_builds, [$age, $hosts{$host}, "<a href=\"$myself?function=Summary&host=$host&tree=$tree&compiler=$compiler#$host\">$host</a>", $compiler, $tree, $status, $revision]
+	  push @all_builds, [$age, $hosts{$host}, "<a href=\"$myself?function=Summary;host=$host;tree=$tree;compiler=$compiler#$host\">$host</a>", $compiler, $tree, $status, $revision]
 	  	unless $age == -1 or $age >= $DEADAGE;
       }
   }
@@ -701,26 +593,30 @@ sub view_recent_builds() {
   @all_builds = sort {$$a[0] <=> $$b[0]} @all_builds;
   
 
-    print "<h2>Recent builds of $tree</h2>";
-    print '<table border=2>';
-    print "<tr bgcolor=\"$HEADCOLOR\">";
-    print "<th>Age</th>";
-    print "<th>Revision</th>";
-    print "<th colspan=4>Target</th>";
-    print "<th>Status</th>";
-    print "</tr>\n";
+    print <<EOHEADER;
+
+    <div id="recent-builds" class="build-section">
+    <h2>Recent builds of $tree</h2>
+      <table class="real">
+	<thead>
+	  <tr>
+            <th>Age</th><th>Revision</th><th colspan="4">Target</th><th>Status</th>
+	  </tr>
+	</thead>
+        <tbody>
+EOHEADER
+
 
     for my $build (@all_builds) {
 	my $age = $$build[0];
 	my $rev = $$build[6];
-	printf "<tr>";
-	print "<td>" .
-	util::dhm_time($age)."<td>";		# goes straight to stdout
-	print $rev."<td>";
-	print join "<td>", @$build[4, 1, 2, 3, 5];
-	print "</tr>\n";
+	print "    <tr>",
+	  "<td>" . util::dhm_time($age). "</td>",
+	  "<td>$rev</td><td>",
+	  join("</td><td>", @$build[4, 1, 2, 3, 5]),
+	  "</td></tr>\n";
     }
-    print "</table>\n";
+    print "  </tbody>\n</table>\n</div>\n";
 }
 
 
@@ -728,15 +624,26 @@ sub view_recent_builds() {
 # Draw the "dead hosts" table
 sub draw_dead_hosts() {
     my @deadhosts = @_;
-    print "<br><b>Dead Hosts:</b><br>\n";
-    print '<table border=2><tr>';
-    print "<tr bgcolor=\"$HEADCOLOR\"><th>Host</th><th>OS</th><th>Min Age</th></tr>
-";
+
+    # don't output anything if there are no dead hosts
+    if ($#deadhosts < 1) {
+      return;
+    }
+
+    print <<EOHEADER;
+<div class="build-section" id="dead-hosts">
+<h2>Dead Hosts:</h2>
+<table class="real">
+<thead>
+<tr><th>Host</th><th>OS</th><th>Min Age</th></tr>
+</thead>
+<tbody>
+EOHEADER
     for my $host (@deadhosts) {
 	my $age = host_age($host);
-	printf("<tr><td>$host</td><td>$hosts{$host}</td><td align=right>%s</td>\n", util::dhm_time($age));
-    }    
-    print "</table>\n";
+	print "    <tr><td>$host</td><td>$hosts{$host}</td><td>", util::dhm_time($age), "</td></tr>";
+    }
+    print "  </tbody>\n</table>\n</div>\n";
 }
 
 
@@ -775,15 +682,17 @@ sub view_build() {
 	$err = util::cgi_escape($err);
     }
 
+    print "<h2>Host information:</h2>\n";
+
     print util::FileLoad("../web/$host.html");
 
     print "
-<table>
-<tr><td>Host:</td><td><a href=\"$myself?function=Summary&host=$host&tree=$tree&compiler=$compiler#$host\">$host</a> - $hosts{$host}</td></tr>
+<table class=\"real\">
+<tr><td>Host:</td><td><a href=\"$myself?function=Summary;host=$host;tree=$tree;compiler=$compiler#$host\">$host</a> - $hosts{$host}</td></tr>
 <tr><td>Uname:</td><td>$uname</td></tr>
 <tr><td>Tree:</td><td>$tree</td></tr>
 <tr><td>Build Revision:</td><td>" . $rev . "</td></tr>
-<tr><td>Build age:</td><td>" . red_age($age) . "</td></tr>
+<tr><td>Build age:</td><td class=\"age\">" . red_age($age) . "</td></tr>
 <tr><td>Status:</td><td>$status</td></tr>
 <tr><td>Compiler:</td><td>$compiler</td></tr>
 <tr><td>CFLAGS:</td><td>$cflags</td></tr>
@@ -801,14 +710,14 @@ sub view_build() {
     # These can be pretty wide -- perhaps we need to 
     # allow them to wrap in some way?
     if ($err eq "") {
-	print "<b>No error log available</b><br>\n";
+	print "<h2>No error log available</h2>\n";
     } else {
 	print "<h2>Error log:</h2>\n";
 	print make_action_html("stderr", $err, "stderr-0");;
     }
 
     if ($log eq "") {
-	print "<b>No build log available</b><br>\n";
+	print "<h2>No build log available</h2>\n";
     } else {
 	print "<h2>Build log:</h2>\n";
 	print_log_pretty($log);
@@ -820,20 +729,19 @@ sub view_build() {
     }
     else {
     if ($err eq "") {
-	print "<b>No error log available</b><br>\n";
+	print "<h2>No error log available</h2>\n";
     } else {
 	print "<h2>Error log:</h2>\n";
-	print "<tt><pre>" . join('', $err) . "</pre></tt>\n";
+	print "<div id=\"errorLog\"><pre>" . join('', $err) . "</pre></div>\n";
     }
     if ($log eq "") {
-	print "<b>No build log available</b><br>\n";
+	print "<h2>No build log available</h2>n";
     }
     else {
 	print "<h2>Build log:</h2>\n";
-	print "<tt><pre>" . join('', $log) . "</pre></tt><p>\n";
+	print "<div id=\"buildLog\"><pre>" . join('', $log) . "</pre></div>\n";
       }
     }
-    print "</body>\n";
 }
 
 ##############################################
@@ -874,14 +782,14 @@ sub make_test_html {
   my $return =  "</pre>" . # don't want the pre openned by action affecting us
                "<div class=\"test unit \L$status\E\" id=\"test-$id\">" .
                 "<a href=\"javascript:handle('$id');\">" .
-                 "<img id=\"img-$id\" src=\"";
+                 "<img id=\"img-$id\" name=\"img-$id\" src=\"";
   if (defined $status && $status eq "PASSED") {
     $return .= "icon_unhide_16.png";
   }
   else {
     $return .= "icon_hide_16.png";
   }
-  $return .= "\"> " .
+  $return .= "\" /> " .
                  "<div class=\"test name\">$name</div> " .
                 "</a> " .
                "<div class=\"test status \L$status\E\">$status</div>" .
@@ -904,7 +812,7 @@ sub make_action_html {
   my $status = shift;
   my $return = "<div class=\"action unit \L$status\E\" id=\"action-$id\">" .
                 "<a href=\"javascript:handle('$id');\">" .
-                 "<img id=\"img-$id\" src=\"";
+                 "<img id=\"img-$id\" name=\"img-$id\" src=\"";
 
   if (defined $status && ($status =~ /failed/i)) {
     $return .= 'icon_hide_24.png';
@@ -913,7 +821,7 @@ sub make_action_html {
     $return .= 'icon_unhide_24.png';
   }
 
-  $return .= "\"> " .
+  $return .= "\" /> " .
                   "<div class=\"action name\">$name</div>" .
                 "</a> ";
 
@@ -933,60 +841,63 @@ sub make_action_html {
 # main page
 sub main_menu() {
     print $req->startform("GET");
+    print "<div id=\"build-menu\">\n";
     print $req->popup_menu(-name=>'host',
 			   -values=>\@hosts,
-			   -labels=>\%hosts);
-    print $req->popup_menu("tree", [sort keys %trees]);
-    print $req->popup_menu("compiler", $compilers);
-    
-    print $req->submit('function', 'View Build');
-    print "&nbsp;&nbsp;" . $req->submit('function', 'Recent Checkins');
-    print "&nbsp;&nbsp;" . $req->submit('function', 'Summary');
-    print "&nbsp;&nbsp;" . $req->submit('function', 'Recent Builds');
-
-    print $req->endform();
+			   -labels=>\%hosts) . "\n";
+    print $req->popup_menu("tree", [sort keys %trees]) . "\n";
+    print $req->popup_menu("compiler", $compilers) . "\n";
+    print "<br />\n";
+    print $req->submit('function', 'View Build') . "\n";
+    print $req->submit('function', 'Recent Checkins') . "\n";
+    print $req->submit('function', 'Summary') . "\n";
+    print $req->submit('function', 'Recent Builds') . "\n";
+    print "</div>\n";
+    print $req->endform() . "\n";
 }
+
 
 ###############################################
 # display top of page
 sub page_top() {
     cgi_headers();
     chdir("$BASEDIR/data") || fatal("can't change to data directory");
-    main_menu();
 }
+
+
 ###############################################
 # main program
+my $fn_name = (defined $req->param('function')) ? $req->param('function') : '';
 
-if (defined $req->param("function")) {
-    my $fn_name = $req->param("function");
-    if ($fn_name eq "View Build") {
-	page_top();
-	view_build();
-	cgi_footers();
-    } elsif ($fn_name eq "Recent Builds") {
-	page_top();
-	view_recent_builds();
-	cgi_footers();
-    } elsif ($fn_name eq "Recent Checkins") {
-	page_top();
-	history::cvs_history($req->param('tree'));
-	cgi_footers();
-    } elsif ($fn_name eq "diff") {
-	page_top();
-	history::cvs_diff($req->param('author'), $req->param('date'), $req->param('tree'), "html");
-	cgi_footers();
-    } elsif ($fn_name eq "text_diff") {
-	cgi_headers_diff();
-	chdir("$BASEDIR/data") || fatal("can't change to data directory");	
-	history::cvs_diff($req->param('author'), $req->param('date'), $req->param('tree'), "text");	
-    } else {
-	page_top();
-	view_summary();
-	cgi_footers();
-    }
-} else {
-    page_top();
+if ($fn_name eq 'text_diff') {
+  cgi_headers_diff();
+  chdir("$BASEDIR/data") || fatal("can't change to data directory");
+  history::cvs_diff($req->param('author'),
+		    $req->param('date'),
+		    $req->param('tree'),
+		    "text");
+}
+else {
+  page_top();
+
+  if    ($fn_name eq "View Build") {
+    view_build();
+  }
+  elsif ($fn_name eq "Recent Builds") {
+    view_recent_builds();
+  }
+  elsif ($fn_name eq "Recent Checkins") {
+    history::cvs_history($req->param('tree'));
+  }
+  elsif ($fn_name eq "diff") {
+    history::cvs_diff($req->param('author'),
+		      $req->param('date'),
+		      $req->param('tree'),
+		      "html");
+  }
+  else {
     view_summary();
-    cgi_footers();
+  }
+  cgi_footers();
 }
 
