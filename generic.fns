@@ -1,5 +1,4 @@
 test_tree samba4 source gcc
-test_tree samba_2_2 source gcc
 test_tree samba_3_0 source gcc
 test_tree rsync . gcc
 test_tree distcc . gcc

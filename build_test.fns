@@ -134,9 +134,6 @@ action_build() {
 	samba|samba_3_0)
 	    do_make proto everything torture
 	    ;;
-	samba_2_2)
-	    do_make everything bin/smbtorture
-	    ;;
 	*)
 	    do_make all
 	    ;;
@@ -217,7 +214,7 @@ each_test() {
 }
 
 #############################
-# do pre-test cleanup work for samba and samba_2_2 and samba_3_0
+# do pre-test cleanup work for samba and samba_3_0
 # then run the tests
 action_test_samba() {
 	logfile="$prefix/var/log.smbd"
@@ -357,10 +354,6 @@ test_tree() {
 	case "$tree" in
 	samba|samba_3_0)
 	    testsuite=testsuite/build_farm
-	    ;;
-	samba_2_2)
-	    testsuite=testsuite/build_farm
-	    config="$config --with-codepagedir=$prefix/codepages"
 	    ;;
 	*)
 	    testsuite=testsuite

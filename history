@@ -8,7 +8,6 @@ cd $HOME/master || exit 1
 (
 
 ./cvslog.pl /data/cvs/CVSROOT/samba.updates 60 samba "" cache/history.samba
-./cvslog.pl /data/cvs/CVSROOT/samba.updates 60 samba "SAMBA_2_2" cache/history.samba_2_2
 ./cvslog.pl /data/cvs/CVSROOT/samba.updates 60 samba "SAMBA_3_0" cache/history.samba_3_0
 ./cvslog.pl /data/cvs/CVSROOT/samba-docs.updates 60 samba-docs "" cache/history.samba-docs
 ./cvslog.pl /data/cvs/CVSROOT/samba4.updates 60 samba4 "" cache/history.samba4

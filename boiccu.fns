@@ -8,5 +8,4 @@ test_tree samba4 source gcc
 
 export config="--with-quotas --with-pam --with-pam_smbpass --with-smbmount"
 
-test_tree samba_2_2 source gcc
 test_tree samba_3_0 source gcc

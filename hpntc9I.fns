@@ -1,4 +1,3 @@
-test_tree samba_2_2 source cc
 test_tree samba_3_0 source cc
 test_tree samba4 source cc
 test_tree rsync . cc
@@ -6,7 +5,6 @@ test_tree distcc . cc
 test_tree ccache . cc
 
 export CFLAGS="-O -Wall"
-test_tree samba_2_2 source gcc
 test_tree samba_3_0 source gcc
 test_tree samba4 source cc
 test_tree rsync . gcc

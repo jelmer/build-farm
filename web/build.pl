@@ -160,7 +160,6 @@ my (%trees) = (
 	       'samba4' => "",
 	       'samba-docs' => "",
 	       'samba_3_0' => "SAMBA_3_0",
-	       'samba_2_2' => "SAMBA_2_2",
 	       'rsync' => "",
 	       'distcc' => "",
 	       'ccache' => "");

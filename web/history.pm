@@ -22,7 +22,6 @@ my $HEADCOLOR = "#a0a0e0";
 my $CVSWEB_BASE = "http://pserver.samba.org/cgi-bin/cvsweb";
 
 my (%tree_base) = ('samba' => "samba",
-		   'samba_2_2' => "samba",
 		   'samba_3_0' => "samba",
 		   'samba-docs' => "samba-docs",
 		   'samba4' => "samba4",

@@ -1,4 +1,3 @@
-test_tree samba_2_2 source cc
 test_tree samba_3_0 source cc
 test_tree samba4 source cc
 test_tree rsync . cc

@@ -1,9 +1,3 @@
 test_tree samba4 source gcc
-
-# (vance) added LDFLAGS=-bnoquiet Wed Jun 23 2004
-# to help trouble shoot the compile of 2_2
-export config="--with-utmp LDFLAGS=-bnoquiet"
-test_tree samba_2_2 source gcc
-export config=""
 test_tree samba_3_0 source gcc
 config="" test_tree rsync . gcc
