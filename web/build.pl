@@ -122,7 +122,7 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 
 	       'cyberone' => "Cygwin i686 (MS WinXP Pro)",
 
-	       'trip' => "Mandrake 9.2 i386 GCC 3.3.1",
+	       'trip' => "Mandrake 10.0 i386",
 
 	       'm30' => "Stratus VOS HP PA-RISC",
 
@@ -130,6 +130,7 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 	       'mundroo' => "Solaris 8 i386",
 	       'cat' => "Solaris 9 i386",
 	       'fire1' => "Solaris 9 Sparc",
+	       'opisol0' => "Solaris 10 b63 x86",
 
 	       'packetstorm' => "Slackware Linux 9.0 i386",
 
