@@ -86,4 +86,86 @@ div.build-section {
         clear: both;
         width: 100%;
 }
+div.build-menu { 
+	position:absolute;
+	top:100;
+	left:0;
+        text-align: center;
+	height:90px;
+	width:100%;
+	padding-top:4px;
+        z-index: 10;
+}
+#logo>.build_logo { 
+        background-image:url(build_logo.png);
+        background-position:center;
+        background-repeat:no-repeat;
+}
+.build_logo {
+        position:absolute;
+        width:399px;
+        height:208px;
+        margin-top:-42px;
+        margin-left:1px;
+        z-index:1;      
+}
 
+#banner {
+	position:absolute;
+	top:0;
+	left:0;
+        text-align: center;
+	height:90px;
+	width:100%;
+	padding-top:4px;
+	background-color:#FFFF64;
+}
+.stripe {
+	position:absolute;
+	top:40px;
+	left:0;
+        text-align: center;
+        height:55px;
+	width:100%;
+	background-color:#3878CD;
+	border-top:2px solid #575756;
+	border-bottom:2px solid #575756;
+}
+
+#build-menu { 
+        position: absolute;
+        top: 0;
+        left: 250px;
+        margin-top: 5px;
+        zindex: 10px;
+}
+#build-menu input { 
+        margin: 20px 10px 0px 0px;
+}
+
+/* Styles for main content (center column) */
+#content>.center {
+	position:absolute;
+	top:100px;
+	left:175px;
+	margin:0;
+	padding-top:30px;
+	padding-left:35px;
+	padding-bottom:50px;
+	padding-right:15px;
+	background-color:#FFF;
+	border-left:1px solid #FFFF64;
+	border-right:1px solid #FFFF64;
+}
+
+#logo>.build_logo {
+	background-image:url(build_logo.png);
+	background-position:center;
+	background-repeat:no-repeat;
+}
+#logo img {
+	border:0;
+}
+#logo a:hover {
+	background:transparent;
+}

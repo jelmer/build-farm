@@ -309,6 +309,7 @@ sub cvs_history($)
 	$authors{$log->[$i]->{AUTHOR}} = 1;
     }
 
+    print "<h2>Recent checkins for $tree</h2>\n";
     print $req->startform("GET");
     print "Select Author: ";
     print $req->popup_menu("author", [sort keys %authors]);
@@ -317,7 +318,6 @@ sub cvs_history($)
     print $req->hidden('function', 'Recent Checkins');
     print $req->endform();
 
-    print "<h2>Recent checkins for $tree</h2>\n";
     
     print "
 ";

@@ -458,7 +458,7 @@ sub view_summary() {
 
 <div id="build-broken-summary" class="build-section">
 <h2>Currently broken builds:</h2>
-<table class="summary">
+<table class="summary real">
   <thead>
     <tr>
       <th colspan="3">Target</th><th>Build&nbsp;Age</th><th>Status<br />config/build<br />install/test</th><th>Warnings</th>
@@ -499,7 +499,7 @@ EOHEADER
 
 <div id="build-counts" class="build-section">
 <h2>Build counts:</h2>
-<table>
+<table class="real">
   <thead>
     <tr>
       <th>Tree</th><th>Total</th><th>Broken</th><th>Panic</th>
@@ -543,7 +543,7 @@ EOHEADER
 <div class="host summary">
   <a id="$host" name="$host" />
   <h3>$host - $hosts{$host}</h3>
-  <table>
+  <table class="real">
     <thead>
       <tr>
         <th>Target</th><th>Build&nbsp;Age</th><th>Status<br />config/build<br />install/test</th><th>Warnings</th>
@@ -605,7 +605,7 @@ sub view_recent_builds() {
 
     <div id="recent-builds" class="build-section">
     <h2>Recent builds of $tree</h2>
-      <table>
+      <table class="real">
 	<thead>
 	  <tr>
             <th>Age</th><th>Revision</th><th colspan="4">Target</th><th>Status</th>
@@ -641,7 +641,7 @@ sub draw_dead_hosts() {
     print <<EOHEADER;
 <div class="build-section" id="dead-hosts">
 <h2>Dead Hosts:</h2>
-<table>
+<table class="real">
 <thead>
 <tr><th>Host</th><th>OS</th><th>Min Age</th></tr>
 </thead>
@@ -690,10 +690,12 @@ sub view_build() {
 	$err = util::cgi_escape($err);
     }
 
+    print "<h2>Host information:</h2>\n";
+
     print util::FileLoad("../web/$host.html");
 
     print "
-<table>
+<table class=\"real\">
 <tr><td>Host:</td><td><a href=\"$myself?function=Summary;host=$host;tree=$tree;compiler=$compiler#$host\">$host</a> - $hosts{$host}</td></tr>
 <tr><td>Uname:</td><td>$uname</td></tr>
 <tr><td>Tree:</td><td>$tree</td></tr>
@@ -847,18 +849,18 @@ sub make_action_html {
 # main page
 sub main_menu() {
     print $req->startform("GET");
-  print "<div id=\"build-menu\">\n";
+    print "<div id=\"build-menu\">\n";
     print $req->popup_menu(-name=>'host',
 			   -values=>\@hosts,
 			   -labels=>\%hosts) . "\n";
     print $req->popup_menu("tree", [sort keys %trees]) . "\n";
     print $req->popup_menu("compiler", $compilers) . "\n";
-
+    print "<br />\n";
     print $req->submit('function', 'View Build') . "\n";
-    print "&nbsp;&nbsp;" . $req->submit('function', 'Recent Checkins') . "\n";
-    print "&nbsp;&nbsp;" . $req->submit('function', 'Summary') . "\n";
-    print "&nbsp;&nbsp;" . $req->submit('function', 'Recent Builds') . "\n";
-  print "</div>\n";
+    print $req->submit('function', 'Recent Checkins') . "\n";
+    print $req->submit('function', 'Summary') . "\n";
+    print $req->submit('function', 'Recent Builds') . "\n";
+    print "</div>\n";
     print $req->endform() . "\n";
 }
 
