@@ -871,10 +871,11 @@ my $fn_name = (defined $req->param('function')) ? $req->param('function') : '';
 if ($fn_name eq 'text_diff') {
   cgi_headers_diff();
   chdir("$BASEDIR/data") || fatal("can't change to data directory");
-  history::cvs_diff($req->param('author'),
-		    $req->param('date'),
-		    $req->param('tree'),
-		    "text");
+  history::diff($req->param('author'),
+		$req->param('date'),
+		$req->param('tree'),
+		$req->param('revision'),
+		"text");
 }
 else {
   page_top();
@@ -886,13 +887,14 @@ else {
     view_recent_builds();
   }
   elsif ($fn_name eq "Recent Checkins") {
-    history::cvs_history($req->param('tree'));
+    history::history($req->param('tree'));
   }
   elsif ($fn_name eq "diff") {
-    history::cvs_diff($req->param('author'),
-		      $req->param('date'),
-		      $req->param('tree'),
-		      "html");
+    history::diff($req->param('author'),
+		  $req->param('date'),
+		  $req->param('tree'),
+		  $req->param('revision'),
+		  "html");
   }
   else {
     view_summary();

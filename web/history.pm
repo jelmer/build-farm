@@ -13,19 +13,24 @@ use strict qw{vars};
 use util;
 use POSIX;
 use Data::Dumper;
-use CGI::Form;
+use CGI;
 use File::stat;
 
-my $req = new CGI::Form;
+my $req = new CGI;
 
 my $HEADCOLOR = "#a0a0e0";
 my $CVSWEB_BASE = "http://pserver.samba.org/cgi-bin/cvsweb";
+my $WEBSVN_BASE = "http://websvn.samba.org/log.php";
 
-my (%tree_base) = ('samba' => "samba",
-		   'samba_3_0' => "samba",
-		   'samba-docs' => "samba-docs",
-		   'samba4' => "samba4",
-		   'rsync' => "rsync",
+# a map of names to web svn log locations
+my (%svn_trees) = ('samba' => "$WEBSVN_BASE?rep=samba&path=/trunk",
+		   'samba_3_0' => "$WEBSVN_BASE?rep=samba&path=/branches/SAMBA_3_0",
+		   'samba-docs' => "$WEBSVN_BASE?rep=samba-docs&path=/trunk",
+
+		   'samba4' => "$WEBSVN_BASE?rep=samba&path=/branches/SAMBA_4_0");
+
+# a map of names to cvs modules
+my (%cvs_trees) = ('rsync' => "rsync",
 		   'distcc' => 'distcc',
 		   'ccache' => 'ccache');
 
@@ -41,29 +46,7 @@ if ($myself =~ /http:\/\/.*\/(.*)/) {
     $myself = $1;
 }
 
-$myself = "http://build.samba.org/";
-
-################################################
-# start CGI headers
-sub cgi_headers() {
-    print "Content-type: text/html\r\n";
-
-    util::cgi_gzip();
-
-    print '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"> 
-<html>
-<head><title>recent checkins</title></head>
-<body bgcolor="white" text="#000000" link="#0000EE" vlink="#551A8B" alink="#FF0000">
-';
-
-}
-
-################################################
-# end CGI
-sub cgi_footers() {
-    print "</body>";
-    print "</html>\n";
-}
+#$myself = "http://build.samba.org/";
 
 ################################################
 # print an error on fatal errors
@@ -77,26 +60,25 @@ sub fatal($) {
 
 ###############################################
 # pretty up a cvs diff -u
-sub cvs_pretty($)
+sub diff_pretty($)
 {
     my $diff = shift;
     my $ret = "";
     my @lines = split(/$/m, $diff);
 
-    my (%colors) = (
-		    '^diff.*' => 'red',
-		    '^=.*' => 'blue',
-		    '^Index:.*' => 'blue',
-		    '^\-.*' => '#a00000',
-		    '^\+.*' => '#00a000'
+    my %line_types = (
+		    '^diff.*' => 'diff_diff',
+		    '^=.*' => 'diff_separator',
+		    '^Index:.*' => 'diff_index',
+		    '^\-.*' => 'diff_removed',
+		    '^\+.*' => 'diff_added',
+		    '^@@.*' => 'diff_fragment_header'
 		    );
 
-    for (my $i=0; $i <= $#lines; $i++) {
-	my $line = $lines[$i];
-
-	for my $r (keys %colors) {
+    foreach my $line (@lines) {
+	for my $r (keys %line_types) {
 	    if ($line =~ /$r/m) {
-		$line = "<font color=\"$colors{$r}\">$line</font>";
+		$line = "<span class=\"$line_types{$r}\">$line</span>";
 		last;
 	    }
 	}
@@ -105,16 +87,27 @@ sub cvs_pretty($)
     return $ret;
 }
 
-sub cvsweb_paths($$)
+###############################################
+# change the given source paths into links
+sub web_paths($$)
 {
     my $tree = shift;
     my $paths = shift;
     my $ret = "";
-    while ($paths =~ /\s*([^\s]+)(.*)/) {
-	$ret .= "<a href=\"$CVSWEB_BASE/$tree_base{$tree}/$1\">$1</a> ";
+
+    if (grep {/$tree/} keys %cvs_trees) {
+      while ($paths =~ /\s*([^\s]+)(.*)/) {
+	$ret .= "<a href=\"$CVSWEB_BASE/$cvs_trees{$tree}/$1\">$1</a> ";
 	$paths = $2;
+      }
     }
-    
+    elsif (grep {/$tree/} keys %svn_trees) {
+	    while ($paths =~ /\s*([^\s]+)(.*)/) {
+		    $ret .= "<a href=\"$svn_trees{$tree}/$1\">$1</a> ";
+		    $paths = $2;
+	    }
+    }
+
     return $ret;
 }
 
@@ -131,41 +124,50 @@ sub history_row($$)
     $t =~ s/\ /&nbsp;/g;
 
     print "
-<p><table bgcolor=\"\#f0f0ff\" width=\"80%\" class=\"entry\">
-  <tr>
-    <td>
-     <b>$t</b><br>$age ago<br>
-    </td>
-  </tr>
-  <tr>
-    <td valign=top align=left>
-<b><a href=$myself?function=diff&tree=$tree&date=$entry->{DATE}&author=$entry->{AUTHOR}>show diffs</a></b><br>
-<a href=$myself?function=text_diff&tree=$tree&date=$entry->{DATE}&author=$entry->{AUTHOR}>download diffs</a><br>
-    <pre>$msg</pre>
-    </td>
-  </tr>
+<div class=\"history_row\">
+    <div class=\"datetime\">
+        <span class=\"date\">$t</span><br>
+        <span class=\"age\">$age ago</span>";
 
-  <tr><td><em>Author: </em>$entry->{AUTHOR}</td></tr>";
+    my $revision_url = "";
+    if ($entry->{REVISION}) {
+	    print " - <span class=\"revision\">r$entry->{REVISION}</span><br>";
+	    $revision_url = ";revision=$entry->{REVISION}";
+    }
+
+    print "    </div>
+    <div class=\"diff\">
+        <span class=\"html\"><a href=\"$myself?function=diff;tree=$tree;date=$entry->{DATE};author=$entry->{AUTHOR}$revision_url\">show diffs</a></span>
+    <br>
+        <span class=\"text\"><a href=\"$myself?function=text_diff;tree=$tree;date=$entry->{DATE};author=$entry->{AUTHOR}$revision_url\">download diffs</a></span>
+        <br>
+        <div class=\"history_log_message\">
+            <pre>$msg</pre>
+        </div>
+    </div>
+    <div class=\"author\">
+    <span class=\"label\">Author: </span>$entry->{AUTHOR}
+    </div>";
 
     if ($entry->{FILES}) {
-	print "<tr><td><em>Modified: </em>";
-	print cvsweb_paths($tree, $entry->{FILES});
-	print "</td></tr>\n";
+	print "<div class=\"files\"><span class=\"label\">Modified: </span>";
+	print web_paths($tree, $entry->{FILES});
+	print "</div>\n";
     }
 
     if ($entry->{ADDED}) {
-	print "<tr><td><em>Added:</em> ";
-	print cvsweb_paths($tree, $entry->{ADDED});
-	print "</td></tr>\n";
+	print "<div class=\"files\"><span class=\"label\">Added: </span>";
+	print web_paths($tree, $entry->{ADDED});
+	print "</div>\n";
     }
 
     if ($entry->{REMOVED}) {
-	print "<tr><td><em>Removed: </em>";
-	print cvsweb_paths($tree, $entry->{REMOVED});
-	print "</td></tr>\n";
+	print "<div class=\"files\"><span class=\"label\">Removed: </span>";
+	print web_paths($tree, $entry->{REMOVED});
+	print "</div>\n";
     }
 
-    print "</table>\n";
+    print "</div>\n";
 }
 
 
@@ -180,12 +182,93 @@ sub history_row_text($$)
     my $age = util::dhm_time(time()-$entry->{DATE});
 
     print "Author: $entry->{AUTHOR}\n";
-    print "Mofified: $entry->{FILES}\n";
+    if ($entry->{REVISION}) {
+	    print "Revision: r$entry->{REVISION}\n";
+    }
+    print "Modified: $entry->{FILES}\n";
     print "Added: $entry->{ADDED}\n";
     print "Removed: $entry->{REMOVED}\n";
     print "\n\n$msg\n\n\n";
 }
 
+###############################################
+# get recent cvs/svn entries
+sub diff($$$$$)
+{
+    my $author = shift;
+    my $date = shift;
+    my $tree = shift;
+    my $revision = shift;
+    my $text_html = shift;
+
+
+    # validate the tree
+    util::InArray($tree, [keys %cvs_trees, keys %svn_trees]) || print Dumper([keys %cvs_trees, keys %svn_trees]);
+
+
+    chdir("$unpacked_dir/$tree") || fatal("no tree $unpacked_dir/$tree available");
+
+    if (grep {/$tree/} keys %cvs_trees) {
+	cvs_diff($author, $date, $tree, $text_html);
+    }
+    else {
+	svn_diff($revision, $tree, $text_html);
+    }
+}
+
+###############################################
+# show recent svn entries
+sub svn_diff($$$)
+{
+    my $revision = shift;
+    my $tree = shift;
+    my $text_html = shift;
+
+    # ensure the user-specified tree is a valid tree
+    util::InArray($tree, [keys %svn_trees]) || fatal("unknown tree");
+
+    chdir("$unpacked_dir/$tree") || fatal("no tree $unpacked_dir/$tree available");
+
+    # determine the most recent version known to this database
+    my ($current_revision) = grep {/^Revision/} `svn info`;
+    chomp $current_revision;
+    $current_revision =~ s/.*?(\d+)$/$1/;
+
+    if ($revision !~ /^\d+$/ || $revision < 0 ||
+	$revision > $current_revision) {
+	fatal("unknown revision");
+    }
+
+
+    # get information about the current diff
+    if ($text_html eq "html") {
+	print "<h2>SVN Diff in $tree for revision r$revision</h2>\n";
+	print "<div class=\"history row\">\n";
+
+#	history_row($entry, $tree);
+
+	print "</div>\n";
+    }
+    else {
+#	history_row_text($entry, $tree);
+    }
+
+
+    my $old_revision = $revision - 1;
+    my $cmd = "svn diff -r $old_revision:$revision";
+
+    my $diff = `$cmd 2> /dev/null`;
+
+    if ($text_html eq "html") {
+	print "<!-- $cmd --!>\n";
+	$diff = util::cgi_escape($diff);
+	$diff = diff_pretty($diff);
+	print "<pre>$diff</pre>\n";
+    }
+    else {
+	print "$diff\n";
+    }
+}
 
 ###############################################
 # show recent cvs entries
@@ -195,16 +278,19 @@ sub cvs_diff($$$$)
     my $date = shift;
     my $tree = shift;
     my $text_html = shift;
-    my $cmd;
     my $module;
-
-    util::InArray($tree, [keys %tree_base]) || fatal("unknown tree");
 
     my $log = util::LoadStructure("$HISTORYDIR/history.$tree");
 
-    chdir("$unpacked_dir/$tree") || fatal("no tree $unpacked_dir/$tree available");
+    # ensure the user-specified tree is a valid tree
+    util::InArray($tree, [keys %cvs_trees]) || fatal("unknown tree");
 
-    $module = $tree_base{$tree};
+    # for paranoia, check that the date string is a valid date
+    if ($date =~ /[^\d]/) {
+	    fatal("unknown date");
+    }
+
+    $module = $cvs_trees{$tree};
 
     for (my $i=0; $i <= $#{$log}; $i++) {
 	my $entry = $log->[$i];
@@ -219,9 +305,7 @@ sub cvs_diff($$$$)
 	    if ($text_html eq "html") {
 		print "<h2>CVS Diff in $tree for $t1</h2>\n";
 		
-		print "<table border=0><tr>\n";
 		history_row($entry, $tree);
-		print "</tr></TABLE>\n";
 	    } else {
 		history_row_text($entry, $tree);
 	    }
@@ -262,17 +346,18 @@ in cvs</b>
 			if ($text_html eq "html") { 
 			    print "<!-- $cmd --!>\n";
 			    $diff = util::cgi_escape($diff);
-			    $diff = cvs_pretty($diff);
+			    $diff = diff_pretty($diff);
 			    print "<pre>$diff</pre>\n";
 			} else {
 			    print "$diff\n";
 			}
 		    }
 	    } else {
+		    my $cmd;
 		    if ($text_html eq "html") { 
-			my $cmd = "cvs diff -b -u -D \"$t1 $TIMEZONE\" -D \"$t2 $TIMEZONE\" $entry->{FILES}";
+			$cmd = "cvs diff -b -u -D \"$t1 $TIMEZONE\" -D \"$t2 $TIMEZONE\" $entry->{FILES}";
 		    } else {
-			my $cmd = "cvs diff -u -D \"$t1 $TIMEZONE\" -D \"$t2 $TIMEZONE\" $entry->{FILES}";
+			$cmd = "cvs diff -u -D \"$t1 $TIMEZONE\" -D \"$t2 $TIMEZONE\" $entry->{FILES}";
 		    }
 
 		    my $diff = `$cmd 2> /dev/null`;
@@ -280,27 +365,32 @@ in cvs</b>
 		    if ($text_html eq "html") { 
 			print "<!-- $cmd --!>\n";
 			$diff = util::cgi_escape($diff);
-			$diff = cvs_pretty($diff);
+			$diff = diff_pretty($diff);
+			print "<pre>$diff</pre>\n";
 		    }
-		    
-		    print "<pre>$diff</pre>\n";
+		    else {
+			print "$diff\n";
+		    }
+
 	    }
 
 	    return;
 	}
-    }    
+    }
 }
 
-
 ###############################################
-# show recent cvs entries
-sub cvs_history($)
+# get commit history for the given tree
+sub history($)
 {
+
     my $tree = shift;
     my (%authors) = ('ALL' => 1);
     my $author;
 
-    util::InArray($tree, [keys %tree_base]) || fatal("unknown tree");
+    # ensure that the tree is a valid tree
+    util::InArray($tree, [keys %svn_trees, keys %cvs_trees]) ||
+	      fatal("unknown tree");
 
     my $log = util::LoadStructure("$HISTORYDIR/history.$tree");
 
@@ -323,18 +413,19 @@ sub cvs_history($)
 
     $author = $req->param("author");
 
+    # what? backwards? why is that? oh... I know... we want the newest first
     for (my $i=$#{$log}; $i >= 0; $i--) {
 	my $entry = $log->[$i];
 	if (! $author ||
-	    ($author eq "ALL") || 
+	    ($author eq "ALL") ||
 	    ($author eq $entry->{AUTHOR})) {
 	    history_row($entry, $tree);
 	}
     }
     print '
 ';
-}
 
+}
 
 #cvs_diff($req->param('author'), $req->param('date'), $req->param('tree'));
 #cvs_history("trinity");

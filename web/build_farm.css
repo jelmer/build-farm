@@ -163,3 +163,37 @@ div.build-section {
 #logo a:hover {
 	background:transparent;
 }
+
+.diff_index {
+        color: blue;
+}
+.diff_removed {
+        color: #a00000;
+}
+.diff_added {
+        color: #0a0;
+}
+.diff_fragment_header {
+        color: purple;
+}
+.diff_separator {
+        color: green;
+}
+.diff_diff {
+        color: red;
+}
+
+.history_row { 
+        background-color: #E5E9F5;
+        margin-bottom: 10px;
+        padding: 2px;
+}
+
+.history_row .label {
+        font-style: italic;
+}
+
+.history_row .date,
+.history_row .diff .html {
+        font-weight: bold;
+}

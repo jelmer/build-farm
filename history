@@ -3,14 +3,16 @@
 # This script converts log files produced by CVS into Perl DataDumper
 # files that can be easily loaded by the buildfarm web interface.
 
-cd $HOME/master || exit 1
+#cd $HOME/master || exit 1
 
 (
 
-./cvslog.pl /data/cvs/CVSROOT/samba.updates 60 samba "" cache/history.samba
-./cvslog.pl /data/cvs/CVSROOT/samba.updates 60 samba "SAMBA_3_0" cache/history.samba_3_0
-./cvslog.pl /data/cvs/CVSROOT/samba-docs.updates 60 samba-docs "" cache/history.samba-docs
-./cvslog.pl /data/cvs/CVSROOT/samba4.updates 60 samba4 "" cache/history.samba4
+./svnlog.pl file:///home/svnanon/repos/samba trunk 60 samba cache/history.samba
+./svnlog.pl file:///home/svnanon/repos/samba branches/SAMBA_2_2 60 samba_2_2 cache/history.samba_2_2
+./svnlog.pl file:///home/svnanon/repos/samba branches/SAMBA_3_0 60 samba_3_0 cache/history.samba_3_0
+./svnlog.pl file:///home/svnanon/repos/samba-docs trunk 60 samba-docs cache/history.samba-docs
+./svnlog.pl file:///home/svnanon/repos/samba branches/SAMBA_4_0 60 samba4 cache/history.samba4
+
 ./cvslog.pl /data/cvs/CVSROOT/rsync.updates 60 rsync "" cache/history.rsync
 ./cvslog.pl /data/cvs/CVSROOT/distcc.updates 60 distcc "" cache/history.distcc
 ./cvslog.pl /data/cvs/CVSROOT/ccache.updates 60 ccache "" cache/history.ccache
