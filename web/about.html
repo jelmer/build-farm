@@ -1,0 +1,41 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"> 
+<HTML>
+<HEAD><TITLE>samba.org build farm</TITLE></HEAD>
+<BODY bgcolor="white" TEXT="#000000" LINK="#0000EE" VLINK="#551A8B" ALINK="#FF0000">
+<IMG ALT="Samba Banner" BORDER=0 ALIGN=MIDDLE SRC="http://www.samba.org/samba/images/samba_banner.gif">
+<br><p>
+
+<h2>About the build farm</h2>
+
+The samba.org build farm is designed to test the configuration and
+build of some projects hosted on samba.org in real time. Each host in
+the build farm builds each of the projects regularly (currently every
+15 minutes for some hosts) and uploads the results of the configure and
+build to the central site (build.samba.org) for display.
+
+<p>This allows team members to check on the build status on a wide
+variety of operating systems and architectures without the drudgery of
+logging into each machine after each CVS commit.
+
+<p>The build farm pulls the source code from the <a
+href="http://www.samba.org/ftp/unpacked/">unpacked CVS repository</a>
+and does a clean configure and build whenever a change is detected in
+the tree. The results shown give information on the status of the
+configure and build process, plus any error logs.
+
+<p>In future we plan on expanding the build farm to do basic runtime testing as well.
+
+<p>The author of the build farm is <a
+href="mailto:tridge@samba.org">Andrew Tridgell</a>. The source for the
+build farm is available in the build_farm cvs tree on the 
+<a href="http://pserver.samba.org/">samba.org CVS server</a>.
+
+<p>The build farm is now maintained by <a href="mailto:vance@samba.org">Vance
+Lankhaar</a>. He replaces long-time maintainer <a href="mailto:abartlet@samba.org">Andrew
+Bartlett</a>, allowing Andrew to focus more time on Samba development. </p>
+
+<p>If you have a machine that you wish to participate in our build farm
+then please read these <a href="instructions.html">instructions</a>.
+
+</BODY>
+</HTML>

@@ -1,0 +1,5 @@
+# Please don't crawl the build farm.. running the cgis takes a lot of 
+# work
+
+User-Agent: *
+Disallow: /

@@ -1,0 +1,15 @@
+config="--with-pam --with-pam_smbpass --with-utmp"
+test_tree samba_2_2 source cc
+test_tree samba_3_0 source cc
+test_tree samba4 source cc
+config="" test_tree rsync . cc
+config="" test_tree distcc . cc
+config="" test_tree ccache . cc
+
+export CFLAGS="-O -Wall"
+test_tree samba_2_2 source gcc
+test_tree samba_3_0 source gcc
+test_tree samba4 source gcc
+config="" test_tree rsync . gcc
+config="" test_tree distcc . gcc
+config="" test_tree ccache . gcc

@@ -1,0 +1,443 @@
+# -*- mode: shell-script; sh-indentation: 8; indent-tabs-mode: t; -*-
+
+# build_farm -- distributed build/test architecture for samba, rsync, etc
+
+# Copyright (C) 2001 by Andrew Tridgell <tridge@samba.org>
+# Copyright (C) 2001 by Andrew Bartlett <abartlet@samba.org>
+# Copyright (C) 2001, 2003 by Martin Pool <mbp@samba.org>
+
+
+#############################
+# build a signature of a tree, used to see if we
+# need to rebuild 
+sum_tree() {
+        sum_tree_test_root=$1
+	sum_tree_tree=$2
+	sum_tree_testsuite=$3
+	sum_tree_sum=$4
+	find $sum_tree_test_root/$sum_tree_tree -type f -print | grep -v '.svn/' | xargs sum > $sum_tree_sum
+	sum build_test build_test.fns >> $sum_tree_sum
+
+	if [ -f "$host.fns" ]; then
+	    sum $host.fns >> $sum_tree_sum
+	fi
+
+	if [ -d "$sum_tree_testsuite" ]; then
+	    find $sum_tree_test_root/$sum_tree_testsuite -type f -print | grep -v '.svn/' | xargs sum >> $sum_tree_sum
+	fi
+}
+
+#############################
+# send the logs to the master site
+send_logs() {
+	if [ "$nologreturn" = "yes" ]; then
+		echo "skipping log transfer"
+	else
+		log="$1"
+		err="$2"
+		chmod 0644 "$log" "$err"
+		rsync -q --password-file=.password -atz --timeout=200 \
+			"$log" "$err" $host@samba.org::build_farm_data/
+	fi
+}
+
+############################
+# fetch the latest copy of the tree
+fetch_tree() {
+	if [ "$norsync" = "yes" ]; then
+		echo "skipping tree transfer"
+	else
+		tree=$1
+		if rsync -q --partial --timeout=200 -az --delete --ignore-errors \
+			samba.org::ftp/unpacked/$tree $test_root; then
+			echo "transferred $tree OK"
+		else
+			echo "transfer of $tree failed code $?"
+			return 1
+		fi
+	fi
+	return 0
+}
+
+############################
+# grab a lock file. Not atomic, but close :)
+# tries to cope with NFS
+lock_file() {
+	lck="$1"
+	machine=`cat "$lck" 2> /dev/null | cut -d: -f1`
+	pid=`cat "$lck" 2> /dev/null | cut -d: -f2`
+
+	if [ -f "$lck" ] && 
+	    ( [ $machine != $host ] || kill -0 $pid ) 2> /dev/null; then
+		echo "lock file $lck is valid for $machine:$pid"
+		return 1
+	fi
+	/bin/rm -f "$lck"
+	echo "$host:$$" > "$lck"
+	return 0
+}
+
+############################
+# unlock a lock file
+unlock_file() {
+	lck="$1"
+	/bin/rm -f "$lck"
+}
+
+############################
+# run make, and print trace
+do_make() {
+  if [ x$MAKE = x ] 
+  then
+    MAKE=make
+  fi 
+    
+  for t in $*; do
+    echo "$MAKE $t"
+    "$MAKE" "$t"
+    status=$?
+    if [ $status != 0 ]; then
+      return $status;
+    fi
+  done
+  return 0
+}      
+
+############################
+# configure the tree
+action_configure() {
+        if [ ! -x configure ]; then
+	    ./autogen.sh
+	fi
+	echo "CFLAGS=$CFLAGS"
+	echo configure options: $config_and_prefix
+	echo CC="$compiler" ./configure $config_and_prefix
+	CC="$compiler"
+	export CC
+	./configure $config_and_prefix
+	cstatus=$?
+	echo "CONFIGURE STATUS: $cstatus"
+	if [ $cstatus != 0 ]; then
+	    echo "contents of config.log:"
+	    cat config.log
+	fi
+	return $cstatus;
+}
+
+############################
+# build the tree
+action_build() {
+	case "$tree" in
+	samba4)
+		do_make proto everything
+		;;
+	samba|samba_3_0)
+	    do_make proto everything torture
+	    ;;
+	samba_2_2)
+	    do_make everything bin/smbtorture
+	    ;;
+	*)
+	    do_make all
+	    ;;
+	esac
+
+	bstatus=$?
+	echo "BUILD STATUS: $bstatus"
+	return $bstatus
+}
+
+############################
+# install the tree
+action_install() {
+	if [ -d $prefix ]; then
+		if [ "$noclean" != "yes" ]; then
+		    rm -rf $prefix
+		fi
+	fi
+
+	do_make install
+	istatus=$?
+	echo "INSTALL STATUS: $istatus"
+	return $istatus;
+}
+
+############################
+# run each test, allow for reruns
+each_test() {
+	    echo "--==--==--==--==--==--==--==--==--==--==--"
+	    echo "Running test $test (level $loglevel stdout)" 
+	    echo "--==--==--==--==--==--==--==--==--==--==--"
+	    echo "--==--==--==--==--==--==--==--==--==--==--" >> $logfile
+	    echo "Running test $test (level $loglevel log)"   >> $logfile
+	    echo "--==--==--==--==--==--==--==--==--==--==--" >> $logfile
+	    date
+
+	    /bin/rm -rf $testdir
+	    mkdir $testdir
+
+	case "$tree" in 
+	samba*)
+	    /bin/rm -rf $prefix/lib
+	    mkdir $prefix/lib
+	    ;;
+        esac
+
+	    ( 
+		cd $test_root/$tree/$testsuite || exit 1
+		echo "running tests in "`pwd`
+		echo "    test_root=$test_root"
+		echo "    tree=$tree"
+		echo "    testsuite=$testsuite"
+		export prefix
+		export host
+		export testdir
+		export test
+		export whoami
+		export loglevel
+		. $test.test 
+	    )
+	    tstatus=$?
+
+	    echo "==========================================" 
+	    echo "==========================================" >> $logfile
+
+	    if [ $tstatus != 0 ]; then
+	        FAILED_TESTS="$FAILED_TESTS $test"
+		echo "TEST FAILED: $test (status $tstatus)" 
+		echo "TEST FAILED: $test (status $tstatus)" >> $logfile
+	    else
+		echo "TEST PASSED: $test" 
+		echo "TEST PASSED: $test" >> $logfile
+	    fi
+
+	    echo "==========================================" 
+	    echo "==========================================" >> $logfile
+
+}
+
+#############################
+# do pre-test cleanup work for samba and samba_2_2 and samba_3_0
+# then run the tests
+action_test_samba() {
+	logfile="$prefix/var/log.smbd"
+
+	LIBSMB_PROG=$prefix/sbin/smbd
+	export LIBSMB_PROG
+
+	if [ \! -d "$prefix/var" ]
+	then
+	    mkdir "$prefix/var"
+	fi
+
+	if [ -f "$logfile" ]
+	then
+	    rm -f $logfile
+	fi
+
+	testdir="$prefix/testdir"
+
+	runlist_file="$test_root/$tree/$testsuite/runlist"
+	if [ ! -f "$runlist_file" ]; then
+		echo "No testsuite defined in $runlist_file"
+		return 0;
+	fi
+
+	# some special magic for transitioning across to cssified
+	# output
+	echo "*build_farm transition magic*"
+
+	. $test_root/$tree/$testsuite/runlist
+	testhost=TEST_$host
+#	testlist=${!testhost}
+	if [ "$testlist" = "" ]; then
+	    testlist=$TEST_ALL
+	fi
+
+	tstatus=0
+	totalfailed=0
+	loglevel=1
+	for test in $testlist; do
+	    each_test $test;
+	    if [ $tstatus != 0 ]; then
+		totalfailed=`expr $totalfailed + 1`;
+		loglevel=10
+		each_test $test
+		loglevel=1
+	    fi
+	done
+	echo "contents of $logfile:"
+	cat $logfile
+	echo "FAILED TESTS: $FAILED_TESTS"
+	echo "TEST STATUS: $totalfailed"
+	return $totalfailed
+}
+
+
+action_test_generic() {
+        CC="$compiler"
+	export CC
+	do_make installcheck
+	totalstatus=$?
+	echo "TEST STATUS: $totalstatus"
+	return "$totalstatus"
+}
+
+
+#############################
+# attempt some basic tests of functionaility
+# starting as basic as possible, and getting incresingly complex
+
+action_test() {
+	# Samba needs crufty code of its own for backward
+	# compatiblity.  I think a better way to do this in the future
+	# is to just call 'make installcheck'.
+	case "$tree" in
+	samba*)
+	    action_test_samba
+	    ;;
+	*)
+	    action_test_generic
+	    ;;
+	esac
+}
+
+###########################
+# do a test build of a particular tree
+test_tree() {
+	tree=$1
+	source=$2
+	compiler="$3"
+	shift
+	shift
+	shift
+
+	# limit our resource usage
+	ulimit -t 300
+	ulimit -m 50000
+
+	# Keep stuff private
+	umask 077
+
+	if [ -z "$test_root" ]; then
+		test_root=`pwd`
+	fi
+
+	log="build.$tree.$host.$compiler.log"
+	err="build.$tree.$host.$compiler.err"
+	sum="build.$tree.$host.$compiler.sum"
+	lck="$test_root/build.$tree.lck"
+
+	if ! lock_file "$lck"; then
+		return
+	fi
+
+	# pull the tree
+	if ! fetch_tree "$tree"; then
+	    unlock_file "$lck"
+	    return
+	fi
+
+	if [ ! $USER = "" ]; then
+	    whoami=$USER
+	else 
+	    if [ ! $LOGNAME = "" ]; then
+		whoami=$LOGNAME
+	    else
+		whoami=build
+	    fi
+	fi
+
+	prefix="$test_root/prefix"
+	if [ ! -d $prefix ]; then
+		mkdir $prefix
+	fi
+	prefix="$prefix/$tree"
+
+	case "$tree" in
+	samba|samba_3_0)
+	    testsuite=testsuite/build_farm
+	    ;;
+	samba_2_2)
+	    testsuite=testsuite/build_farm
+	    config="$config --with-codepagedir=$prefix/codepages"
+	    ;;
+	*)
+	    testsuite=testsuite
+	    ;;
+	esac
+
+	config_and_prefix="$config --prefix=$prefix"
+
+	# see if we need to rebuild
+	sum_tree $test_root $tree $testsuite $sum
+	echo "CFLAGS=$CFLAGS $config_and_prefix" >> $sum
+
+	if cmp "$sum" "$sum.old" > /dev/null; then
+		echo "skip: $tree.$compiler nothing changed"
+		touch "$log" "$err"
+		send_logs "$log" "$err"
+		unlock_file "$lck"
+		return
+	fi
+
+	# we do need to rebuild - save the old sum
+	/bin/rm -f $sum.old
+	mv $sum $sum.old
+
+	actions="$*"
+	
+	if [ "$actions" = "" ]; then
+	    actions="configure build install test"
+	fi
+
+	# start the build
+	(
+		uname -a
+
+		# some special magic for transitioning across to cssified
+		# output
+		echo "*build_farm transition magic*"
+
+		echo "building $tree with CC=$compiler on $host at "`date`
+		for action in $actions; do
+
+		    echo Running action $action
+
+		    date
+		    srcdir=$test_root/$tree/$source
+		    cd $srcdir
+		    export srcdir
+		    df .
+
+		    ( action_$action )
+		    action_status=$?
+		    
+		    if [ $action_status != 0 ]; then
+			echo "ACTION FAILED: $action";
+		    else
+			echo "ACTION PASSED: $action";
+		    fi
+		    
+		    if [ $action_status != 0 ]; then 
+			break;
+		    fi
+
+		done
+
+		if [ "$noclean" = "yes" ]; then
+		    echo cleanup skipped!
+		else
+		    echo cleaning up
+		    do_make clean
+		    /bin/rm -rf $prefix
+		fi
+		date
+	) > "$log" 2> "$err"
+	
+	# send the logs to the master site
+	send_logs "$log" "$err"
+
+	# cleanup
+	unlock_file "$lck"
+}

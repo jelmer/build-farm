@@ -1,0 +1,13 @@
+export CFLAGS="-O -Wall"
+
+test_tree ccache . gcc
+test_tree distcc . gcc
+test_tree rsync . gcc
+
+test_tree samba4 source gcc
+
+export config="--with-quotas --with-pam --with-pam_smbpass --with-smbmount --enable-krb5-developer"
+
+test_tree samba_2_2 source gcc
+test_tree samba_3_0 source gcc
+

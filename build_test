@@ -1,0 +1,37 @@
+#!/bin/bash
+# this is the main build script for build.samba.org
+# it gets run on all the build boxes via cron
+
+# any errors get put in build.log
+
+# we used a fixed path that is a superset of the required paths.
+export PATH=~/bin:/usr/local/bin:/usr/bin:/bin:/opt/SUNWspro/bin:/usr/ccs/bin:/sbin:/usr/sbin:/usr/local/sbin
+
+# go to our main directory
+cd ~/build_farm || exit 1
+
+(
+
+    echo
+    date
+
+    # we only want the short name of the host - use cut for portability
+    host=`hostname | cut -d. -f1`
+
+    # make sure the password isn't readable by anyone
+    chmod 600 .password
+
+    # grab the latest versions of the scripts
+    rsync --timeout=200 -q -az samba.org::build_farm/*.fns .
+
+    # load general functions
+    . build_test.fns
+
+    if [ -f $host.fns ]; then
+      # load host specific functions
+      . $host.fns
+    else
+      . generic.fns
+    fi
+
+) >> build.log 2>&1
