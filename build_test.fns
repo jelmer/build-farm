@@ -451,6 +451,11 @@ test_tree() {
 # use ":" as the fn body.
 per_run_hook() {
 
+    # this cleans up old $host.fns files that were deleted a long
+    # time ago on the server, but have never been deleted on the build
+    # farm machines
+    rm -f $host.fns;
+
     # do nothing ( ':' is a program that always works and does nothing.
     # we don't want any sh to die because of an empty fn.
     :
