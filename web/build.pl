@@ -83,6 +83,8 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 	       'pandemonium' => "OpenBSD-current Sparc64",
 
 	       'kimchi'  => "NetBSD 1.5 i386",
+	       'poseidon' => 'NetBSD 1.6.2 Sparc32',
+	       'ares' => 'NetBSD 2.0 Sparc64',
 
 	       'gc8'  => "FreeBSD 3.3-RELEASE i386",
 	       'gc4'  => "FreeBSD 4.3-STABLE i386",
