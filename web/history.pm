@@ -36,7 +36,8 @@ my (%svn_trees) = ('samba' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=samba\">%s
 # a map of names to cvs modules
 my (%cvs_trees) = ('rsync' => " <a href=\"$CVSWEB_BASE/rsync/%s\">%s</a>",
 		   'distcc' => " <a href=\"$CVSWEB_BASE/distcc/%s\">%s</a>",
-		   'ccache' => " <a href=\"$CVSWEB_BASE/ccache/%s\">%s</a>");
+		   'ccache' => " <a href=\"$CVSWEB_BASE/ccache/%s\">%s</a>",
+		   'ppp' => " <a href=\"$CVSWEB_BASE/ppp/%s\">%s</a>");
 
 my $unpacked_dir = "/home/ftp/pub/unpacked";
 
