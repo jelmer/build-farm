@@ -45,7 +45,7 @@ my $DEADAGE = 60*60*24*4;
 ##############################################
 # this defines what it is possible to build 
 # and what boxes. Should be in a config file
-my $compilers = ['cc', 'gcc', 'gcc3', 'gcc-3.4', 'insure'];
+my $compilers = ['cc', 'gcc', 'gcc3', 'gcc-3.4'];
 
 my (%hosts) = ('sun1' => "Solaris 8 UltraSparc", 
 	       'Isis' => "Solaris 8 i386",
@@ -125,24 +125,9 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 		   'mundroo' => "Solaris 8 i386",
 		   'cat' => "Solaris 9 i386",
 
-#		   'paros' => "Solaris 9 UltraSparc",
 
 	       'superego' => "Debian PPC/64 (Power3)",
 	       'quango' => "Debian PPC/32 (Power3)",
-
-#Compaq Test Drive systems (discontinued, for now)
-#	       'spe140' => "Debian Linux 2.2R6 i386",
-#	       'spe141' => "RedHat Linux 7.3 i386",
-#	       'spe148' => "RedHat Linux 7.1 Alpha (ev6)",
-#	       'spe149' => "FreeBSD 4.6-RELEASE Alpha",
-#	       'spe150' => "SUSE Linux 8.0 i386",
-#	       'spe151' => "FreeBSD 4.6-RELEASE i386",
-#	       'spe158' => "SuSE Linux 7.1 Alpha",
-#	       'spe160' => "Slackware Linux 8.0 i386",
-#	       'spe161' => "Debian Linux 2.2R6 Alpha",
-#	       'spe188' => "Mandrake ProSuite 8.2 i386",
-#	       'spe190' => "RedHat Linux 7.2 ia64",
-#	       'spe223' => "Red Hat Linux Advanced Server 2.1AS i386",
 
 	       'packetstorm' => "Slackware Linux 9.0 i386",
 
@@ -712,7 +697,7 @@ sub view_build() {
 	print "<h2>No error log available</h2>\n";
     } else {
 	print "<h2>Error log:</h2>\n";
-	print make_action_html("stderr", $err, "stderr-0");;
+	print make_action_html("Error Output", "\n$err", "stderr-0");;
     }
 
     if ($log eq "") {
