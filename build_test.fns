@@ -209,7 +209,7 @@ each_test() {
 		export test
 		export whoami
 		export loglevel
-		. $test.test 
+		. ./$test.test 
 	    )
 	    tstatus=$?
 
