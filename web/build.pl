@@ -64,6 +64,7 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 	       'yowiee' => "RedHat 9.0 i386",
 #	       'insure' => "RedHat 6.2 vmware (insure)",
 	       'svamp' => "RedHat 7.0 i386",
+	       'homer' => "RedHat RHEL 3 (WS)",
 
 	       'rhonwyn'  => "Debian Linux unstable i686",
 	       'boiccu'  => "Debian Linux testing/unstable IA64",
@@ -128,6 +129,7 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 	       'previn' => "Solaris 8 UltraSparc",
 	       'mundroo' => "Solaris 8 i386",
 	       'cat' => "Solaris 9 i386",
+	       'fire1' => "Solaris 9 Sparc",
 
 	       'packetstorm' => "Slackware Linux 9.0 i386",
 

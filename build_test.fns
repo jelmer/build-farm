@@ -87,19 +87,36 @@ unlock_file() {
 ############################
 # run make, and print trace
 do_make() {
-  if [ x$MAKE = x ] 
+
+  if [ x"$MAKE" = x ] 
   then
     MAKE=make
   fi 
     
   for t in $*; do
-    echo "$MAKE $t"
-    "$MAKE" "$t"
-    status=$?
+    if [ x"$BUILD_FARM_NUM_JOBS" = x ]; then
+      echo "$MAKE $t"
+      "$MAKE" "$t"
+      status=$?
+    else
+      # we can parallelize everything and all targets
+      if [ x"$t" = xeverything ] || [ x"$t" = xall]; then
+        echo "$MAKE" "-j$BUILD_FARM_NUM_JOBS"  "$t"
+        "$MAKE" "-j$BUILD_FARM_NUM_JOBS"  "$t"
+        status=$?
+      else
+        echo "$MAKE $t"
+        "$MAKE" "$t"
+        status=$?
+      fi
+    fi
+
     if [ $status != 0 ]; then
       return $status;
     fi
+
   done
+
   return 0
 }      
 
