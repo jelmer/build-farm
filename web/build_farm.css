@@ -54,6 +54,10 @@
         color: rgb(255, 0, 0);
 }
 
+.panic { 
+        color: rgb(255, 0, 0);
+        font-weight: bold;
+}
 .status.unknown { 
         color: rgb(0, 0, 255);
 }
