@@ -20,21 +20,22 @@ my $req = new CGI;
 
 my $HEADCOLOR = "#a0a0e0";
 my $CVSWEB_BASE = "http://pserver.samba.org/cgi-bin/cvsweb";
-my $VIEWCVS_BASE = "http://websvn.samba.org/viewcvs.cgi";
+my $VIEWCVS_BASE = "http://websvn.samba.org/cgi-bin/viewcvs.cgi";
 
 # a map of names to web svn log locations
-my (%svn_trees) = ('samba' => "<a href=\"/trunk/%s?root=samba\">%s</a>",
-		   'samba_3_0' =>"<a href=\"/branches/SAMBA_3_0/%s?root=samba\">%s</a>",
-		   'samba-docs' => "<a href=\"/trunk/%s?root=samba-docs\">%s</a>",
+my (%svn_trees) = ('samba' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=samba\">%s</a>",
+		   'samba_3_0' =>" <a href=\"$VIEWCVS_BASE/branches/SAMBA_3_0/%s?root=samba\">%s</a>",
+		   'samba_2_2' =>" <a href=\"$VIEWCVS_BASE/branches/SAMBA_2_2/%s?root=samba\">%s</a>",
+		   'samba-docs' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=samba-docs\">%s</a>",
 
-		   'samba4' => "<a href=\"/branches/SAMBA_4_0/%s?root=samba\">%s</a>",
-		   'samba_web' =>"<a href=\"/trunk/%s?root=samba-web\">%s</a>",
-		   'lorikeet' =>"<a href=\"/trunk/%s?root=lorikeet\">%s</a>");
+		   'samba4' => " <a href=\"$VIEWCVS_BASE/branches/SAMBA_4_0/%s?root=samba\">%s</a>",
+		   'sambaweb' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=samba-web\">%s</a>",
+		   'lorikeet' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=lorikeet\">%s</a>");
 
 # a map of names to cvs modules
-my (%cvs_trees) = ('rsync' => "<a href=\"$CVSWEB_BASE/rsync/%s\">%s</a>",
-		   'distcc' => "<a href=\"$CVSWEB_BASE/distcc/%s\">%s</a>",
-		   'ccache' => "<a href=\"$CVSWEB_BASE/ccache/%s\">%s</a>");
+my (%cvs_trees) = ('rsync' => " <a href=\"$CVSWEB_BASE/rsync/%s\">%s</a>",
+		   'distcc' => " <a href=\"$CVSWEB_BASE/distcc/%s\">%s</a>",
+		   'ccache' => " <a href=\"$CVSWEB_BASE/ccache/%s\">%s</a>");
 
 my $unpacked_dir = "/home/ftp/pub/unpacked";
 
