@@ -7,11 +7,11 @@
 
 (
 
-./svnlog.pl file:///home/svnanon/repos/samba trunk 60 samba cache/history.samba
-./svnlog.pl file:///home/svnanon/repos/samba branches/SAMBA_2_2 60 samba_2_2 cache/history.samba_2_2
-./svnlog.pl file:///home/svnanon/repos/samba branches/SAMBA_3_0 60 samba_3_0 cache/history.samba_3_0
-./svnlog.pl file:///home/svnanon/repos/samba-docs trunk 60 samba-docs cache/history.samba-docs
-./svnlog.pl file:///home/svnanon/repos/samba branches/SAMBA_4_0 60 samba4 cache/history.samba4
+./svnlog.pl svn://svnanon.samba.org/samba trunk 60 samba cache/history.samba
+./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_2_2 60 samba_2_2 cache/history.samba_2_2
+./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_3_0 60 samba_3_0 cache/history.samba_3_0
+./svnlog.pl svn://svnanon.samba.org/samba-docs trunk 60 samba-docs cache/history.samba-docs
+./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_4_0 60 samba4 cache/history.samba4
 
 ./cvslog.pl /data/cvs/CVSROOT/rsync.updates 60 rsync "" cache/history.rsync
 ./cvslog.pl /data/cvs/CVSROOT/distcc.updates 60 distcc "" cache/history.distcc
