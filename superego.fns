@@ -10,3 +10,4 @@ test_tree samba4 source gcc
 export config="--with-utmp --with-pam"
 test_tree samba_3_0 source gcc
 
+per_run_hook

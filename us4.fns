@@ -12,3 +12,4 @@ MAKE=gmake config="" test_tree distcc . gcc
 test_tree samba_3_0 source gcc
 test_tree samba4 source gcc
 MAKEFLAGS="-k" config="" test_tree rsync . gcc
+per_run_hook

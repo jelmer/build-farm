@@ -11,3 +11,4 @@ config="" test_tree samba4 source gcc
 config="" test_tree rsync . gcc
 config="" test_tree ccache . gcc
 
+per_run_hook

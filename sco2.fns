@@ -6,3 +6,4 @@ export CFLAGS="-g -O -Wall -Wno-comment"
 test_tree samba_3_0 source gcc
 test_tree samba4 source gcc
 config="" test_tree rsync . gcc
+per_run_hook

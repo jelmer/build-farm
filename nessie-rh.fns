@@ -6,3 +6,4 @@ export config="--with-utmp --with-pam --with-syslog  --with-quotas --with-smbmou
 test_tree samba_3_0 source gcc
 
 config="" test_tree rsync . gcc
+per_run_hook

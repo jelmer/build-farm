@@ -5,3 +5,4 @@ export config="--with-utmp --with-pam"
 test_tree samba_3_0 source gcc
 
 config="" test_tree rsync . gcc
+per_run_hook

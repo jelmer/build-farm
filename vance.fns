@@ -10,3 +10,4 @@ export config="--with-quotas --with-pam --with-pam_smbpass --with-smbmount --wit
 
 test_tree samba_3_0 source gcc
 
+per_run_hook
