@@ -143,6 +143,9 @@ div.build-section {
 	top:100px;
 	left:175px;
 	margin:0;
+}
+.center { 
+        margin:100px 10px 0 175px;
 	padding-top:30px;
 	padding-left:35px;
 	padding-bottom:50px;
