@@ -1,25 +1,25 @@
-test_tree samba_3_0 source gcc
-test_tree rsync . gcc
-test_tree distcc . gcc
-test_tree ccache . gcc
+for compiler in gcc cc icc; do
+  if which $compiler > /dev/null; then
 
-# only attempt samba4 if we have perl
-if which perl > /dev/null; then
-  test_tree samba4 source gcc
-fi
+    if $compiler -v 2>&1 | grep gcc.version > /dev/null; then
+       isgcc=1
+    else
+       isgcc=0
+    fi
+    if [ $compiler = gcc -o $isgcc = 0 ]; then
+      test_tree samba_3_0 source $compiler
+      test_tree rsync . $compiler
+      test_tree distcc . $compiler
+      test_tree ccache . $compiler
 
-# if cc is not a gcc varient, then try that too
-if cc -v 2>&1 | grep gcc.version > /dev/null; then
-  test_tree samba_3_0 source gcc
-  test_tree rsync . gcc
-  test_tree distcc . gcc
-  test_tree ccache . gcc
-
-  # only attempt samba4 if we have perl
-  if which perl > /dev/null; then
-    test_tree samba4 source gcc
+      # only attempt samba4 if we have perl
+      if which perl > /dev/null; then
+        test_tree samba4 source $compiler
+      fi
+    fi
   fi
-fi
+done
+    
 
 # by default build ppp only on SunOS or Linux systems
 system=`uname`
