@@ -69,6 +69,7 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 	       'rhonwyn'  => "Debian Linux unstable i686",
 	       'boiccu'  => "Debian Linux testing/unstable IA64",
 	       'yurok' => "Debian Linux 3.0 stable i386",
+	       'sasoe_smb' => "Debian Linux 3.0 stable i386",
 	       'samba-s390' => "Debian Linux 3.0 stable s390",
 
 	       'fusberta' => "Debian Linux 3.0 Alpha",
