@@ -86,7 +86,7 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 
 	       'kimchi'  => "NetBSD 1.5 i386",
 	       'poseidon' => 'NetBSD 1.6.2 Sparc32',
-	       'ares' => 'NetBSD 2.0 Sparc64',
+	       'ares' => 'NetBSD 1.6.2 Sparc64',
 
 	       'gc8'  => "FreeBSD 3.3-RELEASE i386",
 	       'gc4'  => "FreeBSD 4.3-STABLE i386",
@@ -122,7 +122,7 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 
 	       'cyberone' => "Cygwin i686 (MS WinXP Pro)",
 
-	       'trip' => "Mandrake 10.0 i386",
+	       'trip' => "Mandrake 10.1 i386",
 
 	       'm30' => "Stratus VOS HP PA-RISC",
 
