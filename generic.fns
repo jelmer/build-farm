@@ -6,7 +6,7 @@ test_tree ccache . gcc
 
 # by default build ppp only on SunOS or Linux systems
 system=`uname`
-if "$system" = Linux -o "$system" = SunOS; then
+if [ "$system" = Linux -o "$system" = SunOS ]; then
    test_tree ppp . gcc
 fi
 
