@@ -111,6 +111,7 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 
 	       'l390vme1' => "SuSE SLES 8 (S/390)",
 
+	       'opi' => "SuSE SLES 9 (x86_64)",
 	       'PCS1' => "SuSE Linux 9.1  Professional (i586)",
 
 	       'cyberone' => "Cygwin i686 (MS WinXP Pro)",
@@ -118,9 +119,6 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 	       'trip' => "Mandrake 9.2 i386 GCC 3.3.1",
 
 	       'm30' => "Stratus VOS HP PA-RISC",
-	       
-#		   'sprinkhaan' => "FreeBSD 4.7-STABLE i386",
-#		   'vlo' => "FreeBSD 5.0-RELEASE i386 #0",
 
 		   'jarret' => "Solaris 8 UltraSparc",
 		   'previn' => "Solaris 8 UltraSparc",

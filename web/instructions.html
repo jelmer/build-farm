@@ -29,13 +29,18 @@ If you have a machine that you wish to add to our build farm then please follow 
   have. If it is then we won't need it unless the current machine we
   have covering that combination goes away for some reason.  </li>
 
-  <li>Make sure your machine is able to open an outgoing TCP connection
+  <li><p>Make sure your machine is able to open an outgoing TCP connection
   to build.samba.org on port 873 (the rsync port). Test this by running
   <pre>
     rsync build.samba.org::
   </pre>
-
-  and seeing if you get back the list of rsync modules.</li>
+  and seeing if you get back the list of rsync modules.</p>
+  <p>
+  Note: there has been reports that rsync will work via http proxy. A simple
+  <pre>
+     export RSYNC_PROXY=cache:3128
+  </pre>
+  before running rsync should be all that is needed.</p></li>
 
   <li>If all is OK then create an account called "build" on the
   machine. If you can't create accounts then you can use an existing
