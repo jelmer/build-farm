@@ -1,8 +1,11 @@
-test_tree samba4 source gcc
 test_tree samba_3_0 source gcc
 test_tree rsync . gcc
 test_tree distcc . gcc
 test_tree ccache . gcc
+
+if which perl > /dev/null; then
+  test_tree samba4 source gcc
+fi
 
 # by default build ppp only on SunOS or Linux systems
 system=`uname`

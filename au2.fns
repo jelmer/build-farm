@@ -5,7 +5,6 @@ test_tree distcc . gcc
 test_tree ccache . gcc
 
 export CFLAGS="-64"
-test_tree samba4 source cc
 test_tree samba_3_0 source cc
 test_tree rsync . cc
 test_tree distcc . cc
