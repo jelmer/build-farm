@@ -22,14 +22,23 @@
 # exit immediately on failure
 set -e
 
+# fail on attempting to use unassigned variable
+set -u
+
+# clean up environment a little
+PATH="/usr/local/bin:/usr/bin:/bin"
+IFS=" 	
+"
+
 
 BASEDIR="/home/build/master"
 RESULT_CACHE="$BASEDIR/cache/broken_results.txt"
 RESULT_URL="http://build.samba.org/?function=Text_Summary"
+FULL_RESULT_URL="http://build.samba.org/"
 
-# split into two parts to obfusicate from spam engines
+# split into two parts to obfuscate from spam engines
 RESULT_EMAIL_USER="vance"
-RESULT_EMAIL_DOMAIN="samba.org"
+RESULT_EMAIL_DOMAIN="localhost"
 
 ##################################################
 # get the broken report from the build farm
@@ -41,7 +50,7 @@ function get_results {
 	 --output-document="$RESULT_CACHE" \
          "$RESULT_URL"
 
-    if [ $? != 0 ]; then
+    if [ $? -ne 0 ]; then
 	echo "Could not retrieve results:" >&2
 	cat "$RESULT_CACHE".log >&2
 	return 1;
@@ -64,9 +73,9 @@ function compare_results {
 	return 1
     fi
     
-    diff -u "$RESULT_CACHE".old "$RESULT_CACHE" >> "$RESULT_CACHE".report
+    diff -u "$RESULT_CACHE".old "$RESULT_CACHE" >> "$RESULT_CACHE".report || true
     
-    return $?
+    return 0
 }
 
 ##################################################
@@ -78,7 +87,12 @@ function send_report {
 	return 1
     fi
 
-    mail "$RESULT_EMAIL_USER"@"$RESULT_EMAIL_DOMAIN" < "$RESULT_CACHE".report
+    subject=$1
+    if [ x"$subject" = x ]; then 
+	subject="Build Farm Status"
+    fi
+
+    mail -s "$subject" "$RESULT_EMAIL_USER"@"$RESULT_EMAIL_DOMAIN" < "$RESULT_CACHE".report
 }
     
 
@@ -96,7 +110,7 @@ fi
     
 get_results
 
-if [ $? != 0 ]; then
+if [ $? -ne 0 ]; then
     echo "Failed to get the results. Bailing." >&2
 	
     # remove any new results, as they're almost certainly foul
@@ -109,19 +123,18 @@ fi
 
 (
     # set report subject to show updated time
-    echo $(head -n 1 "$RESULT_CACHE") 
-    echo 
-    echo "URL: $RESULT_URL"
+    echo "URL: $FULL_RESULT_URL"
     echo
 ) > "$RESULT_CACHE".report
 
 compare_results
 
-if [ $? != 0 ]; then
+if [ $? -ne 0 ]; then
     echo "Failed to compare results. Bailing." >&2
 
     exit 1
 fi
 
-send_report
+subject=$(head -n 1 "$RESULT_CACHE")
+send_report "$subject"
 
