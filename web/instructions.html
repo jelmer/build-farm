@@ -1,90 +1,96 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"> 
-<HTML>
-<HEAD><TITLE>samba.org build farm</TITLE></HEAD>
-<BODY bgcolor="white" TEXT="#000000" LINK="#0000EE" VLINK="#551A8B" ALINK="#FF0000">
-<p><IMG ALT="Samba Banner" BORDER=0 ALIGN=MIDDLE SRC="http://www.samba.org/samba/images/samba_banner.gif">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head><title>samba.org build farm</title></head>
+<body bgcolor="white" text="#000000" link="#0000EE" vlink="#551A8B" alink="#FF0000">
+<div><img alt="Samba Banner" border="0" align="middle" src="http://www.samba.org/samba/images/samba_banner.gif">
+</div>
+
+
+<h1>Adding a machine to the build farm</h1>
+
 <p>
-
-<br>
-<p>
-<h2>Adding a machine to the build farm</h2>
-
-
 If you have a machine that you wish to add to our build farm then please follow the following instructions:
+</p>
 
 <ul>
 
-<li>Decide if your machine is suitable for the task:
-<ul>
-<li>Is it a production machine? 
-<li>Is it security-sensitive?  
-<li>Look at the output from the existing machines - would publishing file-system locations and
-IPs be a concern?
-<li>The nature of the task is that executable code is downloaded from
-(a site claiming to be) samba.org, and run on your machine by cron.
-Does this bother you?
-<li>Is this somebody else's machine?
-</ul>
-If you answer yes to any of these these questions, then we probably
-should not include it on the build farm.
+  <li>Decide if your machine is suitable for the task:
+  <ul>
+    <li>Is it a production machine?</li>
+    <li>Is it security-sensitive?</li>
+    <li>Look at the output from the existing machines - would publishing
+    file-system locations and IPs be a concern?</li>
+    <li>The nature of the task is that executable code is downloaded from
+    (a site claiming to be) samba.org, and run on your machine by cron.
+    Does this bother you?</li>
+    <li>Is this somebody else's machine?</li>
+  </ul>
+  If you answer yes to <em>any</em>of these these questions, then we probably
+  should not include it on the build farm.</li>
+  
+  <li>See if it is an OS/architecture combination that we already
+  have. If it is then we won't need it unless the current machine we
+  have covering that combination goes away for some reason.  </li>
 
-<li>See if it is an OS/architecture combination that we already
-have. If it is then we won't need it unless the current machine we
-have covering that combination goes away for some reason.  
+  <li>Make sure your machine is able to open an outgoing TCP connection
+  to build.samba.org on port 873 (the rsync port). Test this by running
+  <pre>
+    rsync build.samba.org::
+  </pre>
 
-<li>Make sure your machine is able to open an outgoing TCP connection
-to build.samba.org on port 873 (the rsync port). Test this by running
-<pre>
-  rsync build.samba.org::
-</pre>
-and seeing if you get back the list of rsync modules.
+  and seeing if you get back the list of rsync modules.</li>
 
-<li>If all is OK then create an account called "build" on the
-machine. If you can't create accounts then you can use an existing
-account, no special privileges are needed, just change ~build to your
-home directory in the instructions below.
+  <li>If all is OK then create an account called "build" on the
+  machine. If you can't create accounts then you can use an existing
+  account, no special privileges are needed, just change ~build to your
+  home directory in the instructions below.</li>
 
-<li>Make sure a recent version of <a href="http://rsync.samba.org/">rsync</a> is installed on the machine
+  <li>Make sure a recent version of <a href="http://rsync.samba.org/">rsync</a>
+  is installed on the machine</li>
 
-<li>Create a directory ~build/build_farm/. You will need about 120MB of
-free space for this directory.
+  <li>Create a directory ~build/build_farm/. You will need about 120MB of
+  free space for this directory.</li>
 
-<li>(optional) Install <a href="http://ccache.samba.org">ccache</a>
-and set a reasonable cache size (300MB would be plenty).  This
-massively reduces the compilation times and system load for certain changes.
+  <li>(optional) Install <a href="http://ccache.samba.org">ccache</a>
+  and set a reasonable cache size (300MB would be plenty).  This
+  massively reduces the compilation times and system load for certain
+  changes.</li>
 
-<li>Grab the script build_test from cvs or from <a
-href="http://www.samba.org/ftp/unpacked/build_farm/build_test">http://www.samba.org/ftp/unpacked/build_farm/build_test</a>
-and put it in ~build/build_farm/
+  <li>Grab the script build_test from cvs or from <a
+  href="http://www.samba.org/ftp/unpacked/build_farm/build_test">http://www.samba.org/ftp/unpacked/build_farm/build_test</a>
+  and put it in ~build/build_farm/ .</li>
 
-<li>Edit the script if necessary to update the location of the build_farm directory
+  <li>Edit the script if necessary to update the location of the build_farm
+  directory.</li>
 
-<li>Tell <a href="mailto:vance@samba.org">Vance Lankhaar</a> the name of your
-machine (as given by the hostname command) and its OS and architecture
-plus what C compilers are installed. He will send you a
-password. Put that in a file called ".password" in the build_farm
-directory.
+  <li>Tell <a href="mailto:vance@samba.org">Vance Lankhaar</a> the name of your
+  machine (as given by the hostname command) and its OS and architecture
+  plus what C compilers are installed. He will send you a
+  password. Put that in a file called ".password" in the build_farm
+  directory.</li>
 
-<li>Run the script build_test once manually and make sure the build ran OK. Look in build.log for errors.
-
-<li>Setup a cron job to run build_test regularly. You may wish to use
-"nice" to reduce its priority, for example I use the following cron
-entry:
-<pre>
+  <li>Run the script build_test once manually and make sure the build ran OK.
+  Look in build.log for errors.</li>
+  
+  <li>Setup a cron job to run build_test regularly. You may wish to use
+  "nice" to reduce its priority, for example I use the following cron
+  entry:
+  <pre>
     0,30 * * * * /bin/nice /home/build/build_farm/build_test 2> /home/build/cron.err
-</pre>
-
-<li>Check that <a href="http://build.samba.org/">build.samba.org</a>
-is showing your new host and that it is being updated regularly. 
+  </pre>
+  </li>
+  <li>Check that <a href="http://build.samba.org/">build.samba.org</a>
+  is showing your new host and that it is being updated regularly. </li>
+  
 </ul>
+<p>
+  Note that only a very small amount of bandwidth is used. 
+  Andrew Bartlett reports having seen 6 of the boxes in the farm from behind a
+  modem, and it only used a tiny proportion of that modems bandwidth.  
+  He also reports having had 2 of the machines behind a modem - dial-up links
+  are fine too.
+</p>
+<p>Thanks!</p>
 
-Note that only a very small amount of bandwidth is used. 
-Andrew Bartlett reports having seen 6 of the boxes in the farm from behind a
-modem, and it only used a tiny proportion of that modems bandwidth.  
-He also reports having had 2 of the machines behind a modem - dial-up links
-are fine too.
-
-<p>Thanks!
-
-</BODY>
-</HTML>
+</body>
+</html>
