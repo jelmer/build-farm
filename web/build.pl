@@ -130,7 +130,7 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 	       'mundroo' => "Solaris 8 i386",
 	       'cat' => "Solaris 9 i386",
 	       'fire1' => "Solaris 9 Sparc",
-	       'opisol0' => "Solaris 10 b63 x86",
+	       'opisol10' => "Solaris 10 b63 x86",
 
 	       'packetstorm' => "Slackware Linux 9.0 i386",
 
