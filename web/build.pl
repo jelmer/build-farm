@@ -3,7 +3,7 @@
 #
 # Copyright (C) Andrew Tridgell <tridge@samba.org>     2001
 # Copyright (C) Andrew Bartlett <abartlet@samba.org>   2001
-# Copyright (C) Vance Lankhaar  <vance@samba.org>      2002-2004
+# Copyright (C) Vance Lankhaar  <vance@samba.org>      2002-2005
 # Copyright (C) Martin Pool <mbp@samba.org>            2001
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -194,6 +194,13 @@ sub cgi_headers() {
 sub cgi_headers_diff() {
     print "Content-type: application/x-diff\r\n";
     print "\n";
+}
+
+################################################
+# start CGI headers for text output
+sub cgi_headers_text() {
+	print "Content-type: text/plain\r\n";
+	print "\r\n";
 }
 
 ################################################
@@ -404,13 +411,16 @@ sub err_count($$$)
 
 ##############################################
 # view build summary
-sub view_summary() {
+sub view_summary($) {
     my $i = 0;
     my $list = `ls`;
 
     my $cols = 2;
 
     my $broken = 0;
+
+    # either "text" or anything else.
+    my $output_type = shift;
 
     # set up counters
     my %broken_count;
@@ -425,7 +435,7 @@ sub view_summary() {
     }
 
     #set up a variable to store the broken builds table's code, so we can output when we want
-    my $broken_table;
+    my $broken_table = "";
 
     my $host_os;
     my $last_host = "";
@@ -441,8 +451,28 @@ sub view_summary() {
 		}
 
 		if ($age < $DEADAGE && $status =~ /status failed/) {
-		    if (!$broken) {
-			$broken_table .= <<EOHEADER;
+		    $broken_count{$tree}++;
+		    if ($status =~ /PANIC/) {
+			$panic_count{$tree}++;
+		    }
+		    my $warnings = err_count($host, $tree, $compiler);
+
+		    $host_os = $hosts{$host};
+		    if ($output_type eq "text") {
+			    if (!$broken) {
+				    $broken = 1;
+				    $broken_table = "Currently broken builds:\n";
+				    $broken_table .= sprintf "%-18s %-12s %-10s %-10s\n",
+				    "Host", "Tree", "Compiler", "Status";
+
+			    }
+			    $broken_table .= sprintf "%-18s %-12s %-10s %-10s\n",
+				    $host, $tree, $compiler, strip_html($status);
+		    }
+		    else {
+			    if (!$broken) {
+				    $broken = 1;
+				    $broken_table = <<EOHEADER;
 
 <div id="build-broken-summary" class="build-section">
 <h2>Currently broken builds:</h2>
@@ -454,24 +484,18 @@ sub view_summary() {
   </thead>
   <tbody>
 EOHEADER
-			$broken = 1;
+			    }
+
+			    $broken_table .= "    <tr>";
+
+			    if ($host eq $last_host) {
+				    $broken_table .= "<td colspan=\"2\" />";
+			    } else {
+				    $broken_table .= "<td>$host_os</td><td><a href=\"#$host\">$host</a></td>";
+			    }
+			    $broken_table .= "<td><span class=\"tree\">$tree</span>/$compiler</td><td class=\"age\">" . red_age($age) . "</td><td class=\"status\">$status</td><td>$warnings</td></tr>\n";
 		    }
-		    $broken_count{$tree}++;
-		    if ($status =~ /PANIC/) {
-			$panic_count{$tree}++;
-		    }
-		    my $warnings = err_count($host, $tree, $compiler);
-		    
-		    $broken_table .= "    <tr>";
-		    
-		    $host_os = $hosts{$host};
-		    if ($host eq $last_host) {
-			$broken_table .= "<td colspan=\"2\" />";
-		    } else {
-			$broken_table .= "<td>$host_os</td><td><a href=\"#$host\">$host</a></td>";
-		    }
-		    $broken_table .= "<td><span class=\"tree\">$tree</span>/$compiler</td><td class=\"age\">" . red_age($age) . "</td><td class=\"status\">$status</td><td>$warnings</td></tr>\n";
-		    
+
 		    $last_host = $host;
 		    
 		}
@@ -479,10 +503,19 @@ EOHEADER
 	}
     }
     
-    if ($broken) {
-	$broken_table .= "  </tbody>\n</table>\n</div>\n";
+    if ($broken && $output_type eq 'text') {
+	    $broken_table .= "\n";
     }
-    print <<EOHEADER;
+    elsif ($broken) {
+	    $broken_table .= "  </tbody>\n</table>\n</div>\n";
+    }
+
+    if ($output_type eq 'text') {
+	    print "Build counts:\n";
+	    printf "%-12s %-6s %-6s %-6s\n", "Tree", "Total", "Broken", "Panic";
+    }
+    else {
+	    print <<EOHEADER;
 
 
 <div id="build-counts" class="build-section">
@@ -495,26 +528,48 @@ EOHEADER
   </thead>
   <tbody>
 EOHEADER
-    for my $tree (sort keys %trees) {
-	print "    <tr><td>$tree</td><td>$host_count{$tree}</td><td>$broken_count{$tree}</td>";
-	my $panic = "";
-	if ($panic_count{$tree}) {
-	  $panic = " class=\"panic\"";
-	}
-	print "<td$panic>$panic_count{$tree}</td></tr>\n";
     }
-    print "  </tbody>\n</table></div>\n";
+
+
+    for my $tree (sort keys %trees) {
+	    if ($output_type eq 'text') {
+		    printf "%-12s %-6s %-6s %-6s\n", $tree, $host_count{$tree},
+			    $broken_count{$tree}, $panic_count{$tree};
+	    }
+	    else {
+		    print "    <tr><td>$tree</td><td>$host_count{$tree}</td><td>$broken_count{$tree}</td>";
+		    my $panic = "";
+		    if ($panic_count{$tree}) {
+			    $panic = " class=\"panic\"";
+		    }
+		    print "<td$panic>$panic_count{$tree}</td></tr>\n";
+	    }
+    }
+
+    if ($output_type eq 'text') {
+	    print "\n";
+    }
+    else {
+	    print "  </tbody>\n</table></div>\n";
+    }
 
 
     print $broken_table;
 
+    if ($output_type eq 'text') {
+	    print "Build summary:\n";
+    }
+    else {
+	    print "<div class=\"build-section\" id=\"build-summary\">\n";
+	    print "<h2>Build summary:</h2>\n";
+    }
 
-    print "<div class=\"build-section\" id=\"build-summary\">\n";
-    print "<h2>Build summary:</h2>\n";
     for my $host (@hosts) {
 	# make sure we have some data from it
 	if (! ($list =~ /$host/)) {
-	    print "<!-- skipping $host -->\n"; 
+		if ($output_type ne 'text') {
+			print "<!-- skipping $host -->\n";
+		}
 	    next;
 	}
 
@@ -527,7 +582,13 @@ EOHEADER
 		if ($age != -1 && $age < $DEADAGE) {
 		    my $status = build_status($host, $tree, $compiler);
 		    if ($row == 0) {
-			print <<EOHEADER;
+			    if ($output_type eq 'text') {
+				    printf "%-12s %-10s %-10s %-10s %-10s\n",
+				    "Tree", "Compiler", "Build Age", "Status", "Warnings";
+				    
+			    }
+			    else {
+				    print <<EOHEADER;
 <div class="host summary">
   <a id="$host" name="$host" />
   <h3>$host - $hosts{$host}</h3>
@@ -539,22 +600,39 @@ EOHEADER
     </thead>
     <tbody>
 EOHEADER
+			    }
 		    }
-		    print "    <tr><td><span class=\"tree\">$tree</span>/$compiler</td><td class=\"age\">" . red_age($age) . "</td><td class=\"status\">$status</td><td>$warnings</td></tr>\n";
+
+		    if ($output_type eq 'text') {
+			    printf "%-12s %-10s %-10s %-10s %-10s\n",
+				    $tree, $compiler, util::dhm_time($age), 
+					    strip_html($status), $warnings;
+		    }
+		    else {
+			    print "    <tr><td><span class=\"tree\">$tree</span>/$compiler</td><td class=\"age\">" . red_age($age) . "</td><td class=\"status\">$status</td><td>$warnings</td></tr>\n";
+		    }
 		    $row++;
 		}
 	    }
 	}
 	if ($row != 0) {
-	    print "  </tbody>\n</table></div>\n";
+		if ($output_type eq 'text') {
+			print "\n";
+		}
+		else {
+			print "  </tbody>\n</table></div>\n";
+		}
 	    $i++;
 	} else {
 	    push(@deadhosts, $host);
 	}
     }
-    print "</div>\n\n";
 
-    draw_dead_hosts(@deadhosts);
+    if ($output_type ne 'text') {
+	    print "</div>\n\n";
+    }
+
+    draw_dead_hosts($output_type, @deadhosts);
 }
 
 ##############################################
@@ -619,6 +697,7 @@ EOHEADER
 ##############################################
 # Draw the "dead hosts" table
 sub draw_dead_hosts() {
+	my $output_type = shift;
     my @deadhosts = @_;
 
     # don't output anything if there are no dead hosts
@@ -626,7 +705,12 @@ sub draw_dead_hosts() {
       return;
     }
 
-    print <<EOHEADER;
+	if ($output_type eq 'text') {
+		print "Dead Hosts:\n";
+		printf "%-18s %-4", "Host", "Age";
+	}
+	else {
+		print <<EOHEADER;
 <div class="build-section" id="dead-hosts">
 <h2>Dead Hosts:</h2>
 <table class="real">
@@ -635,11 +719,22 @@ sub draw_dead_hosts() {
 </thead>
 <tbody>
 EOHEADER
+	}
     for my $host (@deadhosts) {
 	my $age = host_age($host);
-	print "    <tr><td>$host</td><td>$hosts{$host}</td><td>", util::dhm_time($age), "</td></tr>";
+	if ($output_type eq 'text') {
+		printf "%-18s %-4", $host, util::dhm_time($age);
+	}
+	else {
+		print "    <tr><td>$host</td><td>$hosts{$host}</td><td>", util::dhm_time($age), "</td></tr>";
+	}
     }
-    print "  </tbody>\n</table>\n</div>\n";
+	if ($output_type eq 'text') {
+		print "\n";
+	}
+	else {
+		print "  </tbody>\n</table>\n</div>\n";
+	}
 }
 
 
@@ -840,6 +935,23 @@ sub make_action_html {
 }
 
 ##############################################
+# simple html markup stripper
+sub strip_html($) {
+	my $string = shift;
+
+	# get rid of comments
+	$string =~ s/<!\-\-(.*?)\-\->/$2/g;
+
+	# and remove tags.
+	while ($string =~ s&<(\w+).*?>(.*?)</\1>&$2&) {
+		;
+	}
+
+	return $string;
+}
+
+
+##############################################
 # main page
 sub main_menu() {
     print $req->startform("GET");
@@ -880,6 +992,11 @@ if ($fn_name eq 'text_diff') {
 		$req->param('revision'),
 		"text");
 }
+elsif ($fn_name eq 'Text_Summary') {
+	cgi_headers_text();
+	chdir("$BASEDIR/data") || fatal("can't change to data directory");
+	view_summary('text');
+}
 else {
   page_top();
 
@@ -900,7 +1017,7 @@ else {
 		  "html");
   }
   else {
-    view_summary();
+    view_summary('html');
   }
   cgi_footers();
 }
