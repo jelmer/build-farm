@@ -556,6 +556,11 @@ EOHEADER
 
     print $broken_table;
 
+    # for now, don't output individual build summaries in text report
+    if ($output_type eq 'text') {
+	    return;
+    }
+
     if ($output_type eq 'text') {
 	    print "Build summary:\n";
     }
@@ -697,7 +702,7 @@ EOHEADER
 ##############################################
 # Draw the "dead hosts" table
 sub draw_dead_hosts() {
-	my $output_type = shift;
+    my $output_type = shift;
     my @deadhosts = @_;
 
     # don't output anything if there are no dead hosts
@@ -705,12 +710,11 @@ sub draw_dead_hosts() {
       return;
     }
 
-	if ($output_type eq 'text') {
-		print "Dead Hosts:\n";
-		printf "%-18s %-4", "Host", "Age";
-	}
-	else {
-		print <<EOHEADER;
+    # don't include in text report
+    if ($output_type eq 'text') {
+	    return;
+    }
+	print <<EOHEADER;
 <div class="build-section" id="dead-hosts">
 <h2>Dead Hosts:</h2>
 <table class="real">
@@ -719,22 +723,14 @@ sub draw_dead_hosts() {
 </thead>
 <tbody>
 EOHEADER
-	}
+
     for my $host (@deadhosts) {
 	my $age = host_age($host);
-	if ($output_type eq 'text') {
-		printf "%-18s %-4", $host, util::dhm_time($age);
-	}
-	else {
-		print "    <tr><td>$host</td><td>$hosts{$host}</td><td>", util::dhm_time($age), "</td></tr>";
-	}
+	print "    <tr><td>$host</td><td>$hosts{$host}</td><td>", util::dhm_time($age), "</td></tr>";
     }
-	if ($output_type eq 'text') {
-		print "\n";
-	}
-	else {
-		print "  </tbody>\n</table>\n</div>\n";
-	}
+
+
+    print "  </tbody>\n</table>\n</div>\n";
 }
 
 
