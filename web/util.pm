@@ -190,7 +190,7 @@ sub count_lines($)
 {
     my $s = shift;
     my $count;
-    $count = split(/$/m, $s);
+    $count++ while $s =~ /$/gm;
     return $count;
 }
 
