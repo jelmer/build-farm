@@ -687,47 +687,53 @@ sub view_build() {
 ";
 
     # check the head of the output for our magic string 
-    my $prettyPrintableLogs = ((substr $log, 0, 500) =~ /\*build_farm transition magic\*/);
-
-    if ($prettyPrintableLogs) {
+    my $plain_logs = (defined $req->param("plain") &&
+		      $req->param("plain") =~ /^(yes|1|on|true|y)$/i);
 
     print "<div id=\"log\">\n";
-    print "<div id=\"actionList\">\n";
-    # These can be pretty wide -- perhaps we need to 
-    # allow them to wrap in some way?
-    if ($err eq "") {
-	print "<h2>No error log available</h2>\n";
-    } else {
-	print "<h2>Error log:</h2>\n";
-	print make_action_html("Error Output", "\n$err", "stderr-0");;
-    }
 
-    if ($log eq "") {
-	print "<h2>No build log available</h2>\n";
-    } else {
-	print "<h2>Build log:</h2>\n";
-	print_log_pretty($log);
-    }
+    if (!$plain_logs) {
 
-    print "<p><small>Some of the above icons derived from the <a href=\"http://www.gnome.org\">Gnome Project</a>'s stock icons.</p>";
-    print "</div>\n";
-    print "</div>\n";
+	    print "<p>Switch to the <a href=\"$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler;plain=true\" title=\"Switch to bland, non-javascript, unstyled view\">Plain View</a></p>";
+
+	    print "<div id=\"actionList\">\n";
+	    # These can be pretty wide -- perhaps we need to 
+	    # allow them to wrap in some way?
+	    if ($err eq "") {
+		    print "<h2>No error log available</h2>\n";
+	    } else {
+		    print "<h2>Error log:</h2>\n";
+		    print make_action_html("Error Output", "\n$err", "stderr-0");;
+	    }
+
+	    if ($log eq "") {
+		    print "<h2>No build log available</h2>\n";
+	    } else {
+		    print "<h2>Build log:</h2>\n";
+		    print_log_pretty($log);
+	    }
+
+	    print "<p><small>Some of the above icons derived from the <a href=\"http://www.gnome.org\">Gnome Project</a>'s stock icons.</p>";
+	    print "</div>\n";
     }
     else {
-    if ($err eq "") {
-	print "<h2>No error log available</h2>\n";
-    } else {
-	print "<h2>Error log:</h2>\n";
-	print "<div id=\"errorLog\"><pre>" . join('', $err) . "</pre></div>\n";
+	    print "<p>Switch to the <a href=\"$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler\" title=\"Switch to colourful, javascript-enabled, styled view \">Enhanced View</a></p>";
+	    if ($err eq "") {
+		    print "<h2>No error log available</h2>\n";
+	    } else {
+		    print "<h2>Error log:</h2>\n";
+		    print "<div id=\"errorLog\"><pre>" . join('', $err) . "</pre></div>\n";
+	    }
+	    if ($log eq "") {
+		    print "<h2>No build log available</h2>n";
+	    }
+	    else {
+		    print "<h2>Build log:</h2>\n";
+		    print "<div id=\"buildLog\"><pre>" . join('', $log) . "</pre></div>\n";
+	    }
     }
-    if ($log eq "") {
-	print "<h2>No build log available</h2>n";
-    }
-    else {
-	print "<h2>Build log:</h2>\n";
-	print "<div id=\"buildLog\"><pre>" . join('', $log) . "</pre></div>\n";
-      }
-    }
+
+    print "</div>\n";
 }
 
 ##############################################
