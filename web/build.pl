@@ -102,6 +102,8 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 
 	       'belle' => "RedHat 8.0 i686",
 	       'manjra' => "RedHat 8.0 i686",
+	       'lacroix' => "RedHat 9.0 i686 SMP",
+	       'delacruz'=> "RedHat 9.0 i686",
 
 	       'suse71ppc' => "SuSE 7.1 ppc gcc2.95.2",
 	       'metze01' => "SuSE 8.2 i386 (athlon)",
@@ -118,10 +120,9 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 
 	       'm30' => "Stratus VOS HP PA-RISC",
 
-		   'jarret' => "Solaris 8 UltraSparc",
-		   'previn' => "Solaris 8 UltraSparc",
-		   'mundroo' => "Solaris 8 i386",
-		   'cat' => "Solaris 9 i386",
+	       'previn' => "Solaris 8 UltraSparc",
+	       'mundroo' => "Solaris 8 i386",
+	       'cat' => "Solaris 9 i386",
 
 
 	       'superego' => "Debian PPC/64 (Power3)",
