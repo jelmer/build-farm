@@ -151,7 +151,7 @@ my (%trees) = (
 
 # these aren't really trees... they're just things we want in the menu.
 # (for recent checkins)
-my @pseudo_trees = ( "samba-web", "lorikeet", "samba_2_2");
+my @pseudo_trees = ( "samba-web", "lorikeet", "samba_2_2", "samba_2_2_release", "samba_3_0_release" );
 # this is automatically filled in
 my (@deadhosts) = ();
 

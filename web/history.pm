@@ -25,9 +25,10 @@ my $VIEWCVS_BASE = "http://websvn.samba.org/cgi-bin/viewcvs.cgi";
 # a map of names to web svn log locations
 my (%svn_trees) = ('samba' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=samba\">%s</a>",
 		   'samba_3_0' =>" <a href=\"$VIEWCVS_BASE/branches/SAMBA_3_0/%s?root=samba\">%s</a>",
+		   'samba_3_0_release' =>" <a href=\"$VIEWCVS_BASE/branches/SAMBA_3_0_RELEASE/%s?root=samba\">%s</a>",
 		   'samba_2_2' =>" <a href=\"$VIEWCVS_BASE/branches/SAMBA_2_2/%s?root=samba\">%s</a>",
+		   'samba_2_2_release' =>" <a href=\"$VIEWCVS_BASE/branches/SAMBA_2_2_RELEASE/%s?root=samba\">%s</a>",
 		   'samba-docs' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=samba-docs\">%s</a>",
-
 		   'samba4' => " <a href=\"$VIEWCVS_BASE/branches/SAMBA_4_0/%s?root=samba\">%s</a>",
 		   'samba-web' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=samba-web\">%s</a>",
 		   'lorikeet' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=lorikeet\">%s</a>");
