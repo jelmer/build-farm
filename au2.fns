@@ -1,12 +1,14 @@
-test_tree samba4 source cc
-
-export config="--with-acl-support --with-utmp"
-export CFLAGS="-O -64"
-test_tree samba_3_0 source cc
-config="" test_tree rsync . cc
-
-export CFLAGS="-O -Wall"
-test_tree samba_3_0 source gcc
 test_tree samba4 source gcc
-config="" test_tree rsync . gcc
+test_tree samba_3_0 source gcc
+test_tree rsync . gcc
+test_tree distcc . gcc
+test_tree ccache . gcc
+
+export CFLAGS="-64"
+test_tree samba4 source cc
+test_tree samba_3_0 source cc
+test_tree rsync . cc
+test_tree distcc . cc
+test_tree ccache . cc
+
 per_run_hook
