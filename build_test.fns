@@ -20,6 +20,8 @@ sum_tree() {
 
 	if [ -f "$host.fns" ]; then
 	    sum $host.fns >> $sum_tree_sum
+	else
+            sum generic.fns >> $sum_tree_sum
 	fi
 
 	if [ -d "$sum_tree_testsuite" ]; then
