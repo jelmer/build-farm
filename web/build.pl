@@ -150,6 +150,7 @@ my (%trees) = (
 	       'samba_3_0' => "SAMBA_3_0",
 	       'rsync' => "",
 	       'distcc' => "",
+	       'ppp' => "",
 	       'ccache' => "");
 
 # these aren't really trees... they're just things we want in the menu.
