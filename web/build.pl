@@ -138,8 +138,8 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 
 	       'packetstorm' => "Slackware Linux 9.0 i386",
 
-	       'tardis' => "Gentoo i686"
-
+	       'tardis' => "Gentoo i686",
+	       'wetlizard' => "Gentoo UltraSparc"
 
 	       );
 
