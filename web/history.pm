@@ -20,19 +20,21 @@ my $req = new CGI;
 
 my $HEADCOLOR = "#a0a0e0";
 my $CVSWEB_BASE = "http://pserver.samba.org/cgi-bin/cvsweb";
-my $WEBSVN_BASE = "http://websvn.samba.org/log.php";
+my $VIEWCVS_BASE = "http://websvn.samba.org/viewcvs.cgi";
 
 # a map of names to web svn log locations
-my (%svn_trees) = ('samba' => "$WEBSVN_BASE?rep=samba&path=/trunk",
-		   'samba_3_0' => "$WEBSVN_BASE?rep=samba&path=/branches/SAMBA_3_0",
-		   'samba-docs' => "$WEBSVN_BASE?rep=samba-docs&path=/trunk",
+my (%svn_trees) = ('samba' => "<a href=\"/trunk/%s?root=samba\">%s</a>",
+		   'samba_3_0' =>"<a href=\"/branches/SAMBA_3_0/%s?root=samba\">%s</a>",
+		   'samba-docs' => "<a href=\"/trunk/%s?root=samba-docs\">%s</a>",
 
-		   'samba4' => "$WEBSVN_BASE?rep=samba&path=/branches/SAMBA_4_0");
+		   'samba4' => "<a href=\"/branches/SAMBA_4_0/%s?root=samba\">%s</a>",
+		   'samba_web' =>"<a href=\"/trunk/%s?root=samba-web\">%s</a>",
+		   'lorikeet' =>"<a href=\"/trunk/%s?root=lorikeet\">%s</a>");
 
 # a map of names to cvs modules
-my (%cvs_trees) = ('rsync' => "rsync",
-		   'distcc' => 'distcc',
-		   'ccache' => 'ccache');
+my (%cvs_trees) = ('rsync' => "<a href=\"$CVSWEB_BASE/rsync/%s\">%s</a>",
+		   'distcc' => "<a href=\"$CVSWEB_BASE/distcc/%s\">%s</a>",
+		   'ccache' => "<a href=\"$CVSWEB_BASE/ccache/%s\">%s</a>");
 
 my $unpacked_dir = "/home/ftp/pub/unpacked";
 
@@ -97,13 +99,14 @@ sub web_paths($$)
 
     if (grep {/$tree/} keys %cvs_trees) {
       while ($paths =~ /\s*([^\s]+)(.*)/) {
-	$ret .= "<a href=\"$CVSWEB_BASE/$cvs_trees{$tree}/$1\">$1</a> ";
+	$ret .= sprintf($cvs_trees{$tree}, $1, $1);
 	$paths = $2;
       }
     }
     elsif (grep {/$tree/} keys %svn_trees) {
 	    while ($paths =~ /\s*([^\s]+)(.*)/) {
-		    $ret .= "<a href=\"$svn_trees{$tree}/$1\">$1</a> ";
+	    
+		    $ret .= sprintf($svn_trees{$tree}, $1, $1);
 		    $paths = $2;
 	    }
     }
@@ -203,7 +206,7 @@ sub diff($$$$$)
 
 
     # validate the tree
-    util::InArray($tree, [keys %cvs_trees, keys %svn_trees]) || print Dumper([keys %cvs_trees, keys %svn_trees]);
+    util::InArray($tree, [keys %cvs_trees, keys %svn_trees]);
 
 
     chdir("$unpacked_dir/$tree") || fatal("no tree $unpacked_dir/$tree available");

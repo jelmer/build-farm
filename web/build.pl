@@ -149,6 +149,9 @@ my (%trees) = (
 	       'distcc' => "",
 	       'ccache' => "");
 
+# these aren't really trees... they're just things we want in the menu.
+# (for recent checkins)
+my @pseudo_trees = ( "samba_web", "lorikeet");
 # this is automatically filled in
 my (@deadhosts) = ();
 
@@ -837,7 +840,7 @@ sub main_menu() {
     print $req->popup_menu(-name=>'host',
 			   -values=>\@hosts,
 			   -labels=>\%hosts) . "\n";
-    print $req->popup_menu("tree", [sort keys %trees]) . "\n";
+    print $req->popup_menu("tree", [sort (keys %trees, @pseudo_trees)]) . "\n";
     print $req->popup_menu("compiler", $compilers) . "\n";
     print "<br />\n";
     print $req->submit('function', 'View Build') . "\n";
