@@ -124,6 +124,7 @@ do_make() {
 # configure the tree
 action_configure() {
         if [ ! -x configure ]; then
+	    ls -l configure
 	    ./autogen.sh
 	fi
 	echo "CFLAGS=$CFLAGS"
