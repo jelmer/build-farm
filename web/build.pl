@@ -133,7 +133,10 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 	       'tardis' => "Gentoo i686",
 	       
 	       # added for vl --metze
-	       'oehmesrs6k' => "AIX 5.2"
+	       'oehmesrs6k' => "AIX 5.2",
+
+	       # for bryce@osdl.org
+	       'cl012' => "Debian Testing/Unstable i386"
 	       );
 
 
