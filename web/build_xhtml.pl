@@ -371,7 +371,7 @@ sub build_status($$$)
     
     unlink("$CACHEDIR/FAILED.internalerror.$tree.$host.$compiler");
     if ($log =~ /INTERNAL ERROR:(.*)/ || $log =~ /PANIC:(.*)/) {
-	$sstatus = "/<span class=\"status panic\"PANIC</span>";
+	$sstatus = "/<span class=\"status panic\">PANIC</span>";
 	system("touch $CACHEDIR/FAILED.internalerror.$tree.$host.$compiler");
     } else {
 	$sstatus = "";
