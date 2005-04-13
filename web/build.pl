@@ -112,8 +112,9 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 	       'lacroix' => "RedHat 9.0 i686 SMP",
 	       'delacruz'=> "RedHat 9.0 i686",
 
-	       'berks' => "Fedora Core 1",
+	       'berks' => "Fedora Core 1 i386",
 	       'tango-one-mars' => "Fedora Core 2 i386",
+	       'shelob' => "Fedora Core 3 i386 SMP",
 
 	       'suse71ppc' => "SuSE 7.1 ppc gcc2.95.2",
 	       'metze01' => "SuSE 8.2 i386 (athlon)",
