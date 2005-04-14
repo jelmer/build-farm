@@ -65,6 +65,7 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 #	       'insure' => "RedHat 6.2 vmware (insure)",
 	       'svamp' => "RedHat 7.0 i386",
 	       'homer' => "RedHat RHEL 3 (WS)",
+	       'lithium' => "CentOS 3.4",
 
 	       'rhonwyn'  => "Debian Linux unstable i686",
 	       'boiccu'  => "Debian Linux testing/unstable IA64",
