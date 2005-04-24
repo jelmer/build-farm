@@ -100,6 +100,7 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 
 	       'sbf' => "FreeBSD 5.2.1 i386",
 	       'smartserv1' => 'FreeBSD 5.3-STABLE i386',
+	       'ragnarok' => 'FreeBSD 5.3-STABLE amd64',
 
 	       'woko'  => "Cray SV1 UNICOS 10.0.0.8",
 
