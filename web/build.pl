@@ -160,6 +160,8 @@ my (%trees) = (
 	       'rsync' => "",
 	       'distcc' => "",
 	       'ppp' => "",
+	       'talloc' => "",
+	       'tdb' => "",
 	       'ccache' => "");
 
 # these aren't really trees... they're just things we want in the menu.
