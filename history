@@ -16,8 +16,8 @@
 ./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_4_0 60 samba4 cache/history.samba4
 ./svnlog.pl svn://svnanon.samba.org/samba-web trunk 60 samba-web cache/history.samba-web
 ./svnlog.pl svn://svnanon.samba.org/lorikeet trunk 60 lorikeet cache/history.lorikeet
-./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_4_0/source/lib/talloc 60 cache/history.talloc
-./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_4_0/source/lib/tdb 60 cache/history.tdb
+./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_4_0/source/lib/talloc 60 talloc cache/history.talloc
+./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_4_0/source/lib/tdb 60 tdb cache/history.tdb
 
 ./cvslog.pl /data/cvs/CVSROOT/rsync.updates 60 rsync "" cache/history.rsync
 ./cvslog.pl /data/cvs/CVSROOT/distcc.updates 60 distcc "" cache/history.distcc
