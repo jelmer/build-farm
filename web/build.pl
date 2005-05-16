@@ -152,7 +152,6 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 my @hosts = sort { $hosts{$a} cmp $hosts{$b} } keys %hosts;
 
 my (%trees) = (
-#'samba' => "",
 	       'samba' => "",
 	       'samba4' => "",
 	       'samba-docs' => "",
@@ -162,7 +161,8 @@ my (%trees) = (
 	       'ppp' => "",
 	       'talloc' => "",
 	       'tdb' => "",
-	       'ccache' => "");
+	       'ccache' => "",
+	       'lorikeet-heimdal' => "");
 
 # these aren't really trees... they're just things we want in the menu.
 # (for recent checkins)
