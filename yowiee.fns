@@ -3,6 +3,9 @@ export CFLAGS="-O -Wall"
 test_tree ccache . gcc
 test_tree distcc . gcc
 test_tree rsync . gcc
+test_tree talloc . gcc
+test_tree tdb . gcc
+test_tree lorikeet-heimdal . gcc
 
 test_tree samba4 source gcc
 
