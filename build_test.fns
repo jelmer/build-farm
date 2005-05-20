@@ -296,6 +296,15 @@ action_test_generic() {
 	return "$totalstatus"
 }
 
+action_test_lorikeet-heimdal() {
+        CC="$compiler"
+	export CC
+	do_make check
+	totalstatus=$?
+	echo "TEST STATUS: $totalstatus"
+	return "$totalstatus"
+}
+
 
 #############################
 # attempt some basic tests of functionaility
@@ -308,6 +317,9 @@ action_test() {
 	case "$tree" in
 	samba*)
 	    action_test_samba
+	    ;;
+	lorikeet-heimdal*)
+	    action_test_lorikeet-heimdal
 	    ;;
 	*)
 	    action_test_generic
