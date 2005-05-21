@@ -352,6 +352,7 @@ test_tree() {
 	err="build.$tree.$host.$compiler.err"
 	sum="build.$tree.$host.$compiler.sum"
 	lck="$test_root/build.$tree.lck"
+        srcdir="$test_root/$tree/$source"
 
 	if ! lock_file "$lck"; then
 		return
@@ -361,6 +362,12 @@ test_tree() {
 	if ! fetch_tree "$tree"; then
 	    unlock_file "$lck"
 	    return
+	fi
+
+        if [ ! -x $srcdir/configure ]; then
+		echo "skip: $tree.$compiler configure not present, try again next time!"
+		unlock_file "$lck"
+		return
 	fi
 
 	if [ ! $USER = "" ]; then
@@ -422,7 +429,6 @@ test_tree() {
 		    echo Running action $action
 
 		    date
-		    srcdir=$test_root/$tree/$source
 		    cd $srcdir
 		    export srcdir
 		    df .
