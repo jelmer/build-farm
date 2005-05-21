@@ -61,7 +61,7 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 	       'au2'  => "IRIX 6.4 MIPS",
 
 	       'wayne' => "RedHat 6.1 Sparc 10 (Kernel 2.2.18)",
-	       'yowiee' => "RedHat 9.0 i386",
+	       'yowiee' => "Fedora Core 2 i386",
 #	       'insure' => "RedHat 6.2 vmware (insure)",
 	       'svamp' => "RedHat 7.0 i386",
 	       'homer' => "RedHat RHEL 3 (WS)",
