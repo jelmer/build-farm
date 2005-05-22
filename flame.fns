@@ -1,8 +1,0 @@
-export CFLAGS="-O -Wall"
-
-test_tree samba4 source gcc
-export config="--with-utmp"
-test_tree samba_3_0 source gcc
-
-config="" test_tree rsync . gcc
-per_run_hook
