@@ -22,6 +22,7 @@
 ./cvslog.pl /data/cvs/CVSROOT/rsync.updates 60 rsync "" cache/history.rsync
 ./cvslog.pl /data/cvs/CVSROOT/distcc.updates 60 distcc "" cache/history.distcc
 ./cvslog.pl /data/cvs/CVSROOT/ccache.updates 60 ccache "" cache/history.ccache
+./cvslog.pl /data/cvs/CVSROOT/ppp.updates 60 ppp "" cache/history.ppp
 
 ) > history.log 2>&1
 
