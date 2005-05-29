@@ -129,7 +129,7 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 
 	       'cyberone' => "Cygwin i686 (MS WinXP Pro)",
 
-	       'trip' => "Mandrake 10.1 i386",
+	       'trip' => "Mandriva 2005 LE (10.2) i386",
 
 	       'm30' => "Stratus VOS HP PA-RISC",
 
