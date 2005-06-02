@@ -55,7 +55,7 @@ sub svn_parse($$$$)
 	# very little difference
 	my $start_date = POSIX::strftime("%Y-%m-%d", gmtime(time() - $days*60*60*24));
 
-	open(FILE, "svn log --verbose --non-interactive $repo_url/$tree_dir |");
+	open(FILE, "svn log --verbose --non-interactive $repo_url/$tree_dir -r HEAD:'{$start_date}' |");
 	#open(FILE, "< log.txt") or die "Could not open log: $!";
 	while (defined (my $line = <FILE>)) {
 
