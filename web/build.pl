@@ -90,6 +90,8 @@ my (%hosts) = ('sun1' => "Solaris 8 UltraSparc",
 	       'kimchi'  => "NetBSD 1.5 i386",
 	       'poseidon' => 'NetBSD 1.6.2 Sparc32',
 	       'ares' => 'NetBSD 1.6.2 Sparc64',
+	       
+	       'hummel-netbsd3-samba' => 'NetBSD 3.99.5 (XENU)',
 
 	       'aretnap' => "FreeBSD 4.10-STABLE",
 
