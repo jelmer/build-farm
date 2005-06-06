@@ -286,6 +286,12 @@ action_test_samba() {
 	return $totalfailed
 }
 
+action_test_samba4() {
+	do_make test
+	totalstatus=$?
+	echo "TEST STATUS: $totalstatus"
+	return "$totalstatus"
+}
 
 action_test_generic() {
         CC="$compiler"
@@ -318,6 +324,9 @@ action_test() {
 	samba*)
 	    action_test_samba
 	    ;;
+	samba4)
+		test -z "$enable_torture" || action_test_samba4
+		;;
 	lorikeet-heimdal*)
 	    action_test_lorikeet-heimdal
 	    ;;

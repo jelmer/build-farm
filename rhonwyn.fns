@@ -6,7 +6,7 @@ test_tree ccache . gcc
 
 test_tree samba4 source gcc
 test_tree samba4 source gcc-4.0
-config="--without-krb5" test_tree samba4 source tcc
+enable_torture="yes" config="--without-krb5 --enable-socket-wrapper" test_tree samba4 source tcc
 
 test_tree ppp . gcc
 per_run_hook
