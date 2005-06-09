@@ -287,9 +287,10 @@ action_test_samba() {
 }
 
 action_test_samba4() {
+	RUN_FROM_BUILD_FARM=yes
+	export RUN_FROM_BUILD_FARM
 	do_make test
 	totalstatus=$?
-	echo "TEST STATUS: $totalstatus"
 	return "$totalstatus"
 }
 
