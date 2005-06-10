@@ -20,7 +20,7 @@ for compiler in gcc cc icc; do
 
       # only attempt samba4 if we have perl
       if which perl > /dev/null; then
-        test_tree samba4 source $compiler
+        config="--enable-socket-wrapper" enable_torture="yes" test_tree samba4 source $compiler
       fi
     fi
   fi
