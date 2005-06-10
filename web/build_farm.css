@@ -11,6 +11,9 @@
 #log .status.passed {
 	color: rgb(0, 153, 0);
 }
+#log .status.skipped {
+	color: rgb(0, 0, 153);
+}
 #log .output {
 	color: rgb(0, 0, 0);
 	font-family: monospace;
@@ -26,7 +29,13 @@
 #log div.unit.failed {
 	background-color: rgb(255, 180, 180);
 }
+#log div.unit.skipped {
+	background-color: rgb(180, 180, 255);
+}
 #log .unit.failed .output {
+	display: block;
+}
+#log .unit.skipped .output {
 	display: block;
 }
 #log .unit.passed .output {
