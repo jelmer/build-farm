@@ -1,3 +1,5 @@
+per_run_hook
+
 for compiler in gcc cc icc; do
 
   # arrgh, "which" gives no err code on solaris
@@ -33,4 +35,3 @@ if [ "$system" = Linux -o "$system" = SunOS ]; then
    test_tree ppp . gcc
 fi
 
-per_run_hook
