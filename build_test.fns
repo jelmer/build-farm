@@ -482,10 +482,28 @@ test_tree() {
 	unlock_file "$lck"
 }
 
+
+#########################################################
+# enable this on a per host basis only when needed please
+# (at least for the moment)
+kill_old_processes() {
+    # this should work on systems with linux like ps
+    (ps uxfw | grep /build | grep -v grep | egrep 'Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec' | awk '{print $2}' | xargs kill -9) 2> /dev/null
+    # and this should work on sysv style ps
+    (ps -fu $USER | grep /build | grep -v grep | egrep 'Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec' | awk '{print $2}' | xargs kill -9) 2> /dev/null
+}
+
+
 # this is a special fn that allows us to add a "special" hook to the build
 # farm that we want to do to the build farm. never leave it empty. instead,
 # use ":" as the fn body.
 per_run_hook() {
+
+    # kill old processes on systems with a known problem
+    case $host in
+	opi|berks|tux|shelob|fire1|tardis) kill_old_processes
+	    ;;
+    esac
 
     # do nothing ( ':' is a program that always works and does nothing.
     # we don't want any sh to die because of an empty fn.
