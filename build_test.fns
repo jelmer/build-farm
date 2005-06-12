@@ -433,6 +433,12 @@ test_tree() {
 	(
 		uname -a
 
+                # we need to be able to see if a build farm machine is accumulating
+                # stuck processes. We do this in two ways, as we don't know what style
+                # of ps it will have
+		ps xfuw 2> /dev/null
+		ps -fu $USER 2> /dev/null
+
 		echo "building $tree with CC=$compiler on $host at "`date`
 		for action in $actions; do
 
@@ -480,11 +486,6 @@ test_tree() {
 # farm that we want to do to the build farm. never leave it empty. instead,
 # use ":" as the fn body.
 per_run_hook() {
-
-    # this cleans up old $host.fns files that were deleted a long
-    # time ago on the server, but have never been deleted on the build
-    # farm machines
-    rm -f $host.fns;
 
     # do nothing ( ':' is a program that always works and does nothing.
     # we don't want any sh to die because of an empty fn.
