@@ -500,10 +500,10 @@ kill_old_processes() {
 per_run_hook() {
 
     # kill old processes on systems with a known problem
-    case $host in
-	opi|berks|tux|shelob|fire1|tardis) kill_old_processes
-	    ;;
-    esac
+#    case $host in
+#	opi|berks|tux|shelob|fire1|tardis) kill_old_processes
+#	    ;;
+#    esac
 
     # do nothing ( ':' is a program that always works and does nothing.
     # we don't want any sh to die because of an empty fn.
