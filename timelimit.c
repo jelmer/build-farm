@@ -33,10 +33,17 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
+#ifdef BSD_SETPGRP
+	if (setpgrp(0,0) == -1) {
+		perror("setpgrp");
+		exit(1);
+	}
+#else
 	if (setpgrp() == -1) {
 		perror("setpgrp");
 		exit(1);
 	}
+#endif
 
 	maxtime = atoi(argv[1]);
 	signal(SIGALRM, sig_alrm);
