@@ -511,12 +511,12 @@ per_run_hook() {
 
     # kill old processes on systems with a known problem
     case $host in
-	rhonwyn|samba-s390) 
+	samba-s390) 
 	    # for linux systems
 	    killall -9 smbtorture
 	    killall -9 smbd
 	    ;;
-	sbf|aretnap) kill_old_processes
+	aretnap) kill_old_processes
 	    ;;
     esac
 
