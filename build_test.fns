@@ -511,12 +511,12 @@ per_run_hook() {
 
     # kill old processes on systems with a known problem
     case $host in
-	rhonwyn|shelob|tardis|cl012|fusberta|samba-s390|quango|trip|superego) 
+	rhonwyn|samba-s390) 
 	    # for linux systems
 	    killall -9 smbtorture
 	    killall -9 smbd
 	    ;;
-	smartserv1|sbf|aretnap) kill_old_processes
+	sbf|aretnap) kill_old_processes
 	    ;;
     esac
 
@@ -535,7 +535,7 @@ rsync --timeout=200 -q -az samba.org::build_farm/*.c .
 # sigh - we need to mark systems that need the bsd setpgrp() call
 htype=`uname`
 case "$htype" in
-  *BSD)
+  *BSD|*bsd)
 	TIMELIMIT_FLAGS=-DBSD_SETPGRP
 	export TIMELIMIT_FLAGS
   ;;
