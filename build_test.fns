@@ -328,7 +328,7 @@ action_test() {
 	    action_test_samba4
 	    ;;
 	samba*)
-	    echo "skipping Samba3 testing";#action_test_samba
+	    echo action_test_samba
 	    ;;
 	lorikeet-heimdal*)
 	    action_test_lorikeet-heimdal
@@ -511,11 +511,6 @@ per_run_hook() {
 
     # kill old processes on systems with a known problem
     case $host in
-	samba-s390) 
-	    # for linux systems
-	    killall -9 smbtorture
-	    killall -9 smbd
-	    ;;
 	aretnap) kill_old_processes
 	    ;;
     esac
