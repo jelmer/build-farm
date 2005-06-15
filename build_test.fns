@@ -214,7 +214,7 @@ each_test() {
 		export test
 		export whoami
 		export loglevel
-		./timelimit $MAXTIME sh ./$test.test 
+		$test_root/$tree/timelimit $MAXTIME sh ./$test.test 
 	    )
 	    tstatus=$?
 
