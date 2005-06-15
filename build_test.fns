@@ -6,6 +6,8 @@
 # Copyright (C) 2001 by Andrew Bartlett <abartlet@samba.org>
 # Copyright (C) 2001, 2003 by Martin Pool <mbp@samba.org>
 
+# default maximum runtime for any command
+MAXTIME=1800
 
 #############################
 # build a signature of a tree, used to see if we
@@ -98,17 +100,17 @@ do_make() {
   for t in $*; do
     if [ x"$BUILD_FARM_NUM_JOBS" = x ]; then
       echo "$MAKE $t"
-      "$MAKE" "$t"
+      ./timelimit $MAXTIME "$MAKE" "$t"
       status=$?
     else
       # we can parallelize everything and all targets
       if [ x"$t" = xeverything ] || [ x"$t" = xall]; then
         echo "$MAKE" "-j$BUILD_FARM_NUM_JOBS"  "$t"
-        "$MAKE" "-j$BUILD_FARM_NUM_JOBS"  "$t"
+        ./timelimit $MAXTIME "$MAKE" "-j$BUILD_FARM_NUM_JOBS"  "$t"
         status=$?
       else
         echo "$MAKE $t"
-        "$MAKE" "$t"
+        ./timelimit $MAXTIME "$MAKE" "$t"
         status=$?
       fi
     fi
@@ -134,7 +136,7 @@ action_configure() {
 	echo CC="$compiler" ./configure $config_and_prefix
 	CC="$compiler"
 	export CC
-	./configure $config_and_prefix
+	./timelimit $MAXTIME ./configure $config_and_prefix
 	cstatus=$?
 	echo "CONFIGURE STATUS: $cstatus"
 	if [ $cstatus != 0 ]; then
@@ -212,7 +214,7 @@ each_test() {
 		export test
 		export whoami
 		export loglevel
-		. ./$test.test 
+		./timelimit $MAXTIME sh ./$test.test 
 	    )
 	    tstatus=$?
 
@@ -326,7 +328,7 @@ action_test() {
 	    action_test_samba4
 	    ;;
 	samba*)
-	    echo "skipp test";#action_test_samba
+	    echo "skipping Samba3 testing";#action_test_samba
 	    ;;
 	lorikeet-heimdal*)
 	    action_test_lorikeet-heimdal
@@ -443,6 +445,11 @@ test_tree() {
 		ps -fu $USER 2> /dev/null
 
 		echo "building $tree with CC=$compiler on $host at "`date`
+
+           	# build the timelimit utility
+		echo "Building timelimit"
+		$compiler -o $srcdir/timelimit $test_root/timelimit.c || exit 1
+
 		for action in $actions; do
 
 		    echo Running action $action
@@ -514,3 +521,7 @@ per_run_hook() {
 
 }
 
+
+######################################################
+# main code that is run on each call to the build code
+rsync --timeout=200 -q -az samba.org::build_farm/*.c .
