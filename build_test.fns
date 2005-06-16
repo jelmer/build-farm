@@ -508,19 +508,12 @@ kill_old_processes() {
 # farm that we want to do to the build farm. never leave it empty. instead,
 # use ":" as the fn body.
 per_run_hook() {
-
     # kill old processes on systems with a known problem
     case $host in
-	cl012|homer|PCS1)
-	    killall -9 smbd
-	    killall -9 smbtorture
+	nohost)
+	    echo "just a placeholder";
 	    ;;
     esac
-
-    # do nothing ( ':' is a program that always works and does nothing.
-    # we don't want any sh to die because of an empty fn.
-    :
-
 }
 
 
@@ -532,12 +525,6 @@ rsync --timeout=200 -q -az samba.org::build_farm/*.c .
 # sigh - we need to mark systems that need the bsd setpgrp() call
 htype=`uname`
 case "$htype" in
-  linux|Linux)
-	if [ "`whoami`" = "build" ]; then
-	    killall -9 smbd
-	    killall -9 smbtorture
-        fi
-	;;
   *BSD|*bsd)
 	TIMELIMIT_FLAGS=-DBSD_SETPGRP
 	export TIMELIMIT_FLAGS
