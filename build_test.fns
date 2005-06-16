@@ -511,7 +511,9 @@ per_run_hook() {
 
     # kill old processes on systems with a known problem
     case $host in
-	aretnap) kill_old_processes
+	cl012|homer)
+	    killall -9 smbd
+	    killall -9 smbtorture
 	    ;;
     esac
 
