@@ -511,7 +511,7 @@ per_run_hook() {
 
     # kill old processes on systems with a known problem
     case $host in
-	cl012|homer)
+	cl012|homer|PCS1)
 	    killall -9 smbd
 	    killall -9 smbtorture
 	    ;;
