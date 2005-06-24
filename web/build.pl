@@ -156,6 +156,7 @@ my @hosts = sort { $hosts{$a} cmp $hosts{$b} } keys %hosts;
 my (%trees) = (
 	       'samba' => "",
 	       'samba4' => "",
+	       'smb-build' => "",
 	       'samba-docs' => "",
 	       'samba_3_0' => "SAMBA_3_0",
 	       'rsync' => "",
