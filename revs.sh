@@ -11,7 +11,6 @@ for f in `find . -maxdepth 1 -type f -name "*.log" -links 1`; do
     base=`basename $f .log`
     log_revname="oldrevs/$base-$rev.log"
     err_revname="oldrevs/$base-$rev.err"
-    test -r $log_revname && continue;
 
     rm -f $log_revname $err_revname
     ln -f $base.log $log_revname
