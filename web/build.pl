@@ -192,8 +192,6 @@ sub build_revision($$$$)
 
     $log = util::FileLoad("$file.log");
 
-    if (! $log) { return 0; }
-
     if ($log =~ /BUILD REVISION:(.*)/) {
 	$ret = $1;
     }
