@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 # This CGI script presents the results of the build_farm build
 #
-# Copyright (C) Andrew Tridgell <tridge@samba.org>     2001
+# Copyright (C) Andrew Tridgell <tridge@samba.org>     2001-2005
 # Copyright (C) Andrew Bartlett <abartlet@samba.org>   2001
 # Copyright (C) Vance Lankhaar  <vance@samba.org>      2002-2005
 # Copyright (C) Martin Pool <mbp@samba.org>            2001
@@ -24,17 +24,20 @@
 # e.g. only broken builds or only builds that you care about.
 
 
-my $BASEDIR = "/home/build/master";
-my $CACHEDIR = "/home/build/master/cache";
-
 use strict qw{vars};
-use lib "$BASEDIR/web";
+use FindBin qw($RealBin);
+
+use lib "$RealBin";
 use util;
 use history;
 use POSIX;
 use Data::Dumper;
 use CGI;
 use File::stat;
+
+my $WEBDIR = "$RealBin";
+my $BASEDIR = "$WEBDIR/..";
+my $CACHEDIR = "$WEBDIR/../cache";
 
 my $req = new CGI;
 
@@ -45,131 +48,14 @@ my $DEADAGE = 60*60*24*4;
 ##############################################
 # this defines what it is possible to build 
 # and what boxes. Should be in a config file
-my $compilers = ['cc', 'gcc', 'gcc3', 'gcc-3.4', 'gcc-4.0', 'icc', 'tcc', 'icc-9'];
-
-my (%hosts) = ('sun1' => "Solaris 8 UltraSparc", 
-	       'Isis' => "Solaris 8 i386",
-	       'gc20' => "Solaris 2.6 Sparc",
-#	       'sco1' => "SysV 3.2 i386", 
-#	       'sco2' => "UnixWare 7.1.0 i386", 
-
-	       'aix1' => "AIX 4.3 PPC",
-	       'mungera' => "AIX 5.2 IBM POWER4+",
-	       'oehmesrs6k' => "AIX 5.2",
-
-	       'us4'  => "IRIX 6.5 MIPS", 
-	       'au2'  => "IRIX 6.4 MIPS",
-
-	       'wayne' => "RedHat 6.1 Sparc 10 (Kernel 2.2.18)",
-	       'yowiee' => "Fedora Core 2 i386",
-#	       'insure' => "RedHat 6.2 vmware (insure)",
-	       'svamp' => "RedHat 7.0 i386",
-	       'homer' => "RedHat RHEL 3 (WS)",
-	       'lithium' => "CentOS 3.4",
-
-	       'rhonwyn'  => "Debian Linux unstable i686",
-	       'boiccu'  => "Debian Linux testing/unstable IA64",
-	       'yurok' => "Debian Linux 3.0 stable i386",
-	       'sasoe_smb' => "Debian Linux 3.0 stable i386",
-	       'samba-s390' => "Debian Linux 3.0 stable s390",
-
-	       'fusberta' => "Debian Linux 3.0 Alpha",
-	       'superego' => "Debian PPC/64 (Power3)",
-	       'quango' => "Debian PPC/32 (Power3)",
-	       'cl012' => "Debian Testing/Unstable i386",
-	       'tux' => "Debian Linux sid/unstable HP PA-RISC",
-
-	       'sparc-woody' => "Debian Linux 3.0 (woody) Sparc64",
-	       'sparc-sarge' => "Debian Linux sarge/testing Sparc64",
-	       'sparc-sid' => "Debian Linux sid/unstable Sparc64",
-
-	       'flock'  => "OpenBSD 3.6 i386",
-	       'flame'  => "OpenBSD 3.0 Sparc",
-	       'pandemonium' => "OpenBSD-current Sparc64",
-
-	       'kimchi'  => "NetBSD 1.5 i386",
-	       'poseidon' => 'NetBSD 1.6.2 Sparc32',
-	       'ares' => 'NetBSD 1.6.2 Sparc64',
-	       
-	       'hummel-netbsd3-samba' => 'NetBSD 3.99.5 (XENU)',
-
-	       'aretnap' => "FreeBSD 5.4-STABLE",
-
-	       'gc8'  => "FreeBSD 3.3-RELEASE i386",
-	       'gc4'  => "FreeBSD 4.3-STABLE i386",
-
-	       'manhattan' => "FreeBSD 4.8-RELEASE i386",
-
-	       'sbf' => "FreeBSD 5.2.1 i386",
-	       'smartserv1' => 'FreeBSD 5.4-STABLE i386',
-	       'ragnarok' => 'FreeBSD 5.3-STABLE amd64',
-
-	       'woko'  => "Cray SV1 UNICOS 10.0.0.8",
-
-	       'hpntc9I' => "HP-UX 11.11",
-	       'gwen' => "HP-UX 11.11",
-
-	       'g6usr30' => "RedHat 7.2 IBM s390 (Kernel 2.4.9)",
-
-	       'belle' => "RedHat 8.0 i686",
-	       'manjra' => "RedHat 8.0 i686",
-	       'lacroix' => "RedHat 9.0 i686 SMP",
-	       'delacruz'=> "RedHat 9.0 i686",
-
-	       'berks' => "Fedora Core 1 i386",
-	       'tango-one-mars' => "Fedora Core 2 i386",
-	       'shelob' => "Fedora Core 3 i386 SMP",
-
-	       'suse71ppc' => "SuSE 7.1 ppc gcc2.95.2",
-	       'metze01' => "SuSE 8.2 i386 (athlon)",
-	       'metze02' => "SuSE 7.3 i386 (PIII)",
-
-	       'l390vme1' => "SuSE SLES 8 (S/390)",
-
-	       'opi' => "SuSE SLES 9 (x86_64)",
-	       'PCS1' => "SuSE Linux 9.2 Professional (i586)",
-
-	       'cyberone' => "Cygwin i686 (MS WinXP Pro)",
-
-	       'trip' => "Mandriva 2005 LE (10.2) i386",
-
-	       'm30' => "Stratus VOS HP PA-RISC",
-
-	       'previn' => "Solaris 8 UltraSparc",
-	       'mundroo' => "Solaris 8 i386",
-	       'cat' => "Solaris 9 i386",
-	       'fire1' => "Solaris 9 Sparc",
-	       'opisol10' => "Solaris 10 b63 x86",
-
-	       'packetstorm' => "Slackware Linux 9.0 i386",
-
-	       'tardis' => "Gentoo i686",
-	       'wetlizard' => "Gentoo UltraSparc",
-	       'sol10' => "Solaris 10 x86",
-	       'shubnigurath' => "Solaris 10 UltraSparc",
-	       'dev4-003' => "Debian Unstable x86"
-	       );
-
-
+my @compilers = util::load_list("$WEBDIR/compilers.list");
+my (%hosts) = util::load_hash("$WEBDIR/hosts.list");
 my @hosts = sort { $hosts{$a} cmp $hosts{$b} } keys %hosts;
-
-my (%trees) = (
-	       'samba' => "",
-	       'samba4' => "",
-	       'smb-build' => "",
-	       'samba-docs' => "",
-	       'samba_3_0' => "SAMBA_3_0",
-	       'rsync' => "",
-	       'distcc' => "",
-	       'ppp' => "",
-	       'talloc' => "",
-	       'tdb' => "",
-	       'ccache' => "",
-	       'lorikeet-heimdal' => "");
-
+my (%trees) = util::load_hash("$WEBDIR/trees.list");
 # these aren't really trees... they're just things we want in the menu.
 # (for recent checkins)
-my @pseudo_trees = ( "samba-web", "lorikeet", "samba_2_2", "samba_2_2_release", "samba_3_0_release" );
+my @pseudo_trees = util::load_list("$WEBDIR/pseudo.list");
+
 # this is automatically filled in
 my (@deadhosts) = ();
 
@@ -229,6 +115,17 @@ sub fatal($) {
     exit(0);
 }
 
+################################
+# get the name of the build file
+sub build_fname($$$)
+{
+    my $tree=shift;
+    my $host=shift;
+    my $compiler=shift;
+    return "build.$tree.$host.$compiler";
+}
+
+
 ##############################################
 # get the age of build from ctime
 sub build_age($$$)
@@ -236,7 +133,7 @@ sub build_age($$$)
     my $host=shift;
     my $tree=shift;
     my $compiler=shift;
-    my $file="build.$tree.$host.$compiler";
+    my $file=build_fname($tree, $host, $compiler);
     my $age = -1;
     my $st;
 
@@ -254,7 +151,7 @@ sub build_revision($$$)
     my $host=shift;
     my $tree=shift;
     my $compiler=shift;
-    my $file="build.$tree.$host.$compiler";
+    my $file=build_fname($tree, $host, $compiler);
     my $log;
     my $rev = "unknown";
 
@@ -284,7 +181,7 @@ sub host_age($)
 {
 	my $host = shift;
 	my $ret = -1;
-	for my $compiler (@{$compilers}) {
+	for my $compiler (@compilers) {
 		for my $tree (sort keys %trees) {
 			my $age = build_age($host, $tree, $compiler);
 			if ($age != -1 && ($age < $ret || $ret == -1)) {
@@ -315,8 +212,8 @@ sub build_status($$$)
     my $host=shift;
     my $tree=shift;
     my $compiler=shift;
-    my $file="build.$tree.$host.$compiler";
-    my $cachefile="$CACHEDIR/build.$tree.$host.$compiler";
+    my $file=build_fname($tree, $host, $compiler);
+    my $cachefile="$CACHEDIR/" . build_fname($tree, $host, $compiler);
     my ($cstatus, $bstatus, $istatus, $tstatus, $sstatus);
     $cstatus = $bstatus = $istatus = $tstatus = $sstatus =
       "<span class=\"status unknown\">?</span>";
@@ -353,13 +250,13 @@ sub build_status($$$)
 	}
     }
     
-    unlink("$CACHEDIR/FAILED.build.$tree.$host.$compiler");
+    unlink("$CACHEDIR/FAILED" . build_fname($tree, $host, $compiler));
     if ($log =~ /BUILD STATUS:(.*)/) {
 	if ($1 == 0) {
 	    $bstatus = "<span class=\"status passed\">ok</span>";
 	} else {
 	    $bstatus = "<span class=\"status failed\">$1</span>";
-	    system("touch $CACHEDIR/FAILED.build.$tree.$host.$compiler");
+	    system("touch $CACHEDIR/FAILED" . build_fname($tree, $host, $compiler));
 	}
     }
 
@@ -397,7 +294,7 @@ sub err_count($$$)
     my $host=shift;
     my $tree=shift;
     my $compiler=shift;
-    my $file="build.$tree.$host.$compiler";
+    my $file=build_fname($tree, $host, $compiler);
     my $err;
 
     my $st1 = stat("$file.err");
@@ -424,7 +321,7 @@ sub err_count($$$)
 # view build summary
 sub view_summary($) {
     my $i = 0;
-    my $list = `ls`;
+    my $list = `ls *.log`;
 
     my $cols = 2;
 
@@ -458,7 +355,7 @@ sub view_summary($) {
     }
 
     for my $host (@hosts) {
-	for my $compiler (@{$compilers}) {
+	for my $compiler (@compilers) {
 	    for my $tree (sort keys %trees) {
 		my $status = build_status($host, $tree, $compiler);
 		my $age = build_age($host, $tree, $compiler);
@@ -597,7 +494,7 @@ EOHEADER
 
 	my $row = 0;
 
-	for my $compiler (@{$compilers}) {
+	for my $compiler (@compilers) {
 	    for my $tree (sort keys %trees) {
 		my $age = build_age($host, $tree, $compiler);
 		my $warnings = err_count($host, $tree, $compiler);
@@ -662,7 +559,6 @@ EOHEADER
 
 sub view_recent_builds() {
     my $i = 0;
-    my $list = `ls`;
 
     my $cols = 2;
 
@@ -677,7 +573,7 @@ sub view_recent_builds() {
     # can be sorted by time.
 
     for my $host (@hosts) {
-      for my $compiler (@{$compilers}) {
+      for my $compiler (@compilers) {
 	  my $status = build_status($host, $tree, $compiler);
 	  my $age = build_age($host, $tree, $compiler);
 	  my $revision = build_revision($host, $tree, $compiler);
@@ -757,7 +653,8 @@ sub view_build() {
     my $host=$req->param("host");
     my $tree=$req->param("tree");
     my $compiler=$req->param("compiler");
-    my $file="build.$tree.$host.$compiler";
+    my $revision=$req->param('revision'),
+    my $file=build_fname($tree, $host, $compiler);
     my $log;
     my $err;
     my $uname="";
@@ -768,7 +665,7 @@ sub view_build() {
     my $status = build_status($host, $tree, $compiler);
 
     util::InArray($host, [keys %hosts]) || fatal("unknown host");
-    util::InArray($compiler, $compilers) || fatal("unknown compiler");
+    util::InArray($compiler, \@compilers) || fatal("unknown compiler");
     util::InArray($tree, [sort keys %trees]) || fatal("unknown tree");
 
     $log = util::FileLoad("$file.log");
@@ -821,7 +718,7 @@ sub view_build() {
 		    print "<h2>No error log available</h2>\n";
 	    } else {
 		    print "<h2>Error log:</h2>\n";
-		    print make_action_html("Error Output", "\n$err", "stderr-0");;
+		    print make_action_html("Error Output", "\n$err", "stderr-0", 0);
 	    }
 
 	    if ($log eq "") {
@@ -869,7 +766,7 @@ sub print_log_pretty() {
   
   $log =~ s{
 	      --==--==--==--==--==--==--==--==--==--==--.*?
-	      Running\ test\ ([\w-=,_:\ ]+)\ \(level\ (\d+)\ (\w+)\).*?
+	      Running\ test\ ([\w\-=,_:\ ]+)\ \(level\ (\d+)\ (\w+)\).*?
 	      --==--==--==--==--==--==--==--==--==--==--
               (.*?)
 	      ==========================================.*?
@@ -914,7 +811,8 @@ sub make_test_html {
 
 ##############################################
 # generate html for an action section
-sub make_action_html {
+sub make_action_html($$$$)
+{
 
   my $name = shift;
   my $output = shift;
@@ -938,6 +836,12 @@ sub make_action_html {
   if (defined $status) {
     $return .= "<div class=\"action status \L$status\E\">$status</div>";
   }
+
+  my $x;
+  $x = "$id";
+  $x = "$name$output";
+  $x = "$status";
+  $x = "$name";
 
   $return .= "<div class=\"action output\" id=\"output-$id\">" .
                  "<pre>Running action $name$output ACTION $status: $name</pre>" .
@@ -973,7 +877,7 @@ sub main_menu() {
 			   -values=>\@hosts,
 			   -labels=>\%hosts) . "\n";
     print $req->popup_menu("tree", [sort (keys %trees, @pseudo_trees)]) . "\n";
-    print $req->popup_menu("compiler", $compilers) . "\n";
+    print $req->popup_menu("compiler", \@compilers) . "\n";
     print "<br />\n";
     print $req->submit('function', 'View Build') . "\n";
     print $req->submit('function', 'Recent Checkins') . "\n";

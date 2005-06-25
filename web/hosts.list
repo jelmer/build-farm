@@ -1,0 +1,71 @@
+aix1: AIX 4.3 PPC
+oehmesrs6k: AIX 5.2
+mungera: AIX 5.2 IBM POWER4+
+lithium: CentOS 3.4
+woko: Cray SV1 UNICOS 10.0.0.8
+cyberone: Cygwin i686 (MS WinXP Pro)
+sparc-woody: Debian Linux 3.0 (woody) Sparc64
+fusberta: Debian Linux 3.0 Alpha
+yurok: Debian Linux 3.0 stable i386
+sasoe_smb: Debian Linux 3.0 stable i386
+samba-s390: Debian Linux 3.0 stable s390
+sparc-sarge: Debian Linux sarge/testing Sparc64
+tux: Debian Linux sid/unstable HP PA-RISC
+sparc-sid: Debian Linux sid/unstable Sparc64
+boiccu: Debian Linux testing/unstable IA64
+rhonwyn: Debian Linux unstable i686
+quango: Debian PPC/32 (Power3)
+superego: Debian PPC/64 (Power3)
+cl012: Debian Testing/Unstable i386
+dev4-003: Debian Unstable x86
+berks: Fedora Core 1 i386
+yowiee: Fedora Core 2 i386
+tango-one-mars: Fedora Core 2 i386
+shelob: Fedora Core 3 i386 SMP
+gc8: FreeBSD 3.3-RELEASE i386
+gc4: FreeBSD 4.3-STABLE i386
+manhattan: FreeBSD 4.8-RELEASE i386
+sbf: FreeBSD 5.2.1 i386
+ragnarok: FreeBSD 5.3-STABLE amd64
+aretnap: FreeBSD 5.4-STABLE
+smartserv1: FreeBSD 5.4-STABLE i386
+wetlizard: Gentoo UltraSparc
+tardis: Gentoo i686
+gwen: HP-UX 11.11
+hpntc9I: HP-UX 11.11
+au2: IRIX 6.4 MIPS
+us4: IRIX 6.5 MIPS
+trip: Mandriva 2005 LE (10.2) i386
+kimchi: NetBSD 1.5 i386
+poseidon: NetBSD 1.6.2 Sparc32
+ares: NetBSD 1.6.2 Sparc64
+hummel-netbsd3-samba: NetBSD 3.99.5 (XENU)
+flame: OpenBSD 3.0 Sparc
+flock: OpenBSD 3.6 i386
+pandemonium: OpenBSD-current Sparc64
+wayne: RedHat 6.1 Sparc 10 (Kernel 2.2.18)
+svamp: RedHat 7.0 i386
+g6usr30: RedHat 7.2 IBM s390 (Kernel 2.4.9)
+belle: RedHat 8.0 i686
+manjra: RedHat 8.0 i686
+delacruz: RedHat 9.0 i686
+lacroix: RedHat 9.0 i686 SMP
+homer: RedHat RHEL 3 (WS)
+packetstorm: Slackware Linux 9.0 i386
+shubnigurath: Solaris 10 UltraSparc
+opisol10: Solaris 10 b63 x86
+sol10: Solaris 10 x86
+gc20: Solaris 2.6 Sparc
+sun1: Solaris 8 UltraSparc
+previn: Solaris 8 UltraSparc
+mundroo: Solaris 8 i386
+Isis: Solaris 8 i386
+fire1: Solaris 9 Sparc
+cat: Solaris 9 i386
+m30: Stratus VOS HP PA-RISC
+suse71ppc: SuSE 7.1 ppc gcc2.95.2
+metze02: SuSE 7.3 i386 (PIII)
+metze01: SuSE 8.2 i386 (athlon)
+PCS1: SuSE Linux 9.2 Professional (i586)
+l390vme1: SuSE SLES 8 (S/390)
+opi: SuSE SLES 9 (x86_64)

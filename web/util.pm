@@ -20,6 +20,31 @@ package util;
 
 use Data::Dumper;
 
+##############################################
+# load a list from a file, using : to separate
+sub load_list($)
+{
+	my $fname = shift;
+	my @lines = split('\n', `grep -v ^# $fname`);
+	return @lines;
+}
+
+##############################################
+# load a hash from a file, using : to separate
+sub load_hash($)
+{
+	my $fname = shift;
+	my @lines = load_list($fname);
+	my %ret;
+	for my $l (@lines) {
+		if ($l =~ /^([\w\-]*)\s*:\s*(.*)$/) {
+			$ret{$1} = $2;
+		}
+	}
+	return %ret;
+}
+
+
 #####################################################################
 # check if a string is in an array
 sub InArray($$)

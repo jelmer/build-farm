@@ -1,0 +1,14 @@
+# list of build trees in farm
+# format is treename:branch
+samba:
+samba4:
+samba-docs:
+smb-build:
+samba_3_0:SAMBA_3_0
+rsync:
+distcc:
+ppp:
+talloc:
+tdb:
+ccache:
+lorikeet-heimdal:
