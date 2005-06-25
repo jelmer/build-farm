@@ -251,7 +251,7 @@ sub build_status($$$$)
     my $ret;
 
     my $st1 = stat("$file.log");
-    my $st2 = stat($cachefile);
+    my $st2 = stat("$cachefile");
 
     if ($st1 && $st2 && $st1->ctime <= $st2->ctime) {
 	return util::FileLoad($cachefile);
