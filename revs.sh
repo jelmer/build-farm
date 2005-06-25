@@ -20,3 +20,6 @@ done
 
 # delete really old ones
 find oldrevs -type f -mtime +14 -links 1 | xargs rm -f
+
+# delete old cache data
+find ../cache -type f -name "build.*" -mtime +1 | xargs rm -f
