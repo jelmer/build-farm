@@ -145,16 +145,6 @@ sub get_old_revs($$$)
 	    }
     }
 
-    # only list changes in build status
-    my @revs = sort { $ret{$a} cmp $ret{$b} } keys %ret;
-    for (my $i=1;$i<=$#revs;$i++) {
-	    if ($ret{$revs[$i]} eq $ret{$revs[$i-1]}) {
-		    delete $ret{$revs[$i]};
-		    delete $revs[$i];
-		    $i--;
-	    }
-    }
-
     return %ret;
 }
 
@@ -699,7 +689,13 @@ sub show_oldrevs($$$)
 <tr><th>Revision</th><th>Status</th></tr>
 ";
 
+    my $lastrev = "";
+
     for my $rev (@revs) {
+	    my $s = $revs{$rev};
+	    $s =~ s/$rev/0/;
+	    next if ($s eq $lastrev);
+	    $lastrev = $s;
 	    print "<tr><td>$rev</td><td>$revs{$rev}</td></tr>\n";
     }
     print "</table>\n";
