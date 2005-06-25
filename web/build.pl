@@ -615,7 +615,8 @@ sub view_recent_builds() {
       }
   }
 
-  @all_builds = sort {$$a[0] <=> $$b[0]} @all_builds;
+  # sort by revision then age
+  @all_builds = sort {$$b[6] <=> $$a[6] || $$a[0] <=> $$b[0]} @all_builds;
   
 
     print <<EOHEADER;
