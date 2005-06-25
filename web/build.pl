@@ -160,7 +160,8 @@ sub build_age($$$$)
     my $age = -1;
     my $st;
 
-    if ($st = stat("$file.log")) {
+    $st = stat("$file.log");
+    if ($st) {
 	$age = time() - $st->ctime;
     }
 
