@@ -350,7 +350,7 @@ test_tree() {
 	shift
 
 	# limit our resource usage
-	ulimit -t 600
+	ulimit -t 900
 	ulimit -m 50000
 
 	# Keep stuff private
