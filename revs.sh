@@ -4,9 +4,9 @@ cd data || exit 1
 
 mkdir -p oldrevs
 
-for f in *.log; do
+for f in `find . -maxdepth 1 -type f -name "*.log" -links 1`; do
     rev=`cat $f | egrep ^BUILD.REVISION | awk '{print $3}'`
-    test -z "$rev" && continue;
+    test -z "$rev" && rev=0;
 
     base=`basename $f .log`
     log_revname="oldrevs/$base-$rev.log"
@@ -18,4 +18,4 @@ for f in *.log; do
 done
 
 # delete really old ones
-find oldrevs -type f -mtime +14 | xargs rm -f
+find oldrevs -type f -mtime +14 -links 1 | xargs rm -f
