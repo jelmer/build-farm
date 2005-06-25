@@ -187,7 +187,7 @@ sub build_revision($$$$)
     my $rev=shift;
     my $file=build_fname($tree, $host, $compiler, $rev);
     my $log;
-    my $ret = "unknown";
+    my $ret = 0;
 
     if ($rev) {
 	    return $rev;
