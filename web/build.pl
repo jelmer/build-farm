@@ -117,23 +117,56 @@ sub fatal($) {
 
 ################################
 # get the name of the build file
-sub build_fname($$$)
+sub build_fname($$$$)
 {
     my $tree=shift;
     my $host=shift;
     my $compiler=shift;
+    my $rev=shift;
+    if ($rev) {
+	    return "oldrevs/build.$tree.$host.$compiler-$rev";
+    }
     return "build.$tree.$host.$compiler";
 }
 
+###########################################
+# get a list of old builds and their status
+sub get_old_revs($$$)
+{
+    my $tree=shift;
+    my $host=shift;
+    my $compiler=shift;
+    my @list = split('\n', `ls oldrevs/build.$tree.$host.$compiler-*.log`);
+    my %ret;
+    for my $l (@list) {
+	    if ($l =~ /-(\d+).log$/) {
+		    my $rev = $1;
+		    $ret{$rev} = build_status($host, $tree, $compiler, $rev);
+	    }
+    }
+
+    # only list changes in build status
+    my @revs = sort { $ret{$a} cmp $ret{$b} } keys %ret;
+    for (my $i=1;$i<=$#revs;$i++) {
+	    if ($ret{$revs[$i]} eq $ret{$revs[$i-1]}) {
+		    delete $ret{$revs[$i]};
+		    delete $revs[$i];
+		    $i--;
+	    }
+    }
+
+    return %ret;
+}
 
 ##############################################
 # get the age of build from ctime
-sub build_age($$$)
+sub build_age($$$$)
 {
     my $host=shift;
     my $tree=shift;
     my $compiler=shift;
-    my $file=build_fname($tree, $host, $compiler);
+    my $rev=shift;
+    my $file=build_fname($tree, $host, $compiler, $rev);
     my $age = -1;
     my $st;
 
@@ -146,14 +179,19 @@ sub build_age($$$)
 
 ##############################################
 # get the svn revision of build
-sub build_revision($$$)
+sub build_revision($$$$)
 {
     my $host=shift;
     my $tree=shift;
     my $compiler=shift;
-    my $file=build_fname($tree, $host, $compiler);
+    my $rev=shift;
+    my $file=build_fname($tree, $host, $compiler, $rev);
     my $log;
-    my $rev = "unknown";
+    my $ret = "unknown";
+
+    if ($rev) {
+	    return $rev;
+    }
 
     my $st1 = stat("$file.log");
     my $st2 = stat("$CACHEDIR/$file.revision");
@@ -167,12 +205,12 @@ sub build_revision($$$)
     if (! $log) { return 0; }
 
     if ($log =~ /BUILD REVISION:(.*)/) {
-	$rev = $1;
+	$ret = $1;
     }
 
-    util::FileSave("$CACHEDIR/$file.revision", "$rev");
+    util::FileSave("$CACHEDIR/$file.revision", "$ret");
 
-    return $rev;
+    return $ret;
 }
 
 #############################################
@@ -183,7 +221,7 @@ sub host_age($)
 	my $ret = -1;
 	for my $compiler (@compilers) {
 		for my $tree (sort keys %trees) {
-			my $age = build_age($host, $tree, $compiler);
+			my $age = build_age($host, $tree, $compiler, "");
 			if ($age != -1 && ($age < $ret || $ret == -1)) {
 				$ret = $age;
 			}
@@ -207,13 +245,14 @@ sub red_age($)
 
 ##############################################
 # get status of build
-sub build_status($$$)
+sub build_status($$$$)
 {
     my $host=shift;
     my $tree=shift;
     my $compiler=shift;
-    my $file=build_fname($tree, $host, $compiler);
-    my $cachefile="$CACHEDIR/" . build_fname($tree, $host, $compiler);
+    my $rev=shift;
+    my $file=build_fname($tree, $host, $compiler, $rev);
+    my $cachefile="$CACHEDIR/" . $file . ".status";
     my ($cstatus, $bstatus, $istatus, $tstatus, $sstatus);
     $cstatus = $bstatus = $istatus = $tstatus = $sstatus =
       "<span class=\"status unknown\">?</span>";
@@ -222,64 +261,57 @@ sub build_status($$$)
     my $ret;
 
     my $st1 = stat("$file.log");
-    my $st2 = stat("$cachefile.status");
+    my $st2 = stat($cachefile);
 
     if ($st1 && $st2 && $st1->ctime <= $st2->ctime) {
-	return util::FileLoad("$cachefile.status");
+	return util::FileLoad($cachefile);
     }
 
     $log = util::FileLoad("$file.log");
 
-    unlink("$CACHEDIR/FAILED.test.$tree.$host.$compiler");
     if ($log =~ /TEST STATUS:(.*)/) {
 	if ($1 == 0) {
 	    $tstatus = "<span class=\"status passed\">ok</span>";
 	} else {
 	    $tstatus = "<span class=\"status failed\">$1</span>";
-	    system("touch $CACHEDIR/FAILED.test.$tree.$host.$compiler");
 	}
     }
     
-    unlink("$CACHEDIR/FAILED.install.$tree.$host.$compiler");
     if ($log =~ /INSTALL STATUS:(.*)/) {
 	if ($1 == 0) {
 	    $istatus = "<span class=\"status passed\">ok</span>";
 	} else {
 	    $istatus = "<span class=\"status failed\">$1</span>";
-	    system("touch $CACHEDIR/FAILED.install.$tree.$host.$compiler");
 	}
     }
     
-    unlink("$CACHEDIR/FAILED" . build_fname($tree, $host, $compiler));
     if ($log =~ /BUILD STATUS:(.*)/) {
 	if ($1 == 0) {
 	    $bstatus = "<span class=\"status passed\">ok</span>";
 	} else {
 	    $bstatus = "<span class=\"status failed\">$1</span>";
-	    system("touch $CACHEDIR/FAILED" . build_fname($tree, $host, $compiler));
 	}
     }
 
-    unlink("$CACHEDIR/FAILED.configure.$tree.$host.$compiler");
     if ($log =~ /CONFIGURE STATUS:(.*)/) {
 	if ($1 == 0) {
 	    $cstatus = "<span class=\"status passed\">ok</span>";
 	} else {
 	    $cstatus = "<span class=\"status failed\">$1</span>";
-	    system("touch $CACHEDIR/FAILED.configure.$tree.$host.$compiler");
 	}
     }
     
-    unlink("$CACHEDIR/FAILED.internalerror.$tree.$host.$compiler");
     if ($log =~ /INTERNAL ERROR:(.*)/ || $log =~ /PANIC:(.*)/) {
 	$sstatus = "/<span class=\"status panic\">PANIC</span>";
-	system("touch $CACHEDIR/FAILED.internalerror.$tree.$host.$compiler");
     } else {
 	$sstatus = "";
     }
-    
-    $ret = "<a href=\"$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler\">$cstatus/$bstatus/$istatus/$tstatus$sstatus</a>";
 
+    $ret = "<a href=\"$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler";
+    if ($rev) {
+	    $ret .= ";revision=$rev";
+    }
+    $ret .= "\">$cstatus/$bstatus/$istatus/$tstatus$sstatus</a>";
 
     util::FileSave("$CACHEDIR/$file.status", $ret);
 
@@ -289,12 +321,13 @@ sub build_status($$$)
 
 ##############################################
 # get status of build
-sub err_count($$$)
+sub err_count($$$$)
 {
     my $host=shift;
     my $tree=shift;
     my $compiler=shift;
-    my $file=build_fname($tree, $host, $compiler);
+    my $rev=shift;
+    my $file=build_fname($tree, $host, $compiler, $rev);
     my $err;
 
     my $st1 = stat("$file.err");
@@ -357,8 +390,8 @@ sub view_summary($) {
     for my $host (@hosts) {
 	for my $compiler (@compilers) {
 	    for my $tree (sort keys %trees) {
-		my $status = build_status($host, $tree, $compiler);
-		my $age = build_age($host, $tree, $compiler);
+		my $status = build_status($host, $tree, $compiler, "");
+		my $age = build_age($host, $tree, $compiler, "");
 
 		if ($age != -1 && $age < $DEADAGE) {
 		    $host_count{$tree}++;
@@ -369,7 +402,7 @@ sub view_summary($) {
 		    if ($status =~ /PANIC/) {
 			$panic_count{$tree}++;
 		    }
-		    my $warnings = err_count($host, $tree, $compiler);
+		    my $warnings = err_count($host, $tree, $compiler, "");
 
 		    $host_os = $hosts{$host};
 		    if ($output_type eq "text") {
@@ -496,10 +529,10 @@ EOHEADER
 
 	for my $compiler (@compilers) {
 	    for my $tree (sort keys %trees) {
-		my $age = build_age($host, $tree, $compiler);
-		my $warnings = err_count($host, $tree, $compiler);
+		my $age = build_age($host, $tree, $compiler, "");
+		my $warnings = err_count($host, $tree, $compiler, "");
 		if ($age != -1 && $age < $DEADAGE) {
-		    my $status = build_status($host, $tree, $compiler);
+		    my $status = build_status($host, $tree, $compiler, "");
 		    if ($row == 0) {
 			    if ($output_type eq 'text') {
 				    printf "%-12s %-10s %-10s %-10s %-10s\n",
@@ -574,9 +607,9 @@ sub view_recent_builds() {
 
     for my $host (@hosts) {
       for my $compiler (@compilers) {
-	  my $status = build_status($host, $tree, $compiler);
-	  my $age = build_age($host, $tree, $compiler);
-	  my $revision = build_revision($host, $tree, $compiler);
+	  my $status = build_status($host, $tree, $compiler, "");
+	  my $age = build_age($host, $tree, $compiler, "");
+	  my $revision = build_revision($host, $tree, $compiler, "");
 	  push @all_builds, [$age, $hosts{$host}, "<a href=\"$myself?function=Summary;host=$host;tree=$tree;compiler=$compiler#$host\">$host</a>", $compiler, $tree, $status, $revision]
 	  	unless $age == -1 or $age >= $DEADAGE;
       }
@@ -646,23 +679,47 @@ EOHEADER
     print "  </tbody>\n</table>\n</div>\n";
 }
 
+##############################################
+# show the available old revisions, if any
+sub show_oldrevs($$$)
+{
+    my $tree=shift;
+    my $host=shift;
+    my $compiler=shift;
+    my %revs = get_old_revs($tree, $host, $compiler);
+    my @revs = sort { $revs{$b} cmp $revs{$a} } keys %revs;
+
+    return if ($#revs < 1);
+
+    print "<h2>Older builds:</h2>\n";
+
+    print "
+<table class=\"real\">
+<tr><th>Revision</th><th>Status</th></tr>
+";
+
+    for my $rev (@revs) {
+	    print "<tr><td>$rev</td><td>$revs{$rev}</td></tr>\n";
+    }
+    print "</table>\n";
+}
 
 ##############################################
 # view one build in detail
 sub view_build() {
-    my $host=$req->param("host");
     my $tree=$req->param("tree");
+    my $host=$req->param("host");
     my $compiler=$req->param("compiler");
-    my $revision=$req->param('revision'),
-    my $file=build_fname($tree, $host, $compiler);
+    my $rev=$req->param('revision');
+    my $file=build_fname($tree, $host, $compiler, $rev);
     my $log;
     my $err;
     my $uname="";
     my $cflags="";
     my $config="";
-    my $age = build_age($host, $tree, $compiler);
-    my $rev = build_revision($host, $tree, $compiler);
-    my $status = build_status($host, $tree, $compiler);
+    my $age = build_age($host, $tree, $compiler, $rev);
+    my $revision = build_revision($host, $tree, $compiler, $rev);
+    my $status = build_status($host, $tree, $compiler, $rev);
 
     util::InArray($host, [keys %hosts]) || fatal("unknown host");
     util::InArray($compiler, \@compilers) || fatal("unknown compiler");
@@ -692,7 +749,7 @@ sub view_build() {
 <tr><td>Host:</td><td><a href=\"$myself?function=Summary;host=$host;tree=$tree;compiler=$compiler#$host\">$host</a> - $hosts{$host}</td></tr>
 <tr><td>Uname:</td><td>$uname</td></tr>
 <tr><td>Tree:</td><td>$tree</td></tr>
-<tr><td>Build Revision:</td><td>" . $rev . "</td></tr>
+<tr><td>Build Revision:</td><td>" . $revision . "</td></tr>
 <tr><td>Build age:</td><td class=\"age\">" . red_age($age) . "</td></tr>
 <tr><td>Status:</td><td>$status</td></tr>
 <tr><td>Compiler:</td><td>$compiler</td></tr>
@@ -700,6 +757,8 @@ sub view_build() {
 <tr><td>configure options:  </td><td>$config</td></tr>
 </table>
 ";
+
+    show_oldrevs($tree, $host, $compiler);
 
     # check the head of the output for our magic string 
     my $plain_logs = (defined $req->param("plain") &&
