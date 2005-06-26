@@ -110,7 +110,7 @@ sub cgi_footers() {
 # print an error on fatal errors
 sub fatal($) {
     my $msg=shift;
-    print "ERROR: $msg<br />\n";
+    print "<h1>ERROR: $msg</h1>\n";
     cgi_footers();
     exit(0);
 }
@@ -344,9 +344,7 @@ sub err_count($$$$)
 sub view_summary($) {
     my $i = 0;
     my $list = `ls *.log`;
-
     my $cols = 2;
-
     my $broken = 0;
 
     # either "text" or anything else.
@@ -366,7 +364,6 @@ sub view_summary($) {
 
     #set up a variable to store the broken builds table's code, so we can output when we want
     my $broken_table = "";
-
     my $host_os;
     my $last_host = "";
 
@@ -377,73 +374,23 @@ sub view_summary($) {
     }
 
     for my $host (@hosts) {
-	for my $compiler (@compilers) {
-	    for my $tree (sort keys %trees) {
-		my $status = build_status($host, $tree, $compiler, "");
-		my $age = build_age($host, $tree, $compiler, "");
-
-		if ($age != -1 && $age < $DEADAGE) {
-		    $host_count{$tree}++;
-		}
-
-		if ($age < $DEADAGE && $status =~ /status failed/) {
-		    $broken_count{$tree}++;
-		    if ($status =~ /PANIC/) {
-			$panic_count{$tree}++;
-		    }
-		    my $warnings = err_count($host, $tree, $compiler, "");
-
-		    $host_os = $hosts{$host};
-		    if ($output_type eq "text") {
-			    if (!$broken) {
-				    $broken = 1;
-				    $broken_table = "Currently broken builds:\n";
-				    $broken_table .= sprintf "%-18s %-12s %-10s %-10s\n",
-				    "Host", "Tree", "Compiler", "Status";
-
-			    }
-			    $broken_table .= sprintf "%-18s %-12s %-10s %-10s\n",
-				    $host, $tree, $compiler, strip_html($status);
-		    }
-		    else {
-			    if (!$broken) {
-				    $broken = 1;
-				    $broken_table = <<EOHEADER;
-
-<div id="build-broken-summary" class="build-section">
-<h2>Currently broken builds:</h2>
-<table class="summary real">
-  <thead>
-    <tr>
-      <th colspan="3">Target</th><th>Build&nbsp;Age</th><th>Status<br />config/build<br />install/test</th><th>Warnings</th>
-    </tr>
-  </thead>
-  <tbody>
-EOHEADER
+	    for my $compiler (@compilers) {
+		    for my $tree (sort keys %trees) {
+			    my $status = build_status($host, $tree, $compiler, "");
+			    my $age = build_age($host, $tree, $compiler, "");
+			    
+			    if ($age != -1 && $age < $DEADAGE) {
+				    $host_count{$tree}++;
 			    }
 
-			    $broken_table .= "    <tr>";
-
-			    if ($host eq $last_host) {
-				    $broken_table .= "<td colspan=\"2\" />";
-			    } else {
-				    $broken_table .= "<td>$host_os</td><td><a href=\"#$host\">$host</a></td>";
+			    if ($age < $DEADAGE && $status =~ /status failed/) {
+				    $broken_count{$tree}++;
+				    if ($status =~ /PANIC/) {
+					    $panic_count{$tree}++;
+				    }
 			    }
-			    $broken_table .= "<td><span class=\"tree\">$tree</span>/$compiler</td><td class=\"age\">" . red_age($age) . "</td><td class=\"status\">$status</td><td>$warnings</td></tr>\n";
 		    }
-
-		    $last_host = $host;
-		    
-		}
 	    }
-	}
-    }
-    
-    if ($broken && $output_type eq 'text') {
-	    $broken_table .= "\n";
-    }
-    elsif ($broken) {
-	    $broken_table .= "  </tbody>\n</table>\n</div>\n";
     }
 
     if ($output_type eq 'text') {
@@ -452,8 +399,6 @@ EOHEADER
     }
     else {
 	    print <<EOHEADER;
-
-
 <div id="build-counts" class="build-section">
 <h2>Build counts:</h2>
 <table class="real">
@@ -488,92 +433,6 @@ EOHEADER
     else {
 	    print "  </tbody>\n</table></div>\n";
     }
-
-
-    print $broken_table;
-
-    # for now, don't output individual build summaries in text report
-    if ($output_type eq 'text') {
-	    return;
-    }
-
-    if ($output_type eq 'text') {
-	    print "Build summary:\n";
-    }
-    else {
-	    print "<div class=\"build-section\" id=\"build-summary\">\n";
-	    print "<h2>Build summary:</h2>\n";
-    }
-
-    for my $host (@hosts) {
-	# make sure we have some data from it
-	if (! ($list =~ /$host/)) {
-		if ($output_type ne 'text') {
-			print "<!-- skipping $host -->\n";
-		}
-	    next;
-	}
-
-	my $row = 0;
-
-	for my $compiler (@compilers) {
-	    for my $tree (sort keys %trees) {
-		my $age = build_age($host, $tree, $compiler, "");
-		my $warnings = err_count($host, $tree, $compiler, "");
-		if ($age != -1 && $age < $DEADAGE) {
-		    my $status = build_status($host, $tree, $compiler, "");
-		    if ($row == 0) {
-			    if ($output_type eq 'text') {
-				    printf "%-12s %-10s %-10s %-10s %-10s\n",
-				    "Tree", "Compiler", "Build Age", "Status", "Warnings";
-				    
-			    }
-			    else {
-				    print <<EOHEADER;
-<div class="host summary">
-  <a id="$host" name="$host" />
-  <h3>$host - $hosts{$host}</h3>
-  <table class="real">
-    <thead>
-      <tr>
-        <th>Target</th><th>Build&nbsp;Age</th><th>Status<br />config/build<br />install/test</th><th>Warnings</th>
-      </tr>
-    </thead>
-    <tbody>
-EOHEADER
-			    }
-		    }
-
-		    if ($output_type eq 'text') {
-			    printf "%-12s %-10s %-10s %-10s %-10s\n",
-				    $tree, $compiler, util::dhm_time($age), 
-					    strip_html($status), $warnings;
-		    }
-		    else {
-			    print "    <tr><td><span class=\"tree\">$tree</span>/$compiler</td><td class=\"age\">" . red_age($age) . "</td><td class=\"status\">$status</td><td>$warnings</td></tr>\n";
-		    }
-		    $row++;
-		}
-	    }
-	}
-	if ($row != 0) {
-		if ($output_type eq 'text') {
-			print "\n";
-		}
-		else {
-			print "  </tbody>\n</table></div>\n";
-		}
-	    $i++;
-	} else {
-	    push(@deadhosts, $host);
-	}
-    }
-
-    if ($output_type ne 'text') {
-	    print "</div>\n\n";
-    }
-
-    draw_dead_hosts($output_type, @deadhosts);
 }
 
 ##############################################
@@ -593,6 +452,8 @@ sub view_recent_builds() {
 
     # Convert from the DataDumper tree form to an array that 
     # can be sorted by time.
+
+    util::InArray($tree, [sort keys %trees]) || fatal("not a build tree");
 
     for my $host (@hosts) {
       for my $compiler (@compilers) {
@@ -719,7 +580,8 @@ sub view_build() {
 
     util::InArray($host, [keys %hosts]) || fatal("unknown host");
     util::InArray($compiler, \@compilers) || fatal("unknown compiler");
-    util::InArray($tree, [sort keys %trees]) || fatal("unknown tree");
+    util::InArray($tree, [sort keys %trees]) || fatal("not a build tree");
+    $rev = int($rev);
 
     $log = util::FileLoad("$file.log");
     $err = util::FileLoad("$file.err");
