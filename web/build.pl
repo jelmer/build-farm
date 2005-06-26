@@ -149,7 +149,7 @@ sub get_old_revs($$$)
 }
 
 ##############################################
-# get the age of build from ctime
+# get the age of build from mtime
 sub build_age($$$$)
 {
     my $host=shift;
@@ -162,7 +162,7 @@ sub build_age($$$$)
 
     $st = stat("$file.log");
     if ($st) {
-	$age = time() - $st->ctime;
+	$age = time() - $st->mtime;
     }
 
     return $age;
@@ -187,7 +187,7 @@ sub build_revision($$$$)
     my $st1 = stat("$file.log");
     my $st2 = stat("$CACHEDIR/$file.revision");
 
-    if ($st1 && $st2 && $st1->ctime <= $st2->ctime) {
+    if ($st1 && $st2 && $st1->mtime <= $st2->mtime) {
 	    return util::FileLoad("$CACHEDIR/$file.revision");
     }
 
@@ -252,7 +252,7 @@ sub build_status($$$$)
     my $st1 = stat("$file.log");
     my $st2 = stat("$cachefile");
 
-    if ($st1 && $st2 && $st1->ctime <= $st2->ctime) {
+    if ($st1 && $st2 && $st1->mtime <= $st2->mtime) {
 	return util::FileLoad($cachefile);
     }
 
@@ -322,7 +322,7 @@ sub err_count($$$$)
     my $st1 = stat("$file.err");
     my $st2 = stat("$CACHEDIR/$file.errcount");
 
-    if ($st1 && $st2 && $st1->ctime <= $st2->ctime) {
+    if ($st1 && $st2 && $st1->mtime <= $st2->mtime) {
 	    return util::FileLoad("$CACHEDIR/$file.errcount");
     }
 
