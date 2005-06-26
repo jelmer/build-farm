@@ -324,7 +324,7 @@ action_test() {
 	# compatiblity.  I think a better way to do this in the future
 	# is to just call 'make installcheck'.
 	case "$tree" in
-	samba4)
+	samba4|smb-build)
 	    action_test_samba4
 	    ;;
 	samba*)
