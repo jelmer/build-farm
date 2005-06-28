@@ -1,19 +1,24 @@
-test_tree samba4 source gcc
-test_tree samba_3_0 source gcc
-test_tree rsync . gcc
-test_tree distcc . gcc
-test_tree ccache . gcc
-test_tree talloc . gcc
-test_tree tdb . gcc
-test_tree lorikeet-heimdal . gcc
-
-test_tree samba4 source gcc-4.0
-test_tree samba_3_0 source gcc-4.0
-test_tree rsync . gcc-4.0
-test_tree distcc . gcc-4.0
-test_tree ccache . gcc-4.0
-test_tree talloc . gcc-4.0
-test_tree tdb . gcc-4.0
-test_tree lorikeet-heimdal . gcc-4.0
-
 per_run_hook
+
+for compiler in gcc gcc-4.0 gcc-4.1; do
+
+  # arrgh, "which" gives no err code on solaris
+  path=`which $compiler`
+  if [ -x "$path" ]; then
+
+    test_tree samba_3_0 source $compiler
+    test_tree rsync . $compiler
+    test_tree distcc . $compiler
+    test_tree ccache . $compiler
+    test_tree talloc . $compiler
+    test_tree tdb . $compiler
+    test_tree lorikeet-heimdal . $compiler
+
+    # only attempt samba4 if we have perl
+    if which perl > /dev/null; then
+      test_tree samba4 source $compiler
+      test_tree smb-build . $compiler
+    fi
+  fi
+done
+  

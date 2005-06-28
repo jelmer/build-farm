@@ -3,6 +3,7 @@ gcc
 gcc3
 gcc-3.4
 gcc-4.0
+gcc-4.1
 icc
 tcc
 icc-9
