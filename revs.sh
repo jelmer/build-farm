@@ -18,7 +18,7 @@ for f in `find . -maxdepth 1 -type f -name "*.log" -links 1`; do
 done
 
 # delete really old ones
-find oldrevs -type f -mtime +14 -links 1 | xargs rm -f
+find oldrevs -type f -mtime +7 -links 1 | xargs rm -f
 
 # delete old cache data
 find ../cache -type f -name "build.*" -mtime +1 | xargs rm -f
