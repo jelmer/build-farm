@@ -52,7 +52,7 @@ fetch_tree() {
 		echo "skipping tree transfer"
 	else
 		tree=$1
-		if rsync --exclude=.svn/ --delete-excluded -q --partial --timeout=200 -rlpz --delete --ignore-errors \
+		if rsync --exclude=.svn/ --delete-excluded -q --partial --timeout=200 -crlpz --delete --ignore-errors \
 			samba.org::ftp/unpacked/$tree/ $test_root/$tree; then
 			echo "transferred $tree OK"
 		else
