@@ -17,7 +17,7 @@ sum_tree() {
 	sum_tree_tree=$2
 	sum_tree_testsuite=$3
 	sum_tree_sum=$4
-	find $sum_tree_test_root/$sum_tree_tree -type f -print | grep -v '.svn/' | xargs sum > $sum_tree_sum
+	find $sum_tree_test_root/$sum_tree_tree -type f -print | grep -v '.svn' | xargs sum > $sum_tree_sum
 	sum build_test build_test.fns >> $sum_tree_sum
 
 	if [ -f "$host.fns" ]; then
@@ -27,7 +27,7 @@ sum_tree() {
 	fi
 
 	if [ -d "$sum_tree_testsuite" ]; then
-	    find $sum_tree_test_root/$sum_tree_testsuite -type f -print | grep -v '.svn/' | xargs sum >> $sum_tree_sum
+	    find $sum_tree_test_root/$sum_tree_testsuite -type f -print | grep -v '.svn' | xargs sum >> $sum_tree_sum
 	fi
 }
 
