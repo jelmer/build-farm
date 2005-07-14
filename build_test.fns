@@ -133,8 +133,8 @@ action_configure() {
 	fi
 	echo "CFLAGS=$CFLAGS"
 	echo configure options: $config_and_prefix
-	echo CC="$compiler" ./configure $config_and_prefix
-	CC="$compiler"
+	echo CC="$CCACHE $compiler" ./configure $config_and_prefix
+	CC="$CCACHE $compiler"
 	export CC
 	./timelimit $MAXTIME ./configure $config_and_prefix
 	cstatus=$?
@@ -151,7 +151,10 @@ action_configure() {
 action_build() {
 	case "$tree" in
 	samba4)
+		# the 2nd 'make everything' is to work around a bug
+		# in netbsd make. 
 		do_make proto everything
+		do_make everything
 		;;
 	samba|samba_3_0)
 	    do_make proto everything torture
@@ -348,6 +351,10 @@ test_tree() {
 	shift
 	shift
 	shift
+	if [ "$compiler" = "gcc" ] && which ccache > /dev/null; then
+	    CCACHE=`which ccache`
+	    export CCACHE
+	fi
 
 	# limit our resource usage
 	ulimit -t 900
