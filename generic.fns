@@ -8,7 +8,11 @@ for compiler in gcc cc icc; do
 
     if $compiler -v 2>&1 | grep gcc.version > /dev/null; then
        isgcc=1
+       CFLAGS="-Wall"
+       export CFLAGS
     else
+       CFLAGS=""
+       export CFLAGS
        isgcc=0
     fi
     if [ $compiler = gcc -o $isgcc = 0 ]; then
