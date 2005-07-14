@@ -59,6 +59,8 @@ fetch_tree() {
 			echo "transfer of $tree failed code $?"
 			return 1
 		fi
+		rsync -q --timeout=200 -clpz --ignore-errors \
+			samba.org::ftp/unpacked/$tree/.svn/entries $test_root/$tree/.svn_entries
 	fi
 	return 0
 }
@@ -457,11 +459,19 @@ test_tree() {
 		echo "Building timelimit"
 		$compiler $TIMELIMIT_FLAGS -o $srcdir/timelimit $test_root/timelimit.c || exit 1
 
+		if [ -r $test_root/$tree/.svn_entries ]; then
+		  rev=`grep revision= $test_root/$tree/.svn_entries | cut -d'"' -f2`
+		  if [ -n "$rev" ]; then
+			echo "BUILD REVISION: $rev"
+		  fi
+		fi
+
 		for action in $actions; do
 
 		    echo Running action $action
 
 		    date
+
 		    cd $srcdir
 		    export srcdir
 		    df .
