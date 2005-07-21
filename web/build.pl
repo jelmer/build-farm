@@ -209,7 +209,7 @@ sub host_age($)
 	my $host = shift;
 	my $ret = -1;
 	for my $compiler (@compilers) {
-		for my $tree (sort keys %trees) {
+		for my $tree (keys %trees) {
 			my $age = build_age($host, $tree, $compiler, "");
 			if ($age != -1 && ($age < $ret || $ret == -1)) {
 				$ret = $age;
@@ -356,7 +356,7 @@ sub view_summary($) {
     my %host_count;
 
     # zero broken and panic counters
-    for my $tree (sort keys %trees) {
+    for my $tree (keys %trees) {
 	$broken_count{$tree} = 0;
 	$panic_count{$tree} = 0;
 	$host_count{$tree} = 0;
@@ -375,7 +375,7 @@ sub view_summary($) {
 
     for my $host (@hosts) {
 	    for my $compiler (@compilers) {
-		    for my $tree (sort keys %trees) {
+		    for my $tree (keys %trees) {
 			    my $status = build_status($host, $tree, $compiler, "");
 			    my $age = build_age($host, $tree, $compiler, "");
 			    
@@ -453,7 +453,7 @@ sub view_recent_builds() {
     # Convert from the DataDumper tree form to an array that 
     # can be sorted by time.
 
-    util::InArray($tree, [sort keys %trees]) || fatal("not a build tree");
+    util::InArray($tree, [keys %trees]) || fatal("not a build tree");
 
     for my $host (@hosts) {
       for my $compiler (@compilers) {
@@ -580,7 +580,7 @@ sub view_build() {
 
     util::InArray($host, [keys %hosts]) || fatal("unknown host");
     util::InArray($compiler, \@compilers) || fatal("unknown compiler");
-    util::InArray($tree, [sort keys %trees]) || fatal("not a build tree");
+    util::InArray($tree, [keys %trees]) || fatal("not a build tree");
     $rev = int($rev);
 
     $log = util::FileLoad("$file.log");
