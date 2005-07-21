@@ -486,10 +486,9 @@ EOHEADER
     for my $build (@all_builds) {
 	my $age = $$build[0];
 	my $rev = $$build[6];
-	print "    <tr>",
-	  "<td>" . util::dhm_time($age). "</td>",
-	  "<td>$rev</td><td>",
-	  join("</td><td>", @$build[4, 1, 2, 3, 5]),
+	print "    <tr><td>",
+	  join("</td><td>" , util::dhm_time($age),
+	       $rev, @$build[4, 1, 2, 3, 5]),
 	  "</td></tr>\n";
     }
     print "  </tbody>\n</table>\n</div>\n";
