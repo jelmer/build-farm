@@ -290,7 +290,7 @@ sub build_status($$$$)
 	}
     }
     
-    if ($log =~ /INTERNAL ERROR:(.*)/ || $log =~ /PANIC:(.*)/) {
+    if ($log =~ /(PANIC|INTERNAL ERROR):.*/ ) {
 	$sstatus = "/<span class=\"status panic\">PANIC</span>";
     } else {
 	$sstatus = "";
@@ -307,7 +307,17 @@ sub build_status($$$$)
     return $ret;
 }
 
+##############################################
+# translate a status into a set of int representing status
+sub build_status_vals($) {
+    my $status = strip_html(shift);
 
+    $status =~ s/ok/0/g;
+    $status =~ s/\?/0/g;
+    $status =~ s/PANIC/1/g;
+
+    return split m%/%, $status;
+}
 ##############################################
 # get status of build
 sub err_count($$$$)
@@ -449,11 +459,35 @@ sub view_recent_builds() {
     my $last_host = "";
     my @all_builds = ();
     my $tree=$req->param("tree");
+    my $sort_by=$req->param("sortby") || "revision"; # default to revision
 
-    # Convert from the DataDumper tree form to an array that 
-    # can be sorted by time.
+    my $sort = { revision => sub { $$b[6] <=> $$a[6] },
+		 age =>      sub { $$a[0] <=> $$b[0] },
+		 host =>     sub { $$a[2] cmp $$b[2] },
+		 platform => sub { $$a[1] cmp $$b[1] },
+		 compiler => sub { $$a[3] cmp $$b[3] },
+		 status =>   sub {
+			 my (@bstat) = build_status_vals($$b[5]);
+			 my (@astat) = build_status_vals($$a[5]);
+
+			 # handle panic
+			 if (defined $bstat[4] && !defined $astat[4]) {
+				 return 1;
+			 }
+			 elsif (!defined $bstat[4] && defined $astat[4]) {
+				 return -1;
+			 }
+			 return ($bstat[0] <=> $astat[0] || # configure
+				 $bstat[1] <=> $astat[1] || # compile
+				 $bstat[2] <=> $astat[2] || # install
+				 $bstat[3] <=> $astat[3]    # test
+				);
+		 }
+	       };
+
 
     util::InArray($tree, [keys %trees]) || fatal("not a build tree");
+    util::InArray($sort_by, [keys %$sort]) || fatal("not a valid sort");
 
     for my $host (@hosts) {
       for my $compiler (@compilers) {
@@ -463,11 +497,11 @@ sub view_recent_builds() {
 	  push @all_builds, [$age, $hosts{$host}, "<a href=\"$myself?function=Summary;host=$host;tree=$tree;compiler=$compiler#$host\">$host</a>", $compiler, $tree, $status, $revision]
 	  	unless $age == -1 or $age >= $DEADAGE;
       }
-  }
+    }
 
-  # sort by revision then age
-  @all_builds = sort {$$b[6] <=> $$a[6] || $$a[0] <=> $$b[0]} @all_builds;
-  
+    @all_builds = sort { $sort->{$sort_by}() || $sort->{age}() } @all_builds;
+
+    my $sorturl = "$myself?tree=$tree;function=Recent+Builds";
 
     print <<EOHEADER;
 
@@ -476,7 +510,14 @@ sub view_recent_builds() {
       <table class="real">
 	<thead>
 	  <tr>
-            <th>Age</th><th>Revision</th><th colspan="4">Target</th><th>Status</th>
+            <th><a href="$sorturl;sortby=age" title="Sort by build age">Age</a></th>
+            <th><a href="$sorturl;sortby=revision" title="Sort by build revision">Revision</a></th>
+            <th>Tree</th>
+            <th><a href="$sorturl;sortby=platform" title="Sort by platform">Platform</a></th>
+            <th><a href="$sorturl;sortby=host" title="Sort by host">Host</a></th>
+            <th><a href="$sorturl;sortby=compiler" title="Sort by compiler">Compiler</a></th>
+            <th><a href="$sorturl;sortby=status" title="Sort by build status">Status</a></th>
+
 	  </tr>
 	</thead>
         <tbody>
