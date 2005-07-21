@@ -5,7 +5,7 @@ cd data || exit 1
 mkdir -p oldrevs
 
 for f in `find . -maxdepth 1 -type f -name "*.log" -links 1`; do
-    rev=`cat $f | egrep ^BUILD.REVISION | awk '{print $3}'`
+    rev=`cat $f | egrep ^BUILD.REVISION | awk '{print $3}' | head -1`
     test -z "$rev" && rev=0;
 
     base=`basename $f .log`
