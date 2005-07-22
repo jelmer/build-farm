@@ -335,7 +335,7 @@ action_test() {
 	samba*)
 	    echo "testing of samba3 disabled"; #action_test_samba
 	    ;;
-	lorikeet-heimdal*)
+	lorikeet_heimdal*)
 	    action_test_lorikeet_heimdal
 	    ;;
 	*)
