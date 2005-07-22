@@ -1,0 +1,42 @@
+per_run_hook
+
+for compiler in gcc cc icc; do
+
+  # arrgh, "which" gives no err code on solaris
+  path=`which $compiler`
+  if [ -x "$path" ]; then
+
+    if $compiler -v 2>&1 | grep gcc.version > /dev/null; then
+       isgcc=1
+       CFLAGS="-Wall"
+       export CFLAGS
+    else
+       CFLAGS=""
+       export CFLAGS
+       isgcc=0
+    fi
+    if [ $compiler = gcc -o $isgcc = 0 ]; then
+      config="--enable-developer" test_tree samba_3_0 source $compiler
+      test_tree rsync . $compiler
+      test_tree distcc . $compiler
+      test_tree ccache . $compiler
+      test_tree talloc . $compiler
+      test_tree tdb . $compiler
+      test_tree lorikeet_heimdal . $compiler
+
+      # only attempt samba4 if we have perl
+      if which perl > /dev/null; then
+        config="--enable-developer" test_tree samba4 source $compiler
+        test_tree smb-build . $compiler
+      fi
+    fi
+  fi
+done
+    
+
+# by default build ppp only on SunOS or Linux systems
+system=`uname`
+if [ "$system" = Linux -o "$system" = SunOS ]; then
+   test_tree ppp . gcc
+fi
+
