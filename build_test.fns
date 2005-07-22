@@ -356,6 +356,8 @@ test_tree() {
 	if [ "$compiler" = "gcc" ] && [ "$tree" != "ccache" ] && ccache -V > /dev/null; then
 	    CCACHE="ccache"
 	    export CCACHE
+	else
+	    CCACHE=""
 	fi
 
 	# limit our resource usage
