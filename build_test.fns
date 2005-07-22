@@ -475,6 +475,7 @@ test_tree() {
 		    cd $srcdir
 		    export srcdir
 		    df .
+		    mount
 		    vmstat
 
 		    ( action_$action )
