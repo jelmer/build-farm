@@ -310,7 +310,7 @@ action_test_generic() {
 	return "$totalstatus"
 }
 
-action_test_lorikeet-heimdal() {
+action_test_lorikeet_heimdal() {
         CC="$compiler"
 	export CC
 	do_make check
@@ -336,7 +336,7 @@ action_test() {
 	    echo "testing of samba3 disabled"; #action_test_samba
 	    ;;
 	lorikeet-heimdal*)
-	    action_test_lorikeet-heimdal
+	    action_test_lorikeet_heimdal
 	    ;;
 	*)
 	    action_test_generic
