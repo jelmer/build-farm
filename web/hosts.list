@@ -52,6 +52,7 @@ manjra: RedHat 8.0 i686
 delacruz: RedHat 9.0 i686
 lacroix: RedHat 9.0 i686 SMP
 homer: RedHat RHEL 3 (WS)
+deckchair: RedHat RHEL 3 (AS) ia64
 packetstorm: Slackware Linux 9.0 i386
 shubnigurath: Solaris 10 UltraSparc
 opisol10: Solaris 10 b63 x86
