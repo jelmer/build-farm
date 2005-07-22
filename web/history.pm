@@ -53,7 +53,8 @@ if ($myself =~ /http:\/\/.*\/(.*)/) {
     $myself = $1;
 }
 
-#$myself = "http://build.samba.org/";
+# for now, hard code the self url - need to sanitize self_url
+$myself = "http://build.samba.org/";
 
 ################################################
 # print an error on fatal errors
@@ -62,6 +63,27 @@ sub fatal($) {
     print "ERROR: $msg<br>\n";
     cgi_footers();
     exit(0);
+}
+
+################################################
+# get a param from the request, after sanitizing it
+sub get_param($) {
+    my $param = shift;
+    my $result;
+
+    if (!defined $req->param($param)) {
+	return undef;
+    }
+
+    $result = $req->param($param);
+
+    if ($result =~ m/[^\w\-]/) {
+	fatal("Parameter $param is invalid");
+	return undef;
+    }
+    else {
+	return $result;
+    }
 }
 
 
@@ -438,7 +460,7 @@ sub history($)
     print "
 ";
 
-    $author = $req->param("author");
+    $author = get_param("author");
 
     # what? backwards? why is that? oh... I know... we want the newest first
     for (my $i=$#{$log}; $i >= 0; $i--) {
@@ -454,7 +476,7 @@ sub history($)
 
 }
 
-#cvs_diff($req->param('author'), $req->param('date'), $req->param('tree'));
+#cvs_diff(get_param('author'), get_param('date'), get_param('tree'));
 #cvs_history("trinity");
 
 

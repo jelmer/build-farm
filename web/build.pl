@@ -69,11 +69,19 @@ if ($myself =~ /http:\/\/.*\/(.*)/) {
     $myself = $1;
 }
 
-#$myself = "http://build.samba.org/";
+# for now, hard code the self url - need to sanitize self_url
+$myself = "http://build.samba.org/";
+
+my $cgi_headers_done = 0;
 
 ################################################
 # start CGI headers
 sub cgi_headers() {
+    if ($cgi_headers_done) {
+	return;
+    }
+    $cgi_headers_done = 1;
+
     print "Content-type: text/html\r\n";
     #print "Content-type: application/xhtml+xml\r\n";
 
@@ -110,9 +118,32 @@ sub cgi_footers() {
 # print an error on fatal errors
 sub fatal($) {
     my $msg=shift;
+
+    cgi_headers();
     print "<h1>ERROR: $msg</h1>\n";
     cgi_footers();
     exit(0);
+}
+
+################################################
+# get a param from the request, after sanitizing it
+sub get_param($) {
+    my $param = shift;
+    my $result;
+
+    if (!defined $req->param($param)) {
+	return undef;
+    }
+
+    $result = $req->param($param);
+
+    if ($result =~ m/[^\w\-]/) {
+	fatal("Parameter $param is invalid");
+	return undef;
+    }
+    else {
+	return $result;
+    }
 }
 
 ################################
@@ -458,8 +489,6 @@ sub view_recent_builds() {
     my $host_os;
     my $last_host = "";
     my @all_builds = ();
-    my $tree=$req->param("tree");
-    my $sort_by=$req->param("sortby") || "revision"; # default to revision
 
     my $sort = { revision => sub { $$b[6] <=> $$a[6] },
 		 age =>      sub { $$a[0] <=> $$b[0] },
@@ -485,6 +514,8 @@ sub view_recent_builds() {
 		 }
 	       };
 
+    my $tree=get_param("tree");
+    my $sort_by=get_param("sortby") || "revision"; # default to revision
 
     util::InArray($tree, [keys %trees]) || fatal("not a build tree");
     util::InArray($sort_by, [keys %$sort]) || fatal("not a valid sort");
@@ -522,7 +553,6 @@ sub view_recent_builds() {
 	</thead>
         <tbody>
 EOHEADER
-
 
     for my $build (@all_builds) {
 	my $age = $$build[0];
@@ -604,10 +634,16 @@ sub show_oldrevs($$$)
 ##############################################
 # view one build in detail
 sub view_build() {
-    my $tree=$req->param("tree");
-    my $host=$req->param("host");
-    my $compiler=$req->param("compiler");
-    my $rev=$req->param('revision');
+    my $tree=get_param("tree");
+    my $host=get_param("host");
+    my $compiler=get_param("compiler");
+    my $rev=get_param('revision');
+
+    # ensure the params are valid before using them
+    util::InArray($host, [keys %hosts]) || fatal("unknown host");
+    util::InArray($compiler, \@compilers) || fatal("unknown compiler");
+    util::InArray($tree, [keys %trees]) || fatal("not a build tree");
+
     my $file=build_fname($tree, $host, $compiler, $rev);
     my $log;
     my $err;
@@ -618,9 +654,6 @@ sub view_build() {
     my $revision = build_revision($host, $tree, $compiler, $rev);
     my $status = build_status($host, $tree, $compiler, $rev);
 
-    util::InArray($host, [keys %hosts]) || fatal("unknown host");
-    util::InArray($compiler, \@compilers) || fatal("unknown compiler");
-    util::InArray($tree, [keys %trees]) || fatal("not a build tree");
     $rev = int($rev);
 
     $log = util::FileLoad("$file.log");
@@ -658,9 +691,10 @@ sub view_build() {
 
     show_oldrevs($tree, $host, $compiler);
 
-    # check the head of the output for our magic string 
-    my $plain_logs = (defined $req->param("plain") &&
-		      $req->param("plain") =~ /^(yes|1|on|true|y)$/i);
+
+    # check the head of the output for our magic string
+    my $plain_logs = (defined get_param("plain") &&
+		      get_param("plain") =~ /^(yes|1|on|true|y)$/i);
 
     print "<div id=\"log\">\n";
 
@@ -855,15 +889,20 @@ sub page_top() {
 
 ###############################################
 # main program
-my $fn_name = (defined $req->param('function')) ? $req->param('function') : '';
+
+# we need to use $req->param() directly, instead of get_param,
+# as the function name will contain spaces. But, we only do
+# string comparisons, it is safe.
+my $fn_name = $req->param('function') || '';
+$fn_name =~ s/[^\w]+/_/g;
 
 if ($fn_name eq 'text_diff') {
   cgi_headers_diff();
   chdir("$BASEDIR/data") || fatal("can't change to data directory");
-  history::diff($req->param('author'),
-		$req->param('date'),
-		$req->param('tree'),
-		$req->param('revision'),
+  history::diff(get_param('author'),
+		get_param('date'),
+		get_param('tree'),
+		get_param('revision'),
 		"text");
 }
 elsif ($fn_name eq 'Text_Summary') {
@@ -874,20 +913,20 @@ elsif ($fn_name eq 'Text_Summary') {
 else {
   page_top();
 
-  if    ($fn_name eq "View Build") {
+  if    ($fn_name eq "View_Build") {
     view_build();
   }
-  elsif ($fn_name eq "Recent Builds") {
+  elsif ($fn_name eq "Recent_Builds") {
     view_recent_builds();
   }
-  elsif ($fn_name eq "Recent Checkins") {
-    history::history($req->param('tree'));
+  elsif ($fn_name eq "Recent_Checkins") {
+    history::history(get_param('tree'));
   }
   elsif ($fn_name eq "diff") {
-    history::diff($req->param('author'),
-		  $req->param('date'),
-		  $req->param('tree'),
-		  $req->param('revision'),
+    history::diff(get_param('author'),
+		  get_param('date'),
+		  get_param('tree'),
+		  get_param('revision'),
 		  "html");
   }
   else {
