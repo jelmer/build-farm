@@ -76,8 +76,9 @@ sub get_param($) {
     }
 
     $result = $req->param($param);
+    $result =~ s/ /_/g; # fn_name ha
 
-    if ($result =~ m/[^\w\-]/) {
+    if ($result =~ m/[^a-zA-Z0-9\-]/) {
 	fatal("Parameter $param is invalid");
 	return undef;
     }

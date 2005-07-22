@@ -136,8 +136,9 @@ sub get_param($) {
     }
 
     $result = $req->param($param);
+    $result =~ s/\ /_/g; # fn_name ha
 
-    if ($result =~ m/[^\w\-]/) {
+    if ($result =~ m/[^a-zA-Z0-9\-\_]/) {
 	fatal("Parameter $param is invalid");
 	return undef;
     }
@@ -890,11 +891,7 @@ sub page_top() {
 ###############################################
 # main program
 
-# we need to use $req->param() directly, instead of get_param,
-# as the function name will contain spaces. But, we only do
-# string comparisons, it is safe.
-my $fn_name = $req->param('function') || '';
-$fn_name =~ s/[^\w]+/_/g;
+my $fn_name = get_param('function') || '';
 
 if ($fn_name eq 'text_diff') {
   cgi_headers_diff();
