@@ -15,19 +15,14 @@ MAXTIME=3600
 sum_tree() {
         sum_tree_test_root=$1
 	sum_tree_tree=$2
-	sum_tree_testsuite=$3
-	sum_tree_sum=$4
-	find $sum_tree_test_root/$sum_tree_tree -type f -print | grep -v '.svn' | xargs sum > $sum_tree_sum
+	sum_tree_sum=$3
+	find $sum_tree_test_root/$sum_tree_tree -type f -print | grep -v '.svn' | grep -v version.h | sort | xargs sum > $sum_tree_sum
 	sum build_test build_test.fns >> $sum_tree_sum
 
 	if [ -f "$host.fns" ]; then
 	    sum $host.fns >> $sum_tree_sum
 	else
             sum generic.fns >> $sum_tree_sum
-	fi
-
-	if [ -d "$sum_tree_testsuite" ]; then
-	    find $sum_tree_test_root/$sum_tree_testsuite -type f -print | grep -v '.svn' | xargs sum >> $sum_tree_sum
 	fi
 }
 
@@ -424,7 +419,7 @@ test_tree() {
 	config_and_prefix="$config --prefix=$prefix"
 
 	# see if we need to rebuild
-	sum_tree $test_root $tree $testsuite $sum
+	sum_tree $test_root $tree $sum
 	echo "CFLAGS=$CFLAGS $config_and_prefix" >> $sum
 
 	if cmp "$sum" "$sum.old" > /dev/null; then
