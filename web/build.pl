@@ -460,7 +460,7 @@ EOHEADER
 			    $broken_count{$tree}, $panic_count{$tree};
 	    }
 	    else {
-		    print "    <tr><td>$tree</td><td>$host_count{$tree}</td><td>$broken_count{$tree}</td>";
+		    print "    <tr><td><a href=\"$myself?function=Recent+Builds;tree=$tree\" title=\"View recent builds for $tree\">$tree</a></td><td>$host_count{$tree}</td><td>$broken_count{$tree}</td>";
 		    my $panic = "";
 		    if ($panic_count{$tree}) {
 			    $panic = " class=\"panic\"";
