@@ -119,9 +119,11 @@ while ($log2 =~ /\nr\d+ \| (\w+) \|.*?lines\n(.*)$/s) {
 my $recipients = join(",", keys %culprits);
 
 # send the nastygram
-open(MAIL,"|Mail -s \"BUILD BROKEN AT REVISION $rev\" $recipients");
+open(MAIL,"|Mail -s \"BUILD of $tree BROKEN AT REVISION $rev\" $recipients");
+print MAIL "Broken build for tree $tree on host $host with compiler $compiler\n";
 print MAIL "Build status for revision $rev is $status\n";
 print MAIL "Build status for revision $rev2 is $status2\n\n";
+print MAIL "See http://build.samba.org/?function=View+Build;host=$host;tree=$tree;compiler=$compiler\n\n";
 print MAIL "The build may have been broken by one of the following commits:\n\n";
 print MAIL "$log";
 close(MAIL);
