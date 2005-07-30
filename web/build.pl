@@ -129,22 +129,32 @@ sub fatal($) {
 # get a param from the request, after sanitizing it
 sub get_param($) {
     my $param = shift;
-    my $result;
+
 
     if (!defined $req->param($param)) {
-	return undef;
+	return wantarray ? () : undef;
     }
 
-    $result = $req->param($param);
-    $result =~ s/\ /_/g; # fn_name ha
-
-    if ($result =~ m/[^a-zA-Z0-9\-\_]/) {
-	fatal("Parameter $param is invalid");
-	return undef;
+    my @result = ();
+    if (wantarray) {
+	    @result = $req->param($param);
     }
     else {
-	return $result;
+	    $result[0] = $req->param($param);
     }
+
+    for (my $i = 0; $i <= $#result; $i++) {
+	    $result[$i] =~ s/ /_/g;
+    }
+
+    foreach (@result) {
+	    if ($_ =~ m/[^a-zA-Z0-9\-\_]/) {
+		    fatal("Parameter $param is invalid");
+		    return wantarray ? () : undef;
+	    }
+    }
+
+    return wantarray ? @result : $result[0];
 }
 
 ################################
@@ -526,7 +536,7 @@ sub view_recent_builds() {
 	  my $status = build_status($host, $tree, $compiler, "");
 	  my $age = build_age($host, $tree, $compiler, "");
 	  my $revision = build_revision($host, $tree, $compiler, "");
-	  push @all_builds, [$age, $hosts{$host}, "<a href=\"$myself?function=Summary;host=$host;tree=$tree;compiler=$compiler#$host\">$host</a>", $compiler, $tree, $status, $revision]
+	  push @all_builds, [$age, $hosts{$host}, "<a href=\"$myself?function=View+Host;host=$host;tree=$tree;compiler=$compiler#$host\">$host</a>", $compiler, $tree, $status, $revision]
 	  	unless $age == -1 or $age >= $DEADAGE;
       }
     }
@@ -569,12 +579,12 @@ EOHEADER
 
 ##############################################
 # Draw the "dead hosts" table
-sub draw_dead_hosts() {
+sub draw_dead_hosts {
     my $output_type = shift;
     my @deadhosts = @_;
 
     # don't output anything if there are no dead hosts
-    if ($#deadhosts < 1) {
+    if ($#deadhosts < 0) {
       return;
     }
 
@@ -582,6 +592,7 @@ sub draw_dead_hosts() {
     if ($output_type eq 'text') {
 	    return;
     }
+
 	print <<EOHEADER;
 <div class="build-section" id="dead-hosts">
 <h2>Dead Hosts:</h2>
@@ -678,7 +689,7 @@ sub view_build() {
 
     print "
 <table class=\"real\">
-<tr><td>Host:</td><td><a href=\"$myself?function=Summary;host=$host;tree=$tree;compiler=$compiler#$host\">$host</a> - $hosts{$host}</td></tr>
+<tr><td>Host:</td><td><a href=\"$myself?function=View+Host;host=$host;tree=$tree;compiler=$compiler#$host\">$host</a> - $hosts{$host}</td></tr>
 <tr><td>Uname:</td><td>$uname</td></tr>
 <tr><td>Tree:</td><td>$tree</td></tr>
 <tr><td>Build Revision:</td><td>" . $revision . "</td></tr>
@@ -741,6 +752,100 @@ sub view_build() {
     }
 
     print "</div>\n";
+}
+
+##################################################
+# print the host's table of information
+sub view_host() {
+
+	my $output_type = "html";
+
+	if ($output_type eq 'text') {
+		print "Host summary:\n";
+	}
+	else {
+		print "<div class=\"build-section\" id=\"build-summary\">\n";
+		print "<h2>Host summary:</h2>\n";
+	}
+
+	my $list = `ls *.log`;
+
+	my (@requested_hosts) = get_param('host');
+
+	foreach (@requested_hosts) {
+		util::InArray($_, [keys %hosts]) || fatal("unknown host");
+	}
+
+	for my $host (@requested_hosts) {
+		# make sure we have some data from it
+		if (! ($list =~ /$host/)) {
+			if ($output_type ne 'text') {
+				print "<!-- skipping $host -->\n";
+			}
+			next;
+		}
+
+		my $row = 0;
+
+		for my $compiler (@compilers) {
+			for my $tree (sort keys %trees) {
+				my $age = build_age($host, $tree, $compiler, "");
+				my $warnings = err_count($host, $tree, $compiler, "");
+				if ($age != -1 && $age < $DEADAGE) {
+					my $status = build_status($host, $tree, $compiler, "");
+					if ($row == 0) {
+						if ($output_type eq 'text') {
+							printf "%-12s %-10s %-10s %-10s %-10s\n",
+								"Tree", "Compiler", "Build Age", "Status", "Warnings";
+                                    
+						}
+						else {
+							print <<EOHEADER;
+<div class="host summary">
+  <a id="$host" name="$host" />
+  <h3>$host - $hosts{$host}</h3>
+  <table class="real">
+    <thead>
+      <tr>
+        <th>Target</th><th>Build&nbsp;Age</th><th>Status<br />config/build<br />install/test</th><th>Warnings</th>
+      </tr>
+    </thead>
+    <tbody>
+EOHEADER
+						}
+					}
+
+					if ($output_type eq 'text') {
+						printf "%-12s %-10s %-10s %-10s %-10s\n",
+							$tree, $compiler, util::dhm_time($age), 
+								strip_html($status), $warnings;
+					}
+					else {
+						print "    <tr><td><span class=\"tree\">$tree</span>/$compiler</td><td class=\"age\">" . red_age($age) . "</td><td class=\"status\">$status</td><td>$warnings</td></tr>\n";
+					}
+					$row++;
+				}
+			}
+		}
+		if ($row != 0) {
+			if ($output_type eq 'text') {
+				print "\n";
+			}
+			else {
+				print "  </tbody>\n</table></div>\n";
+			}
+		} else {
+			push(@deadhosts, $host);
+		}
+	}
+
+
+	if ($output_type ne 'text') {
+		print "</div>\n\n";
+	}
+
+	draw_dead_hosts($output_type, @deadhosts);
+
 }
 
 ##############################################
@@ -872,8 +977,9 @@ sub main_menu() {
     print $req->popup_menu("compiler", \@compilers) . "\n";
     print "<br />\n";
     print $req->submit('function', 'View Build') . "\n";
+    print $req->submit('function', 'View Host') . "\n";
     print $req->submit('function', 'Recent Checkins') . "\n";
-    print $req->submit('function', 'Summary') . "\n";
+    print $req->submit('function', 'Summary') . "\n"; 
     print $req->submit('function', 'Recent Builds') . "\n";
     print "</div>\n";
     print $req->endform() . "\n";
@@ -912,6 +1018,9 @@ else {
 
   if    ($fn_name eq "View_Build") {
     view_build();
+  }
+  elsif ($fn_name eq "View_Host") {
+    view_host();
   }
   elsif ($fn_name eq "Recent_Builds") {
     view_recent_builds();
