@@ -63,7 +63,7 @@ my $fname = $ARGV[0];
 my ($tree, $host, $compiler);
 
 # break up the name into components
-if ($fname =~ /^data\/build\.([\w-]+)\.(\w+)\.(\w+)\.log$/) {
+if ($fname =~ /^build\.([\w-]+)\.(\w+)\.(\w+)\.log$/) {
 	$tree = $1;
 	$host = $2;
 	$compiler = $3;
@@ -83,7 +83,7 @@ if ($rev == 0) {
 my $rev2;
 
 for ($rev2=$rev-1;$rev2 > 0;$rev2--) {
-	$fname = "data/oldrevs/build.$tree.$host.$compiler-$rev2.log";
+	$fname = "oldrevs/build.$tree.$host.$compiler-$rev2.log";
 	last if (stat($fname));
 }
 

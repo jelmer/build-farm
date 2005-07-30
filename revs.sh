@@ -15,6 +15,9 @@ for f in `find . -maxdepth 1 -type f -name "*.log" -links 1`; do
     rm -f $log_revname $err_revname
     ln -f $base.log $log_revname
     ln -f $base.err $err_revname
+
+    # possibly mail the culprits if the build broke
+    ../analyse.pl $base.log
 done
 
 # delete really old ones
