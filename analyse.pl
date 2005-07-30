@@ -119,7 +119,7 @@ while ($log2 =~ /\nr\d+ \| (\w+) \|.*?lines\n(.*)$/s) {
 my $recipients = join(",", keys %culprits);
 
 # send the nastygram
-open(MAIL,"|Mail -s \"BUILD of $tree BROKEN AT REVISION $rev\" $recipients");
+open(MAIL,"|Mail -s \"BUILD of $tree BROKEN on $host AT REVISION $rev\" $recipients");
 print MAIL "Broken build for tree $tree on host $host with compiler $compiler\n";
 print MAIL "Build status for revision $rev is $status\n";
 print MAIL "Build status for revision $rev2 is $status2\n\n";
