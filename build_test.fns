@@ -356,8 +356,8 @@ test_tree() {
 	fi
 
 	# limit our resource usage
-	ulimit -t 900
-	ulimit -m 50000
+	ulimit -t 3600
+	ulimit -m 100000
 
 	# Keep stuff private
 	umask 077
