@@ -7,7 +7,7 @@
 # Copyright (C) 2001, 2003 by Martin Pool <mbp@samba.org>
 
 # default maximum runtime for any command
-MAXTIME=3600
+MAXTIME=5400
 
 #############################
 # build a signature of a tree, used to see if we
