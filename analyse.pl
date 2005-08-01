@@ -120,12 +120,19 @@ my $recipients = join(",", keys %culprits);
 
 # send the nastygram
 open(MAIL,"|Mail -s \"BUILD of $tree BROKEN on $host AT REVISION $rev\" $recipients");
-print MAIL "Broken build for tree $tree on host $host with compiler $compiler\n";
-print MAIL "Build status for revision $rev is $status\n";
-print MAIL "Build status for revision $rev2 is $status2\n\n";
-print MAIL "See http://build.samba.org/?function=View+Build;host=$host;tree=$tree;compiler=$compiler\n\n";
-print MAIL "The build may have been broken by one of the following commits:\n\n";
-print MAIL "$log";
+
+print MAIL << "__EOF__";
+Broken build for tree $tree on host $host with compiler $compiler
+Build status for revision $rev is $status
+Build status for revision $rev2 is $status2
+
+See http://build.samba.org/?function=View+Build;host=$host;tree=$tree;compiler=$compiler
+
+The build may have been broken by one of the following commits:
+
+$log
+__EOF__
+
 close(MAIL);
 
 exit(0);
