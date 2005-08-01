@@ -71,3 +71,4 @@ metze01: SuSE 8.2 i386 (athlon)
 PCS1: SuSE Linux 9.2 Professional (i586)
 l390vme1: SuSE SLES 8 (S/390)
 opi: SuSE SLES 9 (x86_64)
+fort: Debian x86 valgrind

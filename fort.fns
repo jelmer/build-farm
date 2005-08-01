@@ -1,0 +1,7 @@
+per_run_hook
+
+export CFLAGS="-Wall -g"
+export SMBD_VALGRIND="valgrind -q --log-file=st/valgrind.log"
+export VALGRIND="valgrind -q --log-file=st/valgrind.log"
+
+test_tree samba4 source gcc
