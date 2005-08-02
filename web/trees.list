@@ -4,6 +4,7 @@ samba4:
 samba-docs:
 smb-build:
 samba_3_0:SAMBA_3_0
+samba:
 rsync:
 distcc:
 ppp:
