@@ -148,7 +148,7 @@ sub get_param($) {
     }
 
     foreach (@result) {
-	    if ($_ =~ m/[^a-zA-Z0-9\-\_]/) {
+	    if ($_ =~ m/[^a-zA-Z0-9\-\_\.]/) {
 		    fatal("Parameter $param is invalid");
 		    return wantarray ? () : undef;
 	    }
