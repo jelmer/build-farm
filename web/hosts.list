@@ -14,6 +14,7 @@ tux: Debian Linux sid/unstable HP PA-RISC
 sparc-sid: Debian Linux sid/unstable Sparc64
 boiccu: Debian Linux testing/unstable IA64
 rhonwyn: Debian Linux unstable i686
+gwalcmai: Debian Linux unstable i686
 quango: Debian PPC/32 (Power3)
 superego: Debian PPC/64 (Power3)
 cl012: Debian Testing/Unstable i386
