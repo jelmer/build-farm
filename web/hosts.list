@@ -23,6 +23,8 @@ berks: Fedora Core 1 i386
 yowiee: Fedora Core 2 i386
 tango-one-mars: Fedora Core 2 i386
 shelob: Fedora Core 3 i386 SMP
+piglett: Fedora Core 4 (i686)
+speener: Fedora Core 4 (i686)
 gc8: FreeBSD 3.3-RELEASE i386
 gc4: FreeBSD 4.3-STABLE i386
 manhattan: FreeBSD 4.8-RELEASE i386
@@ -74,5 +76,4 @@ l390vme1: SuSE SLES 8 (S/390)
 opi: SuSE SLES 9 (x86_64)
 PeeWee: SuSE 9.3 (i686)
 fort: Debian x86 valgrind
-piglett: Fedora Core 4 (i686)
 
