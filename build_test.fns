@@ -54,10 +54,27 @@ fetch_tree() {
 			echo "transfer of $tree failed code $?"
 			return 1
 		fi
-		rsync -q --timeout=200 -clpz --ignore-errors \
-			samba.org::ftp/unpacked/$tree/.svn/entries $test_root/$tree/.svn_entries
 	fi
 	return 0
+}
+
+############################
+# fetch the latest copy of the svn entries file
+fetch_svn() {
+    tree=$1
+    if [ "$norsync" = "yes" ]; then
+	echo "skipping svn transfer"
+    else
+	if [ -r $test_root/$tree.svn ]; then
+	    mv $test_root/$tree.svn $test_root/$tree.svn.old
+	fi
+	rsync -q --timeout=200 -clpz --ignore-errors \
+	    samba.org::ftp/unpacked/$tree/.svn/entries $test_root/$tree.svn
+    fi
+    if [ -r $test_root/$tree.svn ]; then
+	return 0;
+    fi
+    return 1
 }
 
 ############################
@@ -376,6 +393,15 @@ test_tree() {
 		return
 	fi
 
+	# pull the svn entries, if any
+	if fetch_svn "$tree"; then
+	    if cmp $test_root/$tree.svn $test_root/$tree.svn.old > /dev/null; then
+		echo "skip: $tree nothing changed in svn"
+		unlock_file "$lck"
+		return
+	    fi
+	fi
+
 	# pull the tree
 	if ! fetch_tree "$tree"; then
 	    unlock_file "$lck"
@@ -457,11 +483,11 @@ test_tree() {
 		$compiler $TIMELIMIT_FLAGS -o $srcdir/timelimit $test_root/timelimit.c || exit 1
 
 		if [ -r $test_root/$tree/.svn_entries ]; then
-		  h_rev=`grep revision= $test_root/$tree/.svn_entries | cut -d'"' -f2`
+		  h_rev=`grep revision= $test_root/$tree.svn | cut -d'"' -f2`
 		  if [ -n "$h_rev" ]; then
 			echo "HIGHEST SVN REVISION: $h_rev"
 		  fi
-		  rev=`grep -m 1 committed-rev= $test_root/$tree/.svn_entries | cut -d'"' -f2`
+		  rev=`grep -m 1 committed-rev= $test_root/$tree.svn | cut -d'"' -f2`
 		  if [ -n "$rev" ]; then
 			echo "BUILD REVISION: $rev"
 		  fi
