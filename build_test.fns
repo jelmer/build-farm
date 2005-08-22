@@ -395,8 +395,10 @@ test_tree() {
 
 	# pull the svn entries, if any
 	if fetch_svn "$tree"; then
-	    if cmp $test_root/$tree.svn $test_root/$tree.svn.old > /dev/null; then
-		echo "skip: $tree nothing changed in svn"
+	    mv $test_root/$tree.$compiler.svn $test_root/$tree.$compiler.svn.old
+	    cp $test_root/$tree.svn $test_root/$tree.$compiler.svn
+	    if cmp $test_root/$tree.$compiler.svn $test_root/$tree.$compiler.svn.old > /dev/null; then
+		echo "skip: $tree.$compiler nothing changed in svn"
 		unlock_file "$lck"
 		return
 	    fi
