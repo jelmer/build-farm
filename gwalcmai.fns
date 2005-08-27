@@ -4,9 +4,11 @@ test_tree rsync . gcc
 test_tree distcc . gcc
 test_tree ccache . gcc
 
-test_tree samba4 source gcc
+test_tree samba4 source gcc-2.95
+test_tree samba4 source gcc-3.3
+test_tree samba4 source gcc-3.4
 test_tree samba4 source gcc-4.0
-enable_torture="yes" config="--without-krb5 --enable-socket-wrapper" test_tree samba4 source tcc
+config="--without-krb5 --enable-socket-wrapper" test_tree samba4 source tcc
 
 test_tree ppp . gcc
 per_run_hook
