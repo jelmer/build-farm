@@ -46,6 +46,7 @@ ares: NetBSD 1.6.2 Sparc64
 hummel-netbsd3-samba: NetBSD 3.99.5 (XENU)
 flame: OpenBSD 3.0 Sparc
 flock: OpenBSD 3.6 i386
+stevehome: OpenBSD 3.7 x86
 pandemonium: OpenBSD-current Sparc64
 wayne: RedHat 6.1 Sparc 10 (Kernel 2.2.18)
 svamp: RedHat 7.0 i386
