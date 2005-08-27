@@ -167,7 +167,7 @@ action_build() {
 	samba4)
 		# the 2nd 'make everything' is to work around a bug
 		# in netbsd make. 
-		do_make proto everything
+		do_make proto showflags everything
 		do_make everything
 		;;
 	samba|samba_3_0)
