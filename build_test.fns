@@ -68,7 +68,7 @@ fetch_svn() {
 	if [ -r $test_root/$tree.svn ]; then
 	    mv $test_root/$tree.svn $test_root/$tree.svn.old
 	fi
-	rsync -q --timeout=200 -clpz --ignore-errors \
+	rsync -q --timeout=200 -clz --ignore-errors \
 	    samba.org::ftp/unpacked/$tree/.svn/entries $test_root/$tree.svn
     fi
     if [ -r $test_root/$tree.svn ]; then
