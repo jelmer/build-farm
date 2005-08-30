@@ -7,7 +7,7 @@
 # pass the -n option followed by the log file name.  For example:
 #
 # $ cd ~build/master/data
-# $ ./analyse.pl -n build.$PRODUCT.$HOST.$COMPILER.log
+# $ ../analyse.pl -n build.$PRODUCT.$HOST.$COMPILER.log
 #
 
 use strict qw{vars};
