@@ -1,4 +1,14 @@
 #!/usr/bin/perl -w
+#
+# Script to parse a build farm log file and send some mail chastising
+# the possible culprits based on recent commits.
+#
+# To use in test mode (output sent to stdout instead of sendmail),
+# pass the -n option followed by the log file name.  For example:
+#
+# $ cd ~build/master/data
+# $ ./analyse.pl -n build.$PRODUCT.$HOST.$COMPILER.log
+#
 
 use strict qw{vars};
 use FindBin qw($RealBin);
@@ -59,6 +69,13 @@ sub build_revision($)
 #######################################################
 # main program
 
+my $dry_run = 0;
+
+if ($ARGV[0] eq "-n") {
+  $dry_run = 1;
+  shift @ARGV;
+}
+
 my $fname = $ARGV[0];
 my ($tree, $host, $compiler);
 
@@ -95,7 +112,7 @@ if ($rev2 == 0) {
 
 my $status2 = build_status($fname);
 
-if ($status2 <= $status) {
+if ($status2 <= $status && !$dry_run) {
 	# the build didn't get worse
 	exit(0);
 }
@@ -122,7 +139,11 @@ while ($log2 =~ /\nr\d+ \| (\w+) \|.*?lines\n(.*)$/s) {
 my $recipients = join(",", keys %culprits);
 
 # send the nastygram
-open(MAIL,"|Mail -s \"BUILD of $tree BROKEN on $host AT REVISION $rev\" $recipients");
+if ($dry_run) {
+  open(MAIL,"|cat");
+} else {
+  open(MAIL,"|Mail -s \"BUILD of $tree BROKEN on $host AT REVISION $rev\" $recipients");
+}
 
 print MAIL << "__EOF__";
 Broken build for tree $tree on host $host with compiler $compiler
@@ -137,5 +158,3 @@ $log
 __EOF__
 
 close(MAIL);
-
-exit(0);
