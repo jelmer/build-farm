@@ -66,6 +66,7 @@ fetch_svn() {
 	echo "skipping svn transfer"
     else
 	if [ -r $test_root/$tree.svn ]; then
+		rm -f $test_root/$tree.svn.old
 	    mv $test_root/$tree.svn $test_root/$tree.svn.old
 	fi
 	rsync -q --timeout=200 -clz --ignore-errors \
@@ -395,6 +396,7 @@ test_tree() {
 
 	# pull the svn entries, if any
 	if fetch_svn "$tree"; then
+		rm -f $test_root/$tree.$compiler.svn.old
 	    mv $test_root/$tree.$compiler.svn $test_root/$tree.$compiler.svn.old
 	    cp $test_root/$tree.svn $test_root/$tree.$compiler.svn
 	    if cmp $test_root/$tree.$compiler.svn $test_root/$tree.$compiler.svn.old > /dev/null; then
