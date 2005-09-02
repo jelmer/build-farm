@@ -401,6 +401,8 @@ test_tree() {
 	    cp $test_root/$tree.svn $test_root/$tree.$compiler.svn
 	    if cmp $test_root/$tree.$compiler.svn $test_root/$tree.$compiler.svn.old > /dev/null; then
 		echo "skip: $tree.$compiler nothing changed in svn"
+		touch "$log" "$err"
+		send_logs "$log" "$err"
 		unlock_file "$lck"
 		return
 	    fi
