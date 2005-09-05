@@ -979,7 +979,7 @@ sub main_menu() {
     print $req->submit('function', 'View Build') . "\n";
     print $req->submit('function', 'View Host') . "\n";
     print $req->submit('function', 'Recent Checkins') . "\n";
-    print $req->submit('function', 'Summary') . "\n"; 
+    print $req->submit('function', 'Summary') . "\n";
     print $req->submit('function', 'Recent Builds') . "\n";
     print "</div>\n";
     print $req->endform() . "\n";

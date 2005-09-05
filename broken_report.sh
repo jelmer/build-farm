@@ -1,5 +1,5 @@
 #!/bin/sh
-# This shell script produces an email comparing current broken-ness results
+# This shell script produces an email comparing current broken status
 # to that of the last run of this script
 #
 # Copyright (C) Vance Lankhaar  <vance@samba.org>      2005
@@ -18,6 +18,18 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+BASEDIR="/home/build/master"
+RESULT_CACHE="$BASEDIR/cache/broken_results.txt"
+RESULT_URL="http://build.samba.org/?function=Text_Summary"
+FULL_RESULT_URL="http://build.samba.org/"
+
+# split into two parts to obfuscate from spam engines
+RESULT_EMAIL_USER="samba-cvs"
+RESULT_EMAIL_DOMAIN="lists.samba.org"
+
+# End editable variables
+##################################################
+
 
 # exit immediately on failure
 set -e
@@ -30,15 +42,6 @@ PATH="/usr/local/bin:/usr/bin:/bin"
 IFS=" 	
 "
 
-
-BASEDIR="/home/build/master"
-RESULT_CACHE="$BASEDIR/cache/broken_results.txt"
-RESULT_URL="http://build.samba.org/?function=Text_Summary"
-FULL_RESULT_URL="http://build.samba.org/"
-
-# split into two parts to obfuscate from spam engines
-RESULT_EMAIL_USER="samba-cvs"
-RESULT_EMAIL_DOMAIN="lists.samba.org"
 
 ##################################################
 # get the broken report from the build farm
@@ -94,6 +97,21 @@ function send_report {
 
     mail -s "$subject" "$RESULT_EMAIL_USER"@"$RESULT_EMAIL_DOMAIN" < "$RESULT_CACHE".report
 }
+
+##################################################
+##################################################
+
+if [ $# > 0 ]; then
+    if [ x"$1" = x"-h" ] || [ x"$1" = x"--help" ]; then
+	echo "Usage: broken_report.sh"
+	echo
+	echo "This shell script produces an email comparing current broken"
+	echo "status to that of the last run of this script."
+	echo
+	echo "The source and destination are configurable within the script."
+	exit 1
+    fi
+fi
     
 
 ##################################################

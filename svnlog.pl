@@ -1,11 +1,9 @@
 #!/usr/bin/perl -w
 #
-# Emacs, you like -*- CPerl -*- right?
+# Extract information about recent SVN commits
 #
-# This CGI script presents the results of the build_farm build
 # tridge@samba.org, April 2001
 # vance@samba.org, August 2004
-
 
 use strict;
 use lib "web";
@@ -160,10 +158,14 @@ sub svn_parse($$$$)
 
 ######################################
 # main program
-if ($#ARGV < 4) {
+if ($#ARGV < 4 || $ARGV[0] eq '--help' || $ARGV[0] eq '-h') {
 	print "
-Usage: svnlog.pl <repository-url> <tree-dir> <days> <tree> <dest>
-}";
+Usage: svnlog.pl <REPOSITORY-URL> <TREE-DIR> <DAYS> <TREE> <DEST>
+
+Extract all commits to REPOSITORY-URL/TREE-DIR in the last
+DAYS days. Store the results in DEST, indexed under TREE,
+in a format easily readable by the build farm web scripts.
+"
 	exit(1);
 }
 

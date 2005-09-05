@@ -1,4 +1,14 @@
-#!/bin/sh
+#!/bin/s
+
+if [ $# > 0 ]; then
+    if [ x"$1" = x"-h" ] || [ x"$1" = x"--help" ]; then
+	echo "Usage: revs.sh"
+	echo
+	echo "Maintains the previous revision information used on the build"
+	echo "farm, as well as removing any stale build data."
+	exit 1
+    fi
+fi
 
 cd data || exit 1
 

@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
-# This CGI script presents the results of the build_farm build
+#
+# Extract information about recent CVS commits
+#
 # tridge@samba.org, April 2001
 
 use strict;
@@ -258,7 +260,13 @@ sub cvs_parse($$$$)
 # main program
 if ($#ARGV < 4) {
     print "
-Usage: cvslog.pl <file> <days> <tree> <tag> <dest>
+Usage: cvslog.pl <FILE> <DAYS> <TREE> <TAG> <DEST>
+
+Opens CVS log file $FILE and extracts all commit info
+from the last $DAYS days for $TREE with tag $TAG. The result
+is stored in $DEST in a format that the build farm web scripts
+can easily read, aggregating the messages from a
+multiple-directory commit into a single entry.
 }";
     exit(1);
 }

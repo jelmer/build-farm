@@ -71,9 +71,21 @@ sub build_revision($)
 
 my $dry_run = 0;
 
-if ($ARGV[0] eq "-n") {
+if ($#ARGV >= 0 && $ARGV[0] eq "-n") {
   $dry_run = 1;
   shift @ARGV;
+}
+if ($#ARGV < 0 || $ARGV[0] eq "-h" || $ARGV[0] eq "--help") {
+  print <<EOU;
+Usage: analyse.pl [-n] <LOGFILE>
+
+Script to parse a build farm log file, \$LOGFILE, and send some mail
+chastising the possible culprits based on recent commits.
+
+-n  Will cause the script to send output to stdout instead of
+    to sendmail.
+EOU
+  exit(1);
 }
 
 my $fname = $ARGV[0];
