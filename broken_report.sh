@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -x
 # This shell script produces an email comparing current broken status
 # to that of the last run of this script
 #
