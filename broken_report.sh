@@ -101,7 +101,7 @@ function send_report {
 ##################################################
 ##################################################
 
-if [ $# > 0 ]; then
+if [ $# -gt 0 ]; then
     if [ x"$1" = x"-h" ] || [ x"$1" = x"--help" ]; then
 	echo "Usage: broken_report.sh"
 	echo
