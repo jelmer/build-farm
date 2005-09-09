@@ -165,7 +165,7 @@ Usage: svnlog.pl <REPOSITORY-URL> <TREE-DIR> <DAYS> <TREE> <DEST>
 Extract all commits to REPOSITORY-URL/TREE-DIR in the last
 DAYS days. Store the results in DEST, indexed under TREE,
 in a format easily readable by the build farm web scripts.
-"
+";
 	exit(1);
 }
 
