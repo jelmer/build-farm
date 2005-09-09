@@ -262,12 +262,12 @@ if ($#ARGV < 4) {
     print "
 Usage: cvslog.pl <FILE> <DAYS> <TREE> <TAG> <DEST>
 
-Opens CVS log file $FILE and extracts all commit info
-from the last $DAYS days for $TREE with tag $TAG. The result
-is stored in $DEST in a format that the build farm web scripts
+Opens CVS log file \$FILE and extracts all commit info
+from the last \$DAYS days for \$TREE with tag \$TAG. The result
+is stored in \$DEST in a format that the build farm web scripts
 can easily read, aggregating the messages from a
 multiple-directory commit into a single entry.
-}";
+";
     exit(1);
 }
 
