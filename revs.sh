@@ -1,4 +1,4 @@
-#!/bin/s
+#!/bin/sh
 
 if [ $# > 0 ]; then
     if [ x"$1" = x"-h" ] || [ x"$1" = x"--help" ]; then
