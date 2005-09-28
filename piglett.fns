@@ -1,4 +1,4 @@
-export CFLAGS="-O -g -Wall"
+export CFLAGS="-O2 -g -Wall"
 
 test_tree ccache . gcc
 test_tree distcc . gcc
