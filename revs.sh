@@ -1,5 +1,8 @@
 #!/bin/sh
 
+ulimit -v 300000
+ulimit -m 300000
+
 if [ $# > 0 ]; then
     if [ x"$1" = x"-h" ] || [ x"$1" = x"--help" ]; then
 	echo "Usage: revs.sh"
