@@ -23,6 +23,8 @@ berks: Fedora Core 1 i386
 yowiee: Fedora Core 2 i386
 tango-one-mars: Fedora Core 2 i386
 shelob: Fedora Core 3 i386 SMP
+node1: Fedora Core 4 (i686) SMP
+node2: Fedora Core 4 (i686) SMP
 piglett: Fedora Core 4 (i686)
 speener: Fedora Core 4 (i686)
 gc8: FreeBSD 3.3-RELEASE i386
@@ -46,6 +48,7 @@ ares: NetBSD 1.6.2 Sparc64
 hummel-netbsd3-samba: NetBSD 3.99.5 (XENU)
 flame: OpenBSD 3.0 Sparc
 flock: OpenBSD 3.6 i386
+dagon: OpenBSD 3.7 HPPA
 stevehome: OpenBSD 3.7 x86
 pandemonium: OpenBSD-current Sparc64
 wayne: RedHat 6.1 Sparc 10 (Kernel 2.2.18)
