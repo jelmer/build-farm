@@ -30,7 +30,6 @@ speener: Fedora Core 4 (i686)
 gc8: FreeBSD 3.3-RELEASE i386
 gc4: FreeBSD 4.3-STABLE i386
 manhattan: FreeBSD 4.8-RELEASE i386
-sbf: FreeBSD 5.2.1 i386
 ragnarok: FreeBSD 5.3-STABLE amd64
 aretnap: FreeBSD 5.4-STABLE
 smartserv1: FreeBSD 5.4-STABLE i386
@@ -75,7 +74,7 @@ m30: Stratus VOS HP PA-RISC
 suse71ppc: SuSE 7.1 ppc gcc2.95.2
 metze02: SuSE 7.3 i386 (PIII)
 metze01: SuSE 8.2 i386 (athlon)
-PCS1: SuSE Linux 9.2 Professional (i586)
+PCS1: SuSE Linux 10.0 (i686)
 l390vme1: SuSE SLES 8 (S/390)
 opi: SuSE SLES 9 (x86_64)
 PeeWee: SuSE 9.3 (i686)
