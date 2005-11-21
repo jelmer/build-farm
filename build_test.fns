@@ -374,7 +374,7 @@ test_tree() {
 	fi
 
 	# limit our resource usage
-	ulimit -t 7200
+	ulimit -t $MAXTIME
 	ulimit -m 100000
 
 	# Keep stuff private
