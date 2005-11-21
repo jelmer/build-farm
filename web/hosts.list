@@ -40,7 +40,7 @@ gwen: HP-UX 11.11
 hpntc9I: HP-UX 11.11
 au2: IRIX 6.4 MIPS
 us4: IRIX 6.5 MIPS
-trip: Mandriva 2005 LE (10.2) i386
+trip: Mandriva 2006.0 i586
 kimchi: NetBSD 1.5 i386
 poseidon: NetBSD 1.6.2 Sparc32
 ares: NetBSD 1.6.2 Sparc64
@@ -70,7 +70,8 @@ mundroo: Solaris 8 i386
 Isis: Solaris 8 i386
 fire1: Solaris 9 Sparc
 cat: Solaris 9 i386
-m30: Stratus VOS HP PA-RISC
+swslem12: Stratus VOS HP PA-RISC
+swslem104: Stratus VOS i786
 suse71ppc: SuSE 7.1 ppc gcc2.95.2
 metze02: SuSE 7.3 i386 (PIII)
 metze01: SuSE 8.2 i386 (athlon)
