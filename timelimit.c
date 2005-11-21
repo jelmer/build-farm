@@ -12,6 +12,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+static pid_t child_pid;
+
 static void usage(void)
 {
 	printf("usage: timelimit <time> <command>\n");
@@ -20,19 +22,12 @@ static void usage(void)
 static void sig_alrm(int sig)
 {
 	fprintf(stderr, "\nMaximum time expired in timelimit - killing\n");
-	kill(0, SIGKILL);
+	kill(-child_pid, SIGKILL);
 	exit(1);
 }
 
-int main(int argc, char *argv[])
+static void new_process_group(void)
 {
-	int maxtime, ret=1;
-
-	if (argc < 3) {
-		usage();
-		exit(1);
-	}
-
 #ifdef BSD_SETPGRP
 	if (setpgrp(0,0) == -1) {
 		perror("setpgrp");
@@ -44,16 +39,31 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 #endif
+}
+
+
+int main(int argc, char *argv[])
+{
+	int maxtime, ret=1;
+	pid_t pgid;
+
+	if (argc < 3) {
+		usage();
+		exit(1);
+	}
 
 	maxtime = atoi(argv[1]);
-	signal(SIGALRM, sig_alrm);
-	alarm(maxtime);
 
-	if (fork() == 0) {
+	child_pid = fork();
+	if (child_pid == 0) {
+		new_process_group();
 		execvp(argv[2], argv+2);
 		perror(argv[2]);
 		exit(1);
 	}
+
+	signal(SIGALRM, sig_alrm);
+	alarm(maxtime);
 
 	do {
 		int status;
@@ -64,6 +74,8 @@ int main(int argc, char *argv[])
 			break;
 		}
 	} while (1);
+
+	kill(-child_pid, SIGKILL);
 
 	exit(ret);
 }
