@@ -1,0 +1,9 @@
+export CFLAGS="-D_POSIX_C_SOURCE=199506L -D_SYSV -D__VOS__"
+
+test_tree ccache . gcc
+test_tree distcc . gcc
+
+test_tree samba_3_0 source gcc
+test_tree samba4 source gcc
+test_tree rsync . gcc
+per_run_hook
