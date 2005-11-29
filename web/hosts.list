@@ -44,7 +44,7 @@ trip: Mandriva 2006.0 i586
 kimchi: NetBSD 1.5 i386
 poseidon: NetBSD 1.6.2 Sparc32
 ares: NetBSD 1.6.2 Sparc64
-hummel-netbsd3-samba: NetBSD 3.99.5 (XENU)
+xen2-netbsd-samba: NetBSD 3.0_RC1 (XENU)
 flame: OpenBSD 3.0 Sparc
 flock: OpenBSD 3.6 i386
 dagon: OpenBSD 3.7 HPPA
