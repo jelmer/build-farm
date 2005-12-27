@@ -707,12 +707,16 @@ sub view_build() {
     # check the head of the output for our magic string
     my $plain_logs = (defined get_param("plain") &&
 		      get_param("plain") =~ /^(yes|1|on|true|y)$/i);
+    my $rev_var = "";
+    if ($rev) {
+	    $rev_var = ";revision=$rev";
+    }
 
     print "<div id=\"log\">\n";
 
     if (!$plain_logs) {
 
-	    print "<p>Switch to the <a href=\"$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler;plain=true\" title=\"Switch to bland, non-javascript, unstyled view\">Plain View</a></p>";
+	    print "<p>Switch to the <a href=\"$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler$rev_var;plain=true\" title=\"Switch to bland, non-javascript, unstyled view\">Plain View</a></p>";
 
 	    print "<div id=\"actionList\">\n";
 	    # These can be pretty wide -- perhaps we need to 
@@ -735,7 +739,7 @@ sub view_build() {
 	    print "</div>\n";
     }
     else {
-	    print "<p>Switch to the <a href=\"$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler\" title=\"Switch to colourful, javascript-enabled, styled view \">Enhanced View</a></p>";
+	    print "<p>Switch to the <a href=\"$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler$rev_var\" title=\"Switch to colourful, javascript-enabled, styled view \">Enhanced View</a></p>";
 	    if ($err eq "") {
 		    print "<h2>No error log available</h2>\n";
 	    } else {
