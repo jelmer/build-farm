@@ -134,9 +134,6 @@ my $firstrev = $rev2 + 1;
 
 my $log = `svn log --non-interactive -r $firstrev:$rev $unpacked_dir/$tree` || die "Unable to get svn log";
 
-# Add a URL to the diffs for each change
-$log =~ s/\n(r(\d+).*)/$1\nhttp:\/\/build.samba.org\/?function=diff;tree=${tree};revision=$2/g;
-
 #print($log);
 
 # get the list of possible culprits
@@ -147,6 +144,9 @@ while ($log2 =~ /\nr\d+ \| (\w+) \|.*?lines\n(.*)$/s) {
     $culprits{$1} = 1; 
     $log2 = $2;
 }
+
+# Add a URL to the diffs for each change
+$log =~ s/\n(r(\d+).*)/$1\nhttp:\/\/build.samba.org\/?function=diff;tree=${tree};revision=$2/g;
 
 my $recipients = join(",", keys %culprits);
 
