@@ -227,6 +227,10 @@ sub build_revision($$$$)
     }
 
     my $st1 = stat("$file.log");
+
+    if (!$st1) {
+	    return $ret;
+    }
     my $st2 = stat("$CACHEDIR/$file.revision");
 
     if ($st1 && $st2 && $st1->mtime <= $st2->mtime) {
@@ -245,7 +249,7 @@ sub build_revision($$$$)
 }
 
 #############################################
-# get the overall age of a host 
+# get the overall age of a host
 sub host_age($)
 {
 	my $host = shift;
@@ -266,8 +270,8 @@ sub host_age($)
 sub red_age($)
 {
 	my $age = shift;
-	
-	if ($age > $OLDAGE) { 
+
+	if ($age > $OLDAGE) {
 		return sprintf("<span class=\"old\">%s</span>",  util::dhm_time($age));
 	}
 	return util::dhm_time($age);
@@ -292,6 +296,9 @@ sub build_status($$$$)
     my $ret;
 
     my $st1 = stat("$file.log");
+    if (!$st1) {
+	    return "Unknown Build";
+    }
     my $st2 = stat("$cachefile");
 
     if ($st1 && $st2 && $st1->mtime <= $st2->mtime) {
@@ -372,6 +379,9 @@ sub err_count($$$$)
     my $err;
 
     my $st1 = stat("$file.err");
+    if ($st1) {
+	    return 0;
+    }
     my $st2 = stat("$CACHEDIR/$file.errcount");
 
     if ($st1 && $st2 && $st1->mtime <= $st2->mtime) {
@@ -429,6 +439,7 @@ sub view_summary($) {
 	    for my $compiler (@compilers) {
 		    for my $tree (keys %trees) {
 			    my $status = build_status($host, $tree, $compiler, "");
+			    next if $status =~ /^Unknown Build/;
 			    my $age = build_age($host, $tree, $compiler, "");
 			    
 			    if ($age != -1 && $age < $DEADAGE) {
