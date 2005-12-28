@@ -92,7 +92,7 @@ my $fname = $ARGV[0];
 my ($tree, $host, $compiler);
 
 # break up the name into components
-if ($fname =~ /^build\.([\w-]+)\.([\w-]+)\.([\w-]+)\.log$/) {
+if ($fname =~ /^build\.([\w-]+)\.([\w-]+)\.([\w.-]+)\.log$/) {
 	$tree = $1;
 	$host = $2;
 	$compiler = $3;
