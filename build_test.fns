@@ -576,7 +576,7 @@ rsync --timeout=200 -q -az samba.org::build_farm/*.c .
 # sigh - we need to mark systems that need the bsd setpgrp() call
 htype=`uname`
 case "$htype" in
-  *BSD|*bsd)
+  *BSD|*bsd|OSF1)
 	TIMELIMIT_FLAGS=-DBSD_SETPGRP
 	export TIMELIMIT_FLAGS
   ;;
