@@ -61,7 +61,6 @@ homer: RedHat RHEL 3 (WS)
 deckchair: RedHat RHEL 3 (AS) ia64
 packetstorm: Slackware Linux 9.0 i386
 shubnigurath: Solaris 10 UltraSparc
-opisol10: Solaris 10 b63 x86
 sol10: Solaris 10 x86
 gc20: Solaris 2.6 Sparc
 sun1: Solaris 8 UltraSparc
@@ -79,5 +78,6 @@ PCS1: SuSE Linux 10.0 (i686)
 l390vme1: SuSE SLES 8 (S/390)
 opi: SuSE SLES 9 (x86_64)
 PeeWee: SuSE 9.3 (i686)
+SerNet-Tru64: Tru64 UNIX V5.1B-2-PK4
 fort: Debian x86 valgrind
 burns: Debian Linux 2.6
