@@ -40,7 +40,7 @@ gwen: HP-UX 11.11
 hpntc9I: HP-UX 11.11
 au2: IRIX 6.4 MIPS
 us4: IRIX 6.5 MIPS
-coreserverbuild: Mac OS X 10.4.4
+coreserverbuild: Mac OS X 10.4.4 (PPC)
 trip: Mandriva 2006.0 i586
 kimchi: NetBSD 1.5 i386
 poseidon: NetBSD 1.6.2 Sparc32
