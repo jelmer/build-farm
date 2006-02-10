@@ -10,7 +10,6 @@ yurok: Debian Linux 3.0 stable i386
 sasoe_smb: Debian Linux 3.0 stable i386
 samba-s390: Debian Linux 3.0 stable s390
 sparc-sarge: Debian Linux sarge/testing Sparc64
-tux: Debian Linux sid/unstable HP PA-RISC
 sparc-sid: Debian Linux sid/unstable Sparc64
 boiccu: Debian Linux testing/unstable IA64
 rhonwyn: Debian Linux unstable i686
@@ -41,6 +40,7 @@ gwen: HP-UX 11.11
 hpntc9I: HP-UX 11.11
 au2: IRIX 6.4 MIPS
 us4: IRIX 6.5 MIPS
+coreserverbuild: Mac OS X 10.4.4
 trip: Mandriva 2006.0 i586
 kimchi: NetBSD 1.5 i386
 poseidon: NetBSD 1.6.2 Sparc32
