@@ -878,13 +878,13 @@ sub print_log_pretty() {
   
   $log =~ s{
 	      --==--==--==--==--==--==--==--==--==--==--.*?
-	      Running\ test\ ([\w\-=,_:\ /.]+)\ \(level\ (\d+)\ (\w+)\).*?
+	      Running\ test\ ([\w\-=,_:\ /.>]+)\ \(level\ (\d+)\ (\w+)\).*?
 	      --==--==--==--==--==--==--==--==--==--==--
               (.*?)
 	      ==========================================.*?
 	      TEST\ (FAILED|PASSED|SKIPPED):(\ \(status\ (\d+)\))?.*?
 	      ==========================================\s+
-	     }{make_test_html($1, $4, $id++, $5)}exgs;
+	     }{make_test_html(util::cgi_escape($1), $4, $id++, $5)}exgs;
 
 
 	print "<tt><pre>" .join('', $log) . "</pre></tt><p>\n";
