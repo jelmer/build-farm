@@ -41,7 +41,7 @@
 #log .unit.passed .output {
 	display: none;
 }
-#log div.output#output-stderr-0 {
+#log div.output-stderr-0 {
 	display: none;
 }
 #log img {
