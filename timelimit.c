@@ -17,6 +17,9 @@ static pid_t child_pid;
 static void usage(void)
 {
 	printf("usage: timelimit <time> <command>\n");
+	printf("   SIGALRM - passes SIGKILL to command's process group and exit(1)\n");
+	printf("   SIGUSR1 - passes SIGTERM to command's process group\n");
+	printf("   SIGTERM - passes SIGTERM to command's process group and exit(0)\n");
 }
 
 static void sig_alrm(int sig)
@@ -24,6 +27,17 @@ static void sig_alrm(int sig)
 	fprintf(stderr, "\nMaximum time expired in timelimit - killing\n");
 	kill(-child_pid, SIGKILL);
 	exit(1);
+}
+
+static void sig_term(int sig)
+{
+	kill(-child_pid, SIGTERM);
+	exit(0);
+}
+
+static void sig_usr1(int sig)
+{
+	kill(-child_pid, SIGTERM);
 }
 
 static void new_process_group(void)
@@ -62,6 +76,8 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
+	signal(SIGTERM, sig_term);
+	signal(SIGUSR1, sig_usr1);
 	signal(SIGALRM, sig_alrm);
 	alarm(maxtime);
 
