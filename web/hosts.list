@@ -62,6 +62,7 @@ lacroix: RedHat 9.0 i686 SMP
 homer: RedHat RHEL 3 (WS)
 deckchair: RedHat RHEL 3 (AS) ia64
 packetstorm: Slackware Linux 9.0 i386
+smoothwall: Smoothwall Express 2 i386
 shubnigurath: Solaris 10 UltraSparc
 sol10: Solaris 10 x86
 gc20: Solaris 2.6 Sparc
