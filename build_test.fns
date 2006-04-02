@@ -170,6 +170,9 @@ action_build() {
 		# in netbsd make. 
 		do_make proto showflags everything
 		do_make everything
+		if [ -f ibm_checker.out ]; then
+		    cat ibm_checker.out
+		fi
 		;;
 	samba|samba_3_0)
 	    do_make proto everything torture

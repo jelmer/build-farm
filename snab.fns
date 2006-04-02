@@ -1,0 +1,11 @@
+per_run_hook
+
+BP=ibm_checker_parse.out
+BC=ibm_checker.out
+
+rm -f $BP $BC
+
+export CFLAGS="-Wall"
+export CC_CHECKER="/home/tridge/beam-3.1.1/bin/beam_compile --beam::source=/home/tridge/beam/samba4/config.tcl -c --beam::parser_file=$BP --beam::complaint_file=$BC"
+
+test_tree samba4 source gcc
