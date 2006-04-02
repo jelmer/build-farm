@@ -5,6 +5,9 @@ BC=ibm_checker.out
 
 rm -f $BP $BC
 
+export PATH=$PATH:/home/tridge/beam-3.1.1/bin
+export LD_LIBRARY_PATH=/home/tridge/beam-3.1.1/dll
+
 export CFLAGS="-Wall"
 export CC_CHECKER="/home/tridge/beam-3.1.1/bin/beam_compile --beam::source=/home/tridge/beam/samba4/config.tcl -c --beam::parser_file=$BP --beam::complaint_file=$BC"
 
