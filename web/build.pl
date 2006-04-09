@@ -736,7 +736,7 @@ sub view_build() {
 		    print "<h2>No error log available</h2>\n";
 	    } else {
 		    print "<h2>Error log:</h2>\n";
-		    print make_action_html("Error Output", "\n$err", "stderr-0", 0);
+		    print make_action_html("Error Output", "\n$err", "stderr-0");
 	    }
 
 	    if ($log eq "") {
@@ -949,12 +949,6 @@ sub make_action_html($$$$)
   if (defined $status) {
     $return .= "<div class=\"action status \L$status\E\">$status</div>";
   }
-
-  my $x;
-  $x = "$id";
-  $x = "$name$output";
-  $x = "$status";
-  $x = "$name";
 
   $return .= "<div class=\"action output\" id=\"output-$id\">" .
                  "<pre>Running action $name$output ACTION $status: $name</pre>" .

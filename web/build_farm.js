@@ -1,18 +1,22 @@
 function handle(name)
 {
-	action = document.getElementById("output-" + name);
+	// get a reference to the output block
+	outputBlock = document.getElementById("output-" + name);
+
+	// and the image that's next to the block
 	img = document.getElementById("img-" + name);
+
 	old_src = img.getAttribute("src");
 
-	current_display = action.style.display;
+	current_display = outputBlock.style.display;
 
 	// try to handle the case where the display is not explicitly set
 	if (current_display == "") {
-		if (action.currentStyle) { // ack, IE
-			current_display = action.currentStyle.display;
+		if (outputBlock.currentStyle) { // ack, IE
+			current_display = outputBlock.currentStyle.display;
 		}
 		else if (document.defaultView.getComputedStyle) { // oooh, DOM
-			var style_list = document.defaultView.getComputedStyle(action, "");
+			var style_list = document.defaultView.getComputedStyle(outputBlock, "");
 
 			// konqueor has getComputedStyle, but it does not work
 			if (style_list != null) {
@@ -25,11 +29,11 @@ function handle(name)
 	}
 
 	if (current_display == "block") {
-		action.style.display = "none";
+		outputBlock.style.display = "none";
 		img.setAttribute("src", old_src.replace("hide", "unhide"));
 	}
 	else {
-		action.style.display = "block";
+		outputBlock.style.display = "block";
 		img.setAttribute("src", old_src.replace("unhide", "hide"));
 	}
 }
