@@ -1,6 +1,6 @@
 
 /* log is the id on the build log divisions */
-#log .name, #log .status {
+#log .title, #log .status {
         display: inline;
 	font-weight: bold;
 	font-family: sans-serif;

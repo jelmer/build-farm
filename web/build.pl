@@ -736,7 +736,7 @@ sub view_build() {
 		    print "<h2>No error log available</h2>\n";
 	    } else {
 		    print "<h2>Error log:</h2>\n";
-		    print make_action_html("Error Output", "\n$err", "stderr-0");
+		    print make_collapsible_html('action', "Error Output", "\n$err", "stderr-0");
 	    }
 
 	    if ($log eq "") {
@@ -868,13 +868,14 @@ EOHEADER
 sub print_log_pretty() {
   my $log = shift;
 
-
   # do some pretty printing for the actions
   my $id = 1;
-  $log =~ s{   Running\ action\s+([\w\-]+)
-	       (.*?)
-	       ACTION\ (PASSED|FAILED):\ ([\w\-]+)
-	     }{make_action_html($1, $2, $id++, $3)}exgs;
+  $log =~ s{   (
+                 Running\ action\s+([\w\-]+)
+	         .*?
+	         ACTION\ (PASSED|FAILED):\ ([\w\-]+)
+               )
+	     }{make_collapsible_html('action', $2, $1, $id++, $3)}exgs;
 
   # $log is already CGI-escaped, so handle '>' in test name by handling &gt;
   $log =~ s{
@@ -885,73 +886,33 @@ sub print_log_pretty() {
 	      ==========================================.*?
 	      TEST\ (FAILED|PASSED|SKIPPED):(\ \(status\ (\d+)\))?.*?
 	      ==========================================\s+
-	     }{make_test_html($1, $4, $id++, $5)}exgs;
+	     }{make_collapsible_html('test', $1, $4, $id++, $5)}exgs;
 
 
-	print "<tt><pre>" .join('', $log) . "</pre></tt><p>\n";
+  print "<tt><pre>" .join('', $log) . "</pre></tt><p>\n";
 }
 
 ##############################################
-# generate html for a test section
-sub make_test_html {
-  my $name = shift;
-  my $output = shift;
-  my $id = shift;
-  my $status = shift;
-
-  my $return =  "</pre>" . # don't want the pre openned by action affecting us
-               "<div class=\"test unit \L$status\E\" id=\"test-$id\">" .
-                "<a href=\"javascript:handle('$id');\">" .
-                 "<img id=\"img-$id\" name=\"img-$id\" src=\"";
-  if (defined $status && $status eq "PASSED") {
-    $return .= "icon_unhide_16.png";
-  }
-  else {
-    $return .= "icon_hide_16.png";
-  }
-  $return .= "\" /> " .
-                 "<div class=\"test name\">$name</div> " .
-                "</a> " .
-               "<div class=\"test status \L$status\E\">$status</div>" .
-               "<div class=\"test output\" id=\"output-$id\">" .
-                "<pre>$output</pre>" .
-               "</div>" .
-              "</div>" .
-              "<pre>";    # open the pre back up
-              
-  return $return;
-}
-
-##############################################
-# generate html for an action section
-sub make_action_html($$$$)
+# generate html for a collapsible section
+sub make_collapsible_html($$$$)
 {
-
-  my $name = shift;
+  my $type = shift;   # the logical type of it. e.g. "test" or "action"
+  my $title = shift;   # the title to be displayed 
   my $output = shift;
   my $id = shift;
   my $status = shift;
-  my $return = "<div class=\"action unit \L$status\E\" id=\"action-$id\">" .
+
+  my $icon = (defined $status && ($status =~ /failed/i)) ? 'icon_hide_16.png' : 'icon_unhide_16.png';
+
+  # note that we may be inside a <pre>, so we don't put any extra whitespace in this html
+  my $return = "<div class=\"$type unit \L$status\E\" id=\"$type-$id\">" .
                 "<a href=\"javascript:handle('$id');\">" .
-                 "<img id=\"img-$id\" name=\"img-$id\" src=\"";
-
-  if (defined $status && ($status =~ /failed/i)) {
-    $return .= 'icon_hide_24.png';
-  }
-  else {
-    $return .= 'icon_unhide_24.png';
-  }
-
-  $return .= "\" /> " .
-                  "<div class=\"action name\">$name</div>" .
-                "</a> ";
-
-  if (defined $status) {
-    $return .= "<div class=\"action status \L$status\E\">$status</div>";
-  }
-
-  $return .= "<div class=\"action output\" id=\"output-$id\">" .
-                 "<pre>Running action $name$output ACTION $status: $name</pre>" .
+                 "<img id=\"img-$id\" name=\"img-$id\" src=\"$icon\" /> " .
+                  "<div class=\"$type title\">$title</div>" .
+                "</a> " .
+                "<div class=\"$type status \L$status\E\">$status</div>" .
+                "<div class=\"$type output\" id=\"output-$id\">" .
+                 "<pre>$output</pre>" .
                 "</div>".
                "</div>";
 
