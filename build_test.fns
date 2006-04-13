@@ -170,9 +170,6 @@ action_build() {
 		# in netbsd make. 
 		do_make proto showflags everything
 		do_make everything
-		if [ -f ibm_checker.out ]; then
-		    cat ibm_checker.out
-		fi
 		;;
 	samba|samba_3_0)
 	    do_make proto everything torture
@@ -185,6 +182,22 @@ action_build() {
 	bstatus=$?
 	echo "BUILD STATUS: $bstatus"
 	return $bstatus
+}
+
+############################
+# show static analysis results
+action_cc_checker() {
+
+	# default to passing the cc_checker
+        cccstatus=0
+
+	if [ -f ibm_checker.out ]; then
+		cat ibm_checker.out
+		cccstatus=`cat ibm_checker.out | grep '^ \-\-' | wc -l`
+	fi
+
+	echo "CC_CHECKER STATUS: $cccstatus"
+	return $cccstatus;	
 }
 
 ############################

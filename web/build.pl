@@ -345,6 +345,10 @@ sub build_status($$$$)
 	$sstatus = "";
     }
 
+    if ($log =~ /CC_CHECKER STATUS: (.*)/ && $1 > 0) {
+	$sstatus .= "/<span class=\"status checker\">$1</span>";
+    }
+
     $ret = "<a href=\"$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler";
     if ($rev) {
 	    $ret .= ";revision=$rev";
@@ -888,6 +892,11 @@ sub print_log_pretty() {
 	      ==========================================\s+
 	     }{make_collapsible_html('test', $1, $4, $id++, $5)}exgs;
 
+  $log =~ s{
+             --\ ((ERROR|WARNING|MISTAKE).*?)\n
+             (.*?)
+             \n{3,}
+           }{make_collapsible_html('cc_checker', $1, $3, $id++, $2)}exgs;
 
   print "<tt><pre>" .join('', $log) . "</pre></tt><p>\n";
 }

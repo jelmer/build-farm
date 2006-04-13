@@ -5,15 +5,12 @@
 	font-weight: bold;
 	font-family: sans-serif;
 }
-#log .status.failed {
-	color: rgb(153, 0, 0);;
-}
-#log .status.passed {
-	color: rgb(0, 153, 0);
-}
-#log .status.skipped {
-	color: rgb(0, 0, 153);
-}
+#log .status.failed {	color: rgb(153, 0,   0);   }
+#log .status.passed {	color: rgb(0,   153, 0);   }
+#log .status.skipped {	color: rgb(0,   0,   153); }
+#log .status.error {	color: rgb(153, 0,   0);   }
+#log .status.warning {	color: rgb(153, 75,  0);   }
+#log .status.mistake {	color: rgb(0,   0,   153); }
 #log .output {
 	color: rgb(0, 0, 0);
 	font-family: monospace;
@@ -23,24 +20,20 @@
 	padding: 10px;
 	border: 2px solid black;
 }
-#log div.unit.passed {
-	background-color: rgb(180, 255, 180);
-}
-#log div.unit.failed {
-	background-color: rgb(255, 180, 180);
-}
-#log div.unit.skipped {
-	background-color: rgb(180, 180, 255);
-}
-#log .unit.failed .output {
-	display: block;
-}
-#log .unit.skipped .output {
-	display: block;
-}
-#log .unit.passed .output {
-	display: none;
-}
+#log div.unit.passed {	background-color: rgb(180, 255, 180); }
+#log div.unit.failed {	background-color: rgb(255, 180, 180); }
+#log div.unit.skipped {	background-color: rgb(180, 180, 255); }
+#log div.unit.warning {	background-color: rgb(255, 180, 125); }
+#log div.unit.error {	background-color: rgb(255, 180, 180); }
+#log div.unit.mistake {	background-color: rgb(180, 180, 255); }
+
+#log .unit.failed  .output {	display: block;}
+#log .unit.skipped .output {	display: block;}
+#log .unit.passed  .output {	display: none;}
+#log .unit.error   .output {	display: none;}
+#log .unit.mistake .output {	display: none;}
+#log .unit.warning .output {	display: none;}
+
 #log div.output-stderr-0 {
 	display: none;
 }
@@ -63,9 +56,15 @@
         color: rgb(255, 0, 0);
 }
 
-.panic { 
+.status.panic { 
         color: rgb(255, 0, 0);
         font-weight: bold;
+}
+.status.checker { 
+        color: rgb(255, 127, 0);
+}
+.status.checker:before { 
+        content: "Checker: ";
 }
 .status.unknown { 
         color: rgb(0, 0, 255);
