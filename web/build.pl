@@ -681,7 +681,7 @@ sub view_build() {
     my $revision = build_revision($host, $tree, $compiler, $rev);
     my $status = build_status($host, $tree, $compiler, $rev);
 
-    $rev = int($rev);
+    $rev = int($rev) if $rev;
 
     $log = util::FileLoad("$file.log");
     $err = util::FileLoad("$file.err");
