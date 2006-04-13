@@ -193,7 +193,7 @@ action_cc_checker() {
 
 	if [ -f ibm_checker.out ]; then
 		cat ibm_checker.out
-		cccstatus=`cat ibm_checker.out | grep '^ \-\-' | wc -l`
+		cccstatus=`cat ibm_checker.out | grep '^\-\- ' | wc -l`
 	fi
 
 	echo "CC_CHECKER STATUS: $cccstatus"
