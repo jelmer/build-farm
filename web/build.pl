@@ -874,12 +874,23 @@ sub print_log_pretty() {
 
   # do some pretty printing for the actions
   my $id = 1;
-  $log =~ s{   (
-                 Running\ action\s+([\w\-]+)
-	         .*?
-	         ACTION\ (PASSED|FAILED):\ ([\w\-]+)
-               )
-	     }{make_collapsible_html('action', $2, $1, $id++, $3)}exgs;
+  $log =~ s{ (
+             Running\ action\s+([\w\-]+)
+	     .*?
+	     ACTION\ (PASSED|FAILED):\ ([\w\-]+)
+             )
+	    }{ my $output = $1;
+	       my $actionName = $2;
+	       my $status = $3;
+
+	       # handle pretty-printing of static-analysis tools
+	       if ($actionName eq 'cc_checker') {
+		 $output = print_log_cc_checker($output);
+	       }
+
+	       make_collapsible_html('action', $actionName, $output, $id++, 
+				     $status)
+       }exgs;
 
   # $log is already CGI-escaped, so handle '>' in test name by handling &gt;
   $log =~ s{
@@ -892,13 +903,76 @@ sub print_log_pretty() {
 	      ==========================================\s+
 	     }{make_collapsible_html('test', $1, $4, $id++, $5)}exgs;
 
-  $log =~ s{
-             --\ ((ERROR|WARNING|MISTAKE).*?)\n
-             (.*?)
-             \n{3,}
-           }{make_collapsible_html('cc_checker', $1, $3, $id++, $2)}exgs;
-
   print "<tt><pre>" .join('', $log) . "</pre></tt><p>\n";
+}
+
+##############################################
+# generate pretty-printed html for static analysis tools
+sub print_log_cc_checker($) {
+  my $input = shift;
+  my $output = "";
+
+  # for now, we only handle the IBM Checker's output style
+  if ($input !~ m/^BEAM_VERSION/ms) {
+    return "here";
+    return $input;
+  }
+
+  my $content = "";
+  my $inEntry = 0;
+
+  my ($entry, $title, $status, $id);
+
+  foreach (split /\n/, $input) {
+
+    # for each line, check if the line is a new entry,
+    # otherwise, store the line under the current entry.
+
+    if (m/^-- /) {
+      # got a new entry
+      if ($inEntry) {
+	$output .= make_collapsible_html('cc_checker', $title, $content,
+					 $id, $status);
+      } else {
+	$output .= $content;
+      }
+
+      # clear maintenance vars
+      ($inEntry, $content) = (1, "");
+
+      # parse the line
+      m/^-- ((ERROR|WARNING|MISTAKE).*?)\s+&gt;&gt;&gt;([a-zA-Z0-9]+_(\w+)_[a-zA-Z0-9]+)/;
+
+      # then store the result
+      ($title, $status, $id) = ("$1 $4", $2, $3);
+    } else {
+
+      if (m/^CC_CHECKER STATUS/) {
+	if ($inEntry) {
+	  $output .= make_collapsible_html('cc_checker', $title, $content,
+					   $id, $status);
+	}
+
+	$inEntry = 0;
+	$content = "";
+      }
+
+      # not a new entry, so part of the current entry's output
+      $content .= "$_\n";
+    }
+  }
+  $output .= $content;
+
+  # This function does approximately the same as the following, following
+  # commented-out regular expression except that the regex doesn't quite
+  # handle IBM Checker's newlines quite right.
+  #   $output =~ s{
+  #                 --\ ((ERROR|WARNING|MISTAKE).*?)\s+
+  #                        &gt;&gt;&gt;
+  #                 (.*?)
+  #                 \n{3,}
+  #               }{make_collapsible_html('cc_checker', "$1 $4", $5, $3, $2)}exgs;
+  return $output;
 }
 
 ##############################################
@@ -909,9 +983,13 @@ sub make_collapsible_html($$$$)
   my $title = shift;   # the title to be displayed 
   my $output = shift;
   my $id = shift;
-  my $status = shift;
+  my $status = (shift or "");
 
   my $icon = (defined $status && ($status =~ /failed/i)) ? 'icon_hide_16.png' : 'icon_unhide_16.png';
+
+  # trim leading and trailing whitespace
+  $output =~ s/^\s+//s;
+  $output =~ s/\s+$//s;
 
   # note that we may be inside a <pre>, so we don't put any extra whitespace in this html
   my $return = "<div class=\"$type unit \L$status\E\" id=\"$type-$id\">" .
