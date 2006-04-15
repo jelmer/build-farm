@@ -945,9 +945,7 @@ sub print_log_cc_checker($) {
 
       # then store the result
       ($title, $status, $id) = ("$1 $4", $2, $3);
-    } else {
-
-      if (m/^CC_CHECKER STATUS/) {
+    } elsif (m/^CC_CHECKER STATUS/) {
 	if ($inEntry) {
 	  $output .= make_collapsible_html('cc_checker', $title, $content,
 					   $id, $status);
@@ -955,11 +953,10 @@ sub print_log_cc_checker($) {
 
 	$inEntry = 0;
 	$content = "";
-      }
-
-      # not a new entry, so part of the current entry's output
-      $content .= "$_\n";
     }
+
+    # not a new entry, so part of the current entry's output
+    $content .= "$_\n";
   }
   $output .= $content;
 
