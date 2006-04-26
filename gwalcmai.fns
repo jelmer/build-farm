@@ -8,7 +8,7 @@ config="--enable-dso --enable-socket-wrapper" test_tree samba4 source gcc-3.3
 config="--enable-dso --enable-socket-wrapper" test_tree samba4 source gcc-3.4
 config="--enable-dso --enable-socket-wrapper" test_tree samba4 source gcc-4.0
 config="--enable-dso --enable-socket-wrapper" test_tree samba4 source gcc-4.1
-config="--without-krb5 --enable-socket-wrapper" test_tree samba4 source tcc
+config="--enable-socket-wrapper" test_tree samba4 source tcc
 
 test_tree ppp . gcc
 per_run_hook
