@@ -1,6 +1,9 @@
 test_tree lorikeet-heimdal . gcc-4.0
 test_tree lorikeet-heimdal . tcc
 
+test_tree samba source gcc
+test_tree samba source gcc-4.0
+
 test_tree samba_3_0 source gcc
 test_tree samba_3_0 source gcc-4.0
 test_tree rsync . gcc
