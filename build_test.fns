@@ -170,6 +170,14 @@ action_build() {
 		# in netbsd make. 
 		do_make proto showflags everything
 		do_make everything
+		if [ -n "$smbtorture4"]; then
+		    if [ -f bin/smbtorture]; then
+		    	if [ -f $smbtorture4 ]; then
+			    rm $smbtorture4
+			fi
+			cp bin/smbtorture $smbtorture4
+		    fi
+		fi
 		;;
 	samba|samba_3_0)
 	    do_make proto everything torture
@@ -216,113 +224,8 @@ action_install() {
 }
 
 ############################
-# run each test, allow for reruns
-each_test() {
-	    echo "--==--==--==--==--==--==--==--==--==--==--"
-	    echo "Running test $test (level $loglevel stdout)" 
-	    echo "--==--==--==--==--==--==--==--==--==--==--"
-	    echo "--==--==--==--==--==--==--==--==--==--==--" >> $logfile
-	    echo "Running test $test (level $loglevel log)"   >> $logfile
-	    echo "--==--==--==--==--==--==--==--==--==--==--" >> $logfile
-	    date
-
-	    /bin/rm -rf $testdir
-	    mkdir $testdir
-
-	case "$tree" in 
-	samba*)
-	    /bin/rm -rf $prefix/lib
-	    mkdir $prefix/lib
-	    ;;
-        esac
-
-	    ( 
-		cd $test_root/$tree/$testsuite || exit 1
-		echo "running tests in "`pwd`
-		echo "    test_root=$test_root"
-		echo "    tree=$tree"
-		echo "    testsuite=$testsuite"
-		export prefix
-		export host
-		export testdir
-		export test
-		export whoami
-		export loglevel
-		$srcdir/timelimit $MAXTIME sh ./$test.test 
-	    )
-	    tstatus=$?
-
-	    echo "==========================================" 
-	    echo "==========================================" >> $logfile
-
-	    if [ $tstatus != 0 ]; then
-	        FAILED_TESTS="$FAILED_TESTS $test"
-		echo "TEST FAILED: $test (status $tstatus)" 
-		echo "TEST FAILED: $test (status $tstatus)" >> $logfile
-	    else
-		echo "TEST PASSED: $test" 
-		echo "TEST PASSED: $test" >> $logfile
-	    fi
-
-	    echo "==========================================" 
-	    echo "==========================================" >> $logfile
-
-}
-
-#############################
-# do pre-test cleanup work for samba and samba_3_0
-# then run the tests
+# test the tree
 action_test_samba() {
-	logfile="$prefix/var/log.smbd"
-
-	LIBSMB_PROG=$prefix/sbin/smbd
-	export LIBSMB_PROG
-
-	if [ \! -d "$prefix/var" ]
-	then
-	    mkdir "$prefix/var"
-	fi
-
-	if [ -f "$logfile" ]
-	then
-	    rm -f $logfile
-	fi
-
-	testdir="$prefix/testdir"
-
-	runlist_file="$test_root/$tree/$testsuite/runlist"
-	if [ ! -f "$runlist_file" ]; then
-		echo "No testsuite defined in $runlist_file"
-		return 0;
-	fi
-
-	. $test_root/$tree/$testsuite/runlist
-	testhost=TEST_$host
-#	testlist=${!testhost}
-	if [ "$testlist" = "" ]; then
-	    testlist=$TEST_ALL
-	fi
-
-	tstatus=0
-	totalfailed=0
-	loglevel=1
-	for test in $testlist; do
-	    each_test $test;
-	    if [ $tstatus != 0 ]; then
-		totalfailed=`expr $totalfailed + 1`;
-		loglevel=10
-		each_test $test
-		loglevel=1
-	    fi
-	done
-	echo "contents of $logfile:"
-	cat $logfile
-	echo "FAILED TESTS: $FAILED_TESTS"
-	echo "TEST STATUS: $totalfailed"
-	return $totalfailed
-}
-
-action_test_samba4() {
 	RUN_FROM_BUILD_FARM=yes
 	export RUN_FROM_BUILD_FARM
 	do_make test
@@ -358,11 +261,8 @@ action_test() {
 	# compatiblity.  I think a better way to do this in the future
 	# is to just call 'make installcheck'.
 	case "$tree" in
-	samba4|smb-build)
-	    action_test_samba4
-	    ;;
-	samba*)
-	    echo "testing of samba3 disabled"; #action_test_samba
+	samba*|smb-build)
+	    action_test_samba
 	    ;;
 	lorikeet-heimdal*)
 	    action_test_lorikeet_heimdal
@@ -412,7 +312,7 @@ test_tree() {
 
 	# pull the svn entries, if any
 	if fetch_svn "$tree"; then
-		rm -f $test_root/$tree.$compiler.svn.old
+	    rm -f $test_root/$tree.$compiler.svn.old
 	    mv $test_root/$tree.$compiler.svn $test_root/$tree.$compiler.svn.old
 	    cp $test_root/$tree.svn $test_root/$tree.$compiler.svn
 	    if cmp $test_root/$tree.$compiler.svn $test_root/$tree.$compiler.svn.old > /dev/null; then
@@ -452,12 +352,19 @@ test_tree() {
 	fi
 	prefix="$prefix/$tree"
 
+	smbtorture4=$test_root/smbtorture4
+
 	case "$tree" in
 	samba4)
 	    config="$config --enable-socket-wrapper"
 	    ;;
 	samba|samba_3_0)
-	    testsuite=testsuite/build_farm
+	    config="$config --enable-socket-wrapper"
+	    if [ -f $smbtorture4 ]; then
+	        # we create a local copy to make sure the same binary is used for all tests
+	    	cp $smbtorture4 $smbtorture4.$tree 
+		config="$config --with-smbtorture4-path=$smbtorture4.$tree"
+	    fi
 	    ;;
 	*)
 	    testsuite=testsuite
