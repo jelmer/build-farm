@@ -170,21 +170,13 @@ action_build() {
 		# in netbsd make. 
 		do_make proto showflags everything
 		do_make everything
-		echo "smbtorture4: $smbtorture4"
 		if [ -n "$smbtorture4" ]; then
 		    if [ -f bin/smbtorture ]; then
 		    	if [ -f $smbtorture4 ]; then
 			    rm $smbtorture4
 			fi
-			echo "bin/smbtorture $smbtorture4"
 			cp bin/smbtorture $smbtorture4
-			echo "ret: $!"
-		    else
-			echo "no bin/smbtorture"
-			pwd
 		    fi
-		else
-		    echo "no global smbtorture4"
 		fi
 		;;
 	samba|samba_3_0)
@@ -362,7 +354,6 @@ test_tree() {
 
 	smbtorture4=$test_root/smbtorture4
 	export smbtorture4
-	echo "smbtorture4: $smbtorture4"
 
 	case "$tree" in
 	samba4)
