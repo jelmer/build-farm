@@ -353,6 +353,7 @@ test_tree() {
 	prefix="$prefix/$tree"
 
 	smbtorture4=$test_root/smbtorture4
+	export smbtorture4
 
 	case "$tree" in
 	samba4)
