@@ -171,8 +171,8 @@ action_build() {
 		do_make proto showflags everything
 		do_make everything
 		echo "smbtorture4: $smbtorture4"
-		if [ -n "$smbtorture4"]; then
-		    if [ -f bin/smbtorture]; then
+		if [ -n "$smbtorture4" ]; then
+		    if [ -f bin/smbtorture ]; then
 		    	if [ -f $smbtorture4 ]; then
 			    rm $smbtorture4
 			fi
