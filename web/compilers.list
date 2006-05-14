@@ -5,6 +5,7 @@ gcc-2.95
 gcc-3.4
 gcc-4.0
 gcc-4.1
+gcc-4.2
 icc
 tcc
 icc-9

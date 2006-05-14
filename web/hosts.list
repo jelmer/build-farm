@@ -30,7 +30,8 @@ gc8: FreeBSD 3.3-RELEASE i386
 gc4: FreeBSD 4.3-STABLE i386
 manhattan: FreeBSD 4.8-RELEASE i386
 ragnarok: FreeBSD 5.3-STABLE amd64
-aretnap: FreeBSD 5.4-STABLE
+sambajail FreeBSD 5.4-RELEASE i686
+sparkey: FreeBSD 7-CURRENT spacr64 (SMP)
 smartserv1: FreeBSD 5.4-STABLE i386
 smartserv2: FreeBSD 6.0-CURRENT i386
 wetlizard: Gentoo UltraSparc
@@ -73,12 +74,12 @@ mundroo: Solaris 8 i386
 Isis: Solaris 8 i386
 fire1: Solaris 9 Sparc
 cat: Solaris 9 i386
-swslem12: Stratus VOS HP PA-RISC
-swslem104: Stratus VOS i786
+m12: Stratus VOS HP PA-RISC
+m104: Stratus VOS i786
 suse71ppc: SuSE 7.1 ppc gcc2.95.2
 metze02: SuSE 7.3 i386 (PIII)
 metze01: SuSE 8.2 i386 (athlon)
-PCS1: SuSE Linux 10.0 (i686)
+PCS1: SuSE Linux 10.1 (i686)
 l390vme1: SuSE SLES 8 (S/390)
 opi: SuSE SLES 9 (x86_64)
 PeeWee: SuSE 9.3 (i686)
