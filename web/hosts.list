@@ -31,7 +31,7 @@ gc8: FreeBSD 3.3-RELEASE i386
 gc4: FreeBSD 4.3-STABLE i386
 manhattan: FreeBSD 4.8-RELEASE i386
 ragnarok: FreeBSD 5.3-STABLE amd64
-sambajail FreeBSD 5.4-RELEASE i686
+sambajail: FreeBSD 5.4-RELEASE i686
 sparkey: FreeBSD 7-CURRENT spacr64 (SMP)
 smartserv1: FreeBSD 5.4-STABLE i386
 smartserv2: FreeBSD 6.0-CURRENT i386

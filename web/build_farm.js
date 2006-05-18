@@ -2,6 +2,7 @@ function handle(id)
 {
 	// get a reference to the output block
 	outputBlock = document.getElementById("output-" + id);
+	summaryBlock = document.getElementById("summary-" + id);
 
 	// and the image that's next to the block
 	img = document.getElementById("img-" + id);
@@ -30,10 +31,12 @@ function handle(id)
 
 	if (current_display == "block") {
 		outputBlock.style.display = "none";
+		if (summaryBlock) summaryBlock.style.display = "block";
 		img.setAttribute("src", old_src.replace("_hide", "_unhide"));
 	}
 	else {
 		outputBlock.style.display = "block";
+		if (summaryBlock) summaryBlock.style.display = "none";
 		img.setAttribute("src", old_src.replace("_unhide", "_hide"));
 	}
 }

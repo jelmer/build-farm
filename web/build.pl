@@ -921,7 +921,7 @@ sub print_log_cc_checker($) {
   my $content = "";
   my $inEntry = 0;
 
-  my ($entry, $title, $status, $id);
+  my ($entry, $title, $status, $id, $location, $summary);
 
   foreach (split /\n/, $input) {
 
@@ -932,27 +932,30 @@ sub print_log_cc_checker($) {
       # got a new entry
       if ($inEntry) {
 	$output .= make_collapsible_html('cc_checker', $title, $content,
-					 $id, $status);
+					 $id, $status, $summary);
       } else {
 	$output .= $content;
       }
 
       # clear maintenance vars
-      ($inEntry, $content) = (1, "");
+      ($inEntry, $content, $location, $summary) = (1, "", undef, undef);
 
       # parse the line
       m/^-- ((ERROR|WARNING|MISTAKE).*?)\s+&gt;&gt;&gt;([a-zA-Z0-9]+_(\w+)_[a-zA-Z0-9]+)/;
 
       # then store the result
-      ($title, $status, $id) = ("$1 $4", $2, $3);
+      ($title, $status, $id) = ($1, $2, $3);
     } elsif (m/^CC_CHECKER STATUS/) {
 	if ($inEntry) {
 	  $output .= make_collapsible_html('cc_checker', $title, $content,
-					   $id, $status);
+					   $id, $status, $summary);
 	}
 
-	$inEntry = 0;
-	$content = "";
+      ($inEntry, $content, $location, $summary) = (0, "", undef, undef);
+    } elsif (!defined($location) && m/&quot;(.*?)&quot;,\s+line\s+(\d+):/) {
+	$location = "$1:$2";
+	$title .= " $location";
+	$summary = $location;
     }
 
     # not a new entry, so part of the current entry's output
@@ -981,6 +984,7 @@ sub make_collapsible_html($$$$)
   my $output = shift;
   my $id = shift;
   my $status = (shift or "");
+  my $summary = (shift or "");
 
   my $icon = (defined $status && ($status =~ /failed/i)) ? 'icon_hide_16.png' : 'icon_unhide_16.png';
 
@@ -992,10 +996,16 @@ sub make_collapsible_html($$$$)
   my $return = "<div class=\"$type unit \L$status\E\" id=\"$type-$id\">" .
                 "<a href=\"javascript:handle('$id');\">" .
                  "<img id=\"img-$id\" name=\"img-$id\" src=\"$icon\" /> " .
-                  "<div class=\"$type title\">$title</div>" .
-                "</a> " .
-                "<div class=\"$type status \L$status\E\">$status</div>" .
-                "<div class=\"$type output\" id=\"output-$id\">" .
+                 "<div class=\"$type title\">$title</div>" .
+                "</a> ";
+  if ($status ne "") {
+    $return .=  "<div class=\"$type status \L$status\E\">$status</div>";
+  }
+  if ($summary ne "") {
+    $return .=  "<div class=\"$type summary\" id=\"summary-$id\">$summary</div>";
+  }
+
+  $return .=    "<div class=\"$type output\" id=\"output-$id\">" .
                  "<pre>$output</pre>" .
                 "</div>".
                "</div>";
