@@ -12,3 +12,4 @@ talloc:
 tdb:
 ccache:
 lorikeet-heimdal:
+SOC:
