@@ -18,6 +18,7 @@
 ./svnlog.pl svn://svnanon.samba.org/lorikeet trunk 60 lorikeet cache/history.lorikeet
 ./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_4_0/source/lib/talloc 60 talloc cache/history.talloc
 ./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_4_0/source/lib/tdb 60 tdb cache/history.tdb
+./svnlog.pl svn://svnanon.samba.org/samba branches/SOC 60 SOC cache/history.SOC
 
 ./cvslog.pl /data/cvs/CVSROOT/rsync.updates 60 rsync "" cache/history.rsync
 ./cvslog.pl /data/cvs/CVSROOT/distcc.updates 60 distcc "" cache/history.distcc
@@ -25,6 +26,3 @@
 ./cvslog.pl /data/cvs/CVSROOT/ppp.updates 60 ppp "" cache/history.ppp
 
 ) > history.log 2>&1
-
-
-
