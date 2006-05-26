@@ -33,8 +33,11 @@ for f in `find . -maxdepth 1 -type f -name "*.log" -links 1`; do
     ../analyse.pl $base.log
 done
 
-# delete really old ones
+# delete old ones that are not used any more
 find oldrevs -type f -mtime +5 -links 1 | xargs rm -f
+
+# delete any really old data
+find . -type f -mtime +180 | xargs rm -f
 
 # delete old cache data
 find ../cache -type f -name "build.*" -mtime +1 | xargs rm -f
