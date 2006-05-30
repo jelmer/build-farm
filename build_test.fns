@@ -505,3 +505,9 @@ case "$htype" in
 	export TIMELIMIT_FLAGS
   ;;
 esac
+
+# build.log can grow to an excessive size, trim it beyond 50M
+if [ -f build.log ]; then
+  find build.log -size +100000 -exec /bin/rm '{}' \;
+fi
+
