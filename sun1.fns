@@ -29,6 +29,8 @@ for compiler in gcc cc icc; do
       if which perl > /dev/null; then
         # C99 structure initialisation not supported with vendor cc
         if [ $compiler != "cc" ]; then
+	  CFLAGS="-Wall -g"
+          export CFLAGS
           test_tree samba4 source $compiler
         fi
         test_tree smb-build . $compiler
