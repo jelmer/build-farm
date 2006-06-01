@@ -497,15 +497,6 @@ per_run_hook() {
 rsync --timeout=200 -q -az samba.org::build_farm/*.c .
 
 
-# sigh - we need to mark systems that need the bsd setpgrp() call
-htype=`uname`
-case "$htype" in
-  *BSD|*bsd|OSF1|Darwin)
-	TIMELIMIT_FLAGS=-DBSD_SETPGRP
-	export TIMELIMIT_FLAGS
-  ;;
-esac
-
 # build.log can grow to an excessive size, trim it beyond 50M
 if [ -f build.log ]; then
   find build.log -size +100000 -exec /bin/rm '{}' \;
