@@ -8,6 +8,8 @@
 
 # default maximum runtime for any command
 MAXTIME=5400
+RUN_FROM_BUILD_FARM=yes
+export RUN_FROM_BUILD_FARM
 
 #############################
 # build a signature of a tree, used to see if we
@@ -226,8 +228,6 @@ action_install() {
 ############################
 # test the tree
 action_test_samba() {
-	RUN_FROM_BUILD_FARM=yes
-	export RUN_FROM_BUILD_FARM
 	do_make test
 	totalstatus=$?
 	return "$totalstatus"
