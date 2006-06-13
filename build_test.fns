@@ -64,6 +64,14 @@ fetch_tree() {
 # fetch the latest copy of the svn entries file
 fetch_svn() {
     tree=$1
+# skip products still in CVS.
+    case "$tree" in
+    ccache | distcc | rsync)
+        return 1
+        ;;
+    *)
+        ;;
+    esac
     if [ "$norsync" = "yes" ]; then
 	echo "skipping svn transfer"
     else
