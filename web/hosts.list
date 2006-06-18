@@ -13,7 +13,6 @@ samba-s390: Debian Linux 3.0 stable s390
 sparc-sarge: Debian Linux sarge/testing Sparc64
 sparc-sid: Debian Linux sid/unstable Sparc64
 boiccu: Debian Linux testing/unstable IA64
-rhonwyn: Debian Linux unstable i686
 gwalcmai: Debian Linux unstable i686
 quango: Debian PPC/32 (Power3)
 superego: Debian PPC/64 (Power3)
@@ -56,7 +55,6 @@ stevehome: OpenBSD 3.7 x86
 pandemonium: OpenBSD-current Sparc64
 wayne: RedHat 6.1 Sparc 10 (Kernel 2.2.18)
 svamp: RedHat 7.0 i386
-g6usr30: RedHat 7.2 IBM s390 (Kernel 2.4.9)
 belle: RedHat 8.0 i686
 manjra: RedHat 8.0 i686
 delacruz: RedHat 9.0 i686
@@ -64,8 +62,10 @@ lacroix: RedHat 9.0 i686 SMP
 homer: RedHat RHEL 3 (WS)
 deckchair: RedHat RHEL 3 (AS) ia64
 packetstorm: Slackware Linux 9.0 i386
+bnhtest: Slackware Linux 10.2 i386
 smoothwall: Smoothwall Express 2 i386
 shubnigurath: Solaris 10 UltraSparc
+sunX: Solaris 10 Sparc
 sol10: Solaris 10 x86
 gc20: Solaris 2.6 Sparc
 sun1: Solaris 8 UltraSparc
@@ -81,7 +81,6 @@ suse71ppc: SuSE 7.1 ppc gcc2.95.2
 metze02: SuSE 7.3 i386 (PIII)
 metze01: SuSE 8.2 i386 (athlon)
 PCS1: SuSE Linux 10.1 (i686)
-l390vme1: SuSE SLES 8 (S/390)
 opi: SuSE SLES 9 (x86_64)
 PeeWee: SuSE 9.3 (i686)
 SerNet-Tru64: Tru64 UNIX V5.1B-2-PK4
