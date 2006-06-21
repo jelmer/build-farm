@@ -66,6 +66,7 @@ bnhtest: Slackware Linux 10.2 i386
 smoothwall: Smoothwall Express 2 i386
 shubnigurath: Solaris 10 UltraSparc
 sunX: Solaris 10 Sparc
+sun9: Solaris 9 Sparc
 sol10: Solaris 10 x86
 gc20: Solaris 2.6 Sparc
 sun1: Solaris 8 UltraSparc
