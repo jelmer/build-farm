@@ -12,3 +12,7 @@ export CFLAGS="-Wall"
 export CC_CHECKER="/home/tridge/beam-3.1.1/bin/beam_compile --beam::source=/home/tridge/beam/samba4/config.tcl -c --beam::parser_file=$BP --beam::complaint_file=$BC"
 
 test_tree samba4 source gcc configure build cc_checker install test
+
+export CC_CHECKER="/home/tridge/beam-3.1.1/bin/beam_compile --beam::source=/home/tridge/beam/samba3/config.tcl -c --beam::parser_file=$BP --beam::complaint_file=$BC"
+
+test_tree samba source gcc configure build cc_checker install test
