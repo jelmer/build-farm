@@ -1,7 +1,5 @@
 export PATH="/usr/freeware/bin:$PATH"
 
-export CFLAGS="-fullwarn"
-
 test_tree samba4 source cc
 export config="--with-utmp --with-acl-support"
 test_tree samba source cc
