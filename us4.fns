@@ -1,7 +1,10 @@
 export PATH="/usr/freeware/bin:$PATH"
 
+export CFLAGS="-fullwarn"
+
 test_tree samba4 source cc
 export config="--with-utmp --with-acl-support"
+test_tree samba source cc
 test_tree samba_3_0 source cc
 config="" test_tree rsync . cc
 
@@ -9,6 +12,7 @@ export CFLAGS="-O -Wall"
 
 config="" test_tree ccache . gcc
 MAKE=gmake config="" test_tree distcc . gcc
+test_tree samba source gcc
 test_tree samba_3_0 source gcc
 test_tree samba4 source gcc
 MAKEFLAGS="-k" config="" test_tree rsync . gcc

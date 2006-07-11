@@ -59,7 +59,7 @@ belle: RedHat 8.0 i686
 manjra: RedHat 8.0 i686
 delacruz: RedHat 9.0 i686
 lacroix: RedHat 9.0 i686 SMP
-homer: RedHat RHEL 3 (WS)
+homer: RedHat RHEL 4 (64-bit) (WS)
 deckchair: RedHat RHEL 3 (AS) ia64
 packetstorm: Slackware Linux 9.0 i386
 bnhtest: Slackware Linux 10.2 i386
