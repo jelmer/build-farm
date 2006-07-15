@@ -23,7 +23,6 @@ for compiler in gcc cc icc gcc-4.2; do
       test_tree talloc . $compiler
       test_tree tdb . $compiler
       test_tree lorikeet-heimdal . $compiler
-      test_tree samba . $compiler
 
       # only attempt samba4 if we have perl
       if which perl > /dev/null; then
