@@ -24,7 +24,7 @@ tango-one-mars: Fedora Core 2 i386
 shelob: Fedora Core 3 i386 SMP
 node1: Fedora Core 4 (i686) SMP
 node2: Fedora Core 4 (i686) SMP
-piglett: Fedora Core 4 (i686)
+piglett: Fedora Core 5 (i686)
 speener: Fedora Core 4 (i686)
 gc8: FreeBSD 3.3-RELEASE i386
 gc4: FreeBSD 4.3-STABLE i386
