@@ -7,10 +7,10 @@ test_tree rsync . gcc
 test_tree distcc . gcc
 test_tree ccache . gcc
 
-config="--enable-dso --enable-socket-wrapper" test_tree samba4 source gcc-3.3
-config="--enable-dso --enable-socket-wrapper" test_tree samba4 source gcc-3.4
-config="--enable-dso --enable-socket-wrapper" test_tree samba4 source gcc-4.0
-config="--enable-dso --enable-socket-wrapper" test_tree samba4 source gcc-4.1
+config="--enable-socket-wrapper" test_tree samba4 source gcc-3.3
+config="--enable-socket-wrapper" test_tree samba4 source gcc-3.4
+config="--enable-socket-wrapper" test_tree samba4 source gcc-4.0
+config="--enable-socket-wrapper" test_tree samba4 source gcc-4.1
 config="--enable-socket-wrapper" test_tree samba4 source tcc
 
 test_tree ppp . gcc
