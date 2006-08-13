@@ -10,7 +10,8 @@ export TIMELIMIT_FLAGS="-D_POSIX_C_SOURCE=200112L"
 test_tree ccache . gcc
 test_tree distcc . gcc
 test_tree samba_3_0 source gcc
-test_tree samba4 source gcc
+#Skip Samba4 until we shorten file names
+#test_tree samba4 source gcc
 test_tree rsync . gcc
 test_tree talloc . gcc
 test_tree tdb . gcc
