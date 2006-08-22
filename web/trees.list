@@ -10,6 +10,7 @@ distcc:
 ppp:
 talloc:
 tdb:
+ldb:
 ccache:
 lorikeet-heimdal:
 SOC:
