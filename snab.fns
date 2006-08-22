@@ -1,5 +1,9 @@
 per_run_hook
 
+test_tree talloc . gcc
+test_tree tdb . gcc
+test_tree ldb . gcc
+
 BP=ibm_checker_parse.out
 BC=ibm_checker.out
 
