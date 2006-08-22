@@ -180,14 +180,6 @@ action_build() {
 		# in netbsd make. 
 		do_make proto showflags everything
 		do_make everything
-		if [ -n "$smbtorture4" ]; then
-		    if [ -f bin/smbtorture ]; then
-		    	if [ -f $smbtorture4 ]; then
-			    rm $smbtorture4
-			fi
-			cp bin/smbtorture $smbtorture4
-		    fi
-		fi
 		;;
 	samba|samba_3_0)
 	    do_make proto everything torture
@@ -199,6 +191,11 @@ action_build() {
 
 	bstatus=$?
 	echo "BUILD STATUS: $bstatus"
+
+	if [ "$tree" = "samba4" ] && [ -n "$smbtorture4" ] && [ -f bin/smbtorture ]; then
+	    rm -f $smbtorture4
+	    cp bin/smbtorture $smbtorture4
+	fi
 	return $bstatus
 }
 
