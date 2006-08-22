@@ -12,6 +12,7 @@ for compiler in gcc gcc-4.0 gcc-4.1; do
     test_tree ccache . $compiler
     test_tree talloc . $compiler
     test_tree tdb . $compiler
+    test_tree ldb . $compiler
     test_tree lorikeet-heimdal . $compiler
 
     # only attempt samba4 if we have perl

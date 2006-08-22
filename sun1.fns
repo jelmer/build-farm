@@ -22,6 +22,7 @@ for compiler in gcc cc icc; do
       test_tree ccache . $compiler
       test_tree talloc . $compiler
       test_tree tdb . $compiler
+      test_tree ldb . $compiler
       test_tree lorikeet-heimdal . $compiler
 
       # only attempt samba4 if we have perl

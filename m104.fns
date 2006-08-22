@@ -15,5 +15,6 @@ test_tree samba_3_0 source gcc
 test_tree rsync . gcc
 test_tree talloc . gcc
 test_tree tdb . gcc
+test_tree ldb . gcc
 
 per_run_hook
