@@ -158,10 +158,10 @@ action_configure() {
 	fi
 	echo "CFLAGS=$CFLAGS"
 	echo configure options: $config_and_prefix
-	echo CC="$CCACHE $compiler" ./configure $config_and_prefix
+	echo CC="$CCACHE $compiler" $srcdir/configure $config_and_prefix
 	CC="$CCACHE $compiler"
 	export CC
-	./timelimit $MAXTIME ./configure $config_and_prefix
+	./timelimit $MAXTIME $srcdir/configure $config_and_prefix
 	cstatus=$?
 	echo "CONFIGURE STATUS: $cstatus"
 	if [ $cstatus != 0 ]; then
@@ -314,6 +314,17 @@ test_tree() {
 	lck="$test_root/build.$tree.lck"
         srcdir="$test_root/$tree/$source"
 
+	case "$tree" in
+	    tdb | talloc | ldb)
+		builddir=$srcdir/tmpbuild
+		export builddir
+	    ;;
+	    *)
+		builddir=$srcdir
+		export builddir
+	    ;;
+	esac
+
 	if ! lock_file "$lck"; then
 		return
 	fi
@@ -418,7 +429,8 @@ test_tree() {
 
            	# build the timelimit utility
 		echo "Building timelimit"
-		$compiler $TIMELIMIT_FLAGS -o $srcdir/timelimit $test_root/timelimit.c || exit 1
+		mkdir -p $builddir
+		$compiler $TIMELIMIT_FLAGS -o $builddir/timelimit $test_root/timelimit.c || exit 1
 
 		if [ -r $test_root/$tree.svn ]; then
 		  h_rev=`grep revision= $test_root/$tree.svn | head -1 | cut -d'"' -f2`
@@ -437,7 +449,7 @@ test_tree() {
 
 		    date
 
-		    cd $srcdir
+		    cd $builddir || exit 1
 		    export srcdir
 		    df .
 		    mount
