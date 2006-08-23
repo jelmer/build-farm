@@ -32,6 +32,7 @@ my (%svn_trees) = ('samba' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=samba\">%s
 		   'samba4' => " <a href=\"$VIEWCVS_BASE/branches/SAMBA_4_0/%s?root=samba\">%s</a>",
 		   'talloc' => " <a href=\"$VIEWCVS_BASE/branches/SAMBA_4_0/source/lib/talloc/%s?root=samba\">%s</a>",
 		   'tdb' => " <a href=\"$VIEWCVS_BASE/branches/SAMBA_4_0/source/lib/tdb/%s?root=samba\">%s</a>",
+		   'ldb' => " <a href=\"$VIEWCVS_BASE/branches/SAMBA_4_0/source/lib/ldb/%s?root=samba\">%s</a>",
 		   'samba-web' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=samba-web\">%s</a>",
 		   'lorikeet' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=lorikeet\">%s</a>",
 		   'SOC' => " <a href=\"$VIEWCVS_BASE/branches/SOC/%s?root=samba\">%s</a>");
