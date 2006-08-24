@@ -386,7 +386,8 @@ test_tree() {
 	ldb)
 	    # try to avoid having extra copies of popt lying around, or
 	    # depending on libpopt-dev on every system
-	    config="$config --with-popt-src=../../samba4/source/lib/popt"
+	    config="$config --with-popt-src=../../popt"
+	    fetch_tree popt
 	    ;;
 	*)
 	    testsuite=testsuite
