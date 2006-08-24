@@ -8,6 +8,9 @@ config="" test_tree rsync . cc
 export CFLAGS="-O -Wall"
 
 config="" test_tree ccache . gcc
+config="" test_tree tdb . gcc
+config="" test_tree talloc . gcc
+config="" test_tree ldb . gcc
 MAKE=gmake config="" test_tree distcc . gcc
 test_tree samba_3_0 source gcc
 test_tree samba4 source gcc

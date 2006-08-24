@@ -6,6 +6,9 @@ test_tree samba_3_0 source gcc-4.0
 test_tree rsync . gcc
 test_tree distcc . gcc
 test_tree ccache . gcc
+test_tree tdb . gcc
+test_tree talloc . gcc
+test_tree ldb . gcc
 
 config="--enable-socket-wrapper" test_tree samba4 source gcc-3.3
 config="--enable-socket-wrapper" test_tree samba4 source gcc-3.4

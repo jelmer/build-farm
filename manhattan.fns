@@ -5,4 +5,7 @@ config="--with-pam" test_tree samba_3_0 source cc
 test_tree rsync . cc
 MAKE=gmake test_tree distcc . gcc
 test_tree ccache . gcc
+test_tree tdb . gcc
+test_tree talloc . gcc
+test_tree ldb . gcc
 per_run_hook
