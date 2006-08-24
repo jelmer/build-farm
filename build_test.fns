@@ -48,12 +48,12 @@ fetch_tree() {
 	if [ "$norsync" = "yes" ]; then
 		echo "skipping tree transfer"
 	else
-		tree=$1
+		fetchtree=$1
 		if rsync --exclude=autom4te.cache/ --exclude=.svn/ --delete-excluded -q --partial --timeout=200 -crlpz --delete --ignore-errors \
-			samba.org::ftp/unpacked/$tree/ $test_root/$tree; then
-			echo "transferred $tree OK"
+			samba.org::ftp/unpacked/$fetchtree/ $test_root/$fetchtree; then
+			echo "transferred $fetchtree OK"
 		else
-			echo "transfer of $tree failed code $?"
+			echo "transfer of $fetchtree failed code $?"
 			return 1
 		fi
 	fi
