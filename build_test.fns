@@ -180,6 +180,7 @@ action_build() {
 		# in netbsd make. 
 		do_make proto showflags everything
 		do_make everything
+		do_make bin/smbtorture
 		;;
 	samba|samba_3_0)
 	    do_make proto everything torture
