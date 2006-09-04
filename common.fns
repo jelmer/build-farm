@@ -1,6 +1,6 @@
 # common trees that need no special treatment
 
-if [ -n "$compiler" ]; then
+if [ -z "$compiler" ]; then
    compiler=gcc
 fi
 
