@@ -313,7 +313,7 @@ test_tree() {
         srcdir="$test_root/$tree/$source"
 
 	case "$tree" in
-	    tdb | talloc | ldb)
+	    tdb | talloc | ldb | libreplace)
 		builddir=$srcdir/tmpbuild
 		export builddir
 	    ;;
