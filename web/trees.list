@@ -11,6 +11,7 @@ ppp:
 talloc:
 tdb:
 ldb:
+libreplace:
 ccache:
 lorikeet-heimdal:
 SOC:
