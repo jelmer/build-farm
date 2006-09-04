@@ -4,10 +4,8 @@ export CFLAGS="-O -Wall"
 test_tree samba_3_0 source gcc
 export config="" 
 test_tree samba4 source gcc
-test_tree rsync . gcc
-test_tree ccache . gcc
-test_tree tdb . gcc
-test_tree talloc . gcc
-test_tree ldb . gcc
+
+compiler=gcc
+. common.fns
 
 per_run_hook

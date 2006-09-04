@@ -1,10 +1,6 @@
-test_tree ccache . gcc
-test_tree tdb . gcc
-test_tree talloc . gcc
-test_tree ldb . gcc
-test_tree distcc . gcc
+. common.fns
+
 test_tree samba4 source gcc
-test_tree rsync . gcc
 test_tree ppp . gcc
 
 export config="--with-utmp --with-pam --with-quotas --with-smbmount"

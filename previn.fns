@@ -2,12 +2,10 @@ export config="--with-acl-support --with-pam --with-utmp"
 
 export CFLAGS="-O -Wall"
 test_tree samba_3_0 source gcc
+
 config=""
+. common.fns
+
 test_tree samba4 source gcc
-test_tree rsync . gcc
-test_tree ccache . gcc
-test_tree tdb . gcc
-test_tree talloc . gcc
-test_tree ldb . gcc
 
 per_run_hook
