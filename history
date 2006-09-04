@@ -19,6 +19,7 @@
 ./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_4_0/source/lib/talloc 60 talloc cache/history.talloc
 ./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_4_0/source/lib/tdb 60 tdb cache/history.tdb
 ./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_4_0/source/lib/ldb 60 ldb cache/history.ldb
+./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_4_0/source/lib/replace 60 libreplace cache/history.libreplace
 ./svnlog.pl svn://svnanon.samba.org/samba branches/SOC 60 SOC cache/history.SOC
 
 ./cvslog.pl /data/cvs/CVSROOT/rsync.updates 60 rsync "" cache/history.rsync
