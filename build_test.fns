@@ -390,6 +390,9 @@ test_tree() {
 	    config="$config --with-popt-src=../../popt"
 	    fetch_tree popt
 	    ;;
+	talloc)
+	    fetch_tree libreplace
+	    ;;
 	*)
 	    testsuite=testsuite
 	    ;;
