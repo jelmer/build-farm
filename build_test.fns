@@ -494,6 +494,18 @@ test_tree() {
 	unlock_file "$lck"
 }
 
+#########################################################
+# if you want to build only one project at a time
+# add 'global_lock' after 'per_run_hook' and
+# 'global_unlock' to the end of the file
+global_lock() {
+    if ! lock_file "global.lck" ;then
+        exit 0
+    fi
+}
+global_unlock() {
+    unlock_file "global.lck"
+}
 
 #########################################################
 # enable this on a per host basis only when needed please
