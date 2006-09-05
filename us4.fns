@@ -2,8 +2,10 @@ export PATH="/usr/freeware/bin:$PATH"
 
 per_run_hook
 
+compiler=cc
+. common.fns
 
-config=""
+compiler=gcc
 . common.fns
 
 test_tree samba4 source gcc
