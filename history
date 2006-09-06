@@ -21,7 +21,7 @@
 ./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_4_0/source/lib/ldb 60 ldb cache/history.ldb
 ./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_4_0/source/lib/replace 60 libreplace cache/history.libreplace
 ./svnlog.pl svn://svnanon.samba.org/samba branches/SOC 60 SOC cache/history.SOC
-./svnlog.pl svn://svnanon.samba.org/build_farm trunk 60 build_farm cache/history.build_farm
+./svnlog.pl svn://svnanon.samba.org/build-farm trunk 60 build_farm cache/history.build_farm
 
 ./cvslog.pl /data/cvs/CVSROOT/rsync.updates 60 rsync "" cache/history.rsync
 ./cvslog.pl /data/cvs/CVSROOT/distcc.updates 60 distcc "" cache/history.distcc
