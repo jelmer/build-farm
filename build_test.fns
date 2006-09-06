@@ -101,6 +101,7 @@ lock_file() {
 		echo "lock file $lck is valid for $machine:$pid"
 		return 1
 	fi
+	echo "stale lock file $lck for $machine:$pid"
 	/bin/rm -f "$lck"
 	echo "$host:$$" > "$lck"
 	return 0
