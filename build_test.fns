@@ -316,11 +316,13 @@ test_tree() {
 
 	case "$tree" in
 	    tdb | talloc | ldb | libreplace)
-		builddir="$srcdir/tmpbuild.$compiler"
+		builddir="$test_root/tmp.$tree.$compiler"
+		usingtmpbuild=1
 		export builddir
 	    ;;
 	    *)
 		builddir=$srcdir
+		usingtmpbuild=0
 		export builddir
 	    ;;
 	esac
@@ -485,6 +487,9 @@ test_tree() {
 		    echo cleaning up
 		    do_make clean
 		    /bin/rm -rf $prefix
+		    if [ "$usingtmpbuild" = "1" ]; then
+			/bin/rm -rf $builddir
+		    fi
 		fi
 		date
 	) > "$log" 2> "$err"
