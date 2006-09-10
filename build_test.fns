@@ -269,9 +269,9 @@ action_test() {
 	# compatiblity.  I think a better way to do this in the future
 	# is to just call 'make installcheck'.
 	case "$tree" in
-        samba_3_0)
-		echo "testing of samba_3_0 disabled until cause of runaway processes found (tridge - 7th sep 2006)"
-		;;
+#        samba_3_0)
+#		echo "testing of samba_3_0 disabled until cause of runaway processes found (tridge - 7th sep 2006)"
+#		;;
 	samba*|smb-build)
 	    action_test_samba
 	    ;;
