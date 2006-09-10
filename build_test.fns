@@ -534,6 +534,9 @@ per_run_hook() {
 	nohost)
 	    echo "just a placeholder";
 	    ;;
+	tridge)
+	    kill_old_processes
+	    ;;
     esac
 }
 
