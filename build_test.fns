@@ -519,9 +519,9 @@ global_unlock() {
 # (at least for the moment)
 kill_old_processes() {
     # this should work on systems with linux like ps
-    (ps uxfw | grep /build | grep -v grep | egrep 'AM|PM|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec' | awk '{print $2}' | xargs kill -9) 2> /dev/null
+    (ps uxfw | grep /build | grep -v grep | egrep 'Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec' | awk '{print $2}' | xargs kill -9) 2> /dev/null
     # and this should work on sysv style ps
-    (ps -fu $USER | grep /build | grep -v grep | egrep 'AM|PM|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec' | awk '{print $2}' | xargs kill -9) 2> /dev/null
+    (ps -fu $USER | grep /build | grep -v grep | egrep 'Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec' | awk '{print $2}' | xargs kill -9) 2> /dev/null
 }
 
 
