@@ -88,6 +88,8 @@ fetch_svn() {
     return 1
 }
 
+locknesting=0
+
 ############################
 # grab a lock file. Not atomic, but close :)
 # tries to cope with NFS
@@ -95,6 +97,11 @@ lock_file() {
 	lck="$1"
 	machine=`cat "$lck" 2> /dev/null | cut -d: -f1`
 	pid=`cat "$lck" 2> /dev/null | cut -d: -f2`
+
+	if [ "$pid" = "$$" ]; then
+	    locknesting=`expr $locknesting + 1`
+	    echo "lock nesting now $locknesting"
+	fi
 
 	if [ -f "$lck" ] && 
 	    ( [ $machine != $host ] || kill -0 $pid ) 2> /dev/null; then
@@ -111,8 +118,13 @@ lock_file() {
 ############################
 # unlock a lock file
 unlock_file() {
-	lck="$1"
-	/bin/rm -f "$lck"
+	if [ "$locknesting" != "0" ]; then
+	    locknesting=`expr $locknesting - 1`
+	    echo "lock nesting now $locknesting"
+	else 
+	    lck="$1"
+	    /bin/rm -f "$lck"
+	fi
 }
 
 ############################
@@ -330,9 +342,9 @@ test_tree() {
 	    ;;
 	esac
 
-	if ! lock_file "$lck"; then
+	lock_file "$lck" || {
 		return
-	fi
+	}
 
 	# pull the svn entries, if any
 	if fetch_svn "$tree"; then
@@ -349,10 +361,10 @@ test_tree() {
 	fi
 
 	# pull the tree
-	if ! fetch_tree "$tree"; then
+	fetch_tree "$tree" || {
 	    unlock_file "$lck"
 	    return
-	fi
+	}
 
         if [ ! -x $srcdir/configure ]; then
 		echo "skip: $tree.$compiler configure not present, try again next time!"
@@ -506,9 +518,9 @@ test_tree() {
 # add 'global_lock' after 'per_run_hook' and
 # 'global_unlock' to the end of the file
 global_lock() {
-    if ! lock_file "global.lck" ;then
+    lock_file "global.lck" || {
         exit 0
-    fi
+    }
 }
 global_unlock() {
     unlock_file "global.lck"

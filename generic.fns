@@ -1,5 +1,7 @@
 per_run_hook
 
+global_lock
+
 system=`uname`
 
 for compiler in gcc cc icc; do
@@ -38,3 +40,4 @@ done
     
 
 
+global_unlock
