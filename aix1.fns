@@ -1,0 +1,4 @@
+# aix1 doesn't have enough disk to do more than one compile at a time
+global_lock
+. generic.fns
+global_unlock
