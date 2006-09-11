@@ -550,6 +550,10 @@ per_run_hook() {
 	    kill_old_processes
 	    ;;
     esac
+    # trim the log if too large
+    if [ "`wc -c < build.log`" -gt 2000000 ]; then
+	rm -f build.log
+    fi
 }
 
 
