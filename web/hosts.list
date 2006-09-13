@@ -54,6 +54,7 @@ flock: OpenBSD 3.6 i386
 dagon: OpenBSD 3.7 HPPA
 stevehome: OpenBSD 3.7 x86
 pandemonium: OpenBSD-current Sparc64
+khazad-dum: OpenBSD 3.9 PPC
 wayne: RedHat 6.1 Sparc 10 (Kernel 2.2.18)
 svamp: RedHat 7.0 i386
 belle: RedHat 8.0 i686
