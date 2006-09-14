@@ -178,11 +178,20 @@ action_configure() {
 	./timelimit $MAXTIME $srcdir/configure $config_and_prefix
 	cstatus=$?
 	echo "CONFIGURE STATUS: $cstatus"
-#	if [ $cstatus != 0 ]; then
-	    echo "contents of config.log:"
-	    cat config.log
-#	fi
+	echo "contents of config.log:"
+	cat config.log
 	return $cstatus;
+}
+
+############################
+# show the configure log
+action_config_log() {
+        if [ ! -f config.log ]; then
+	    return -1;
+	fi
+	echo "contents of config.log:"
+	cat config.log
+	return 0;
 }
 
 ############################
@@ -435,7 +444,7 @@ test_tree() {
 	actions="$*"
 	
 	if [ "$actions" = "" ]; then
-	    actions="configure build install test"
+	    actions="configure config_log build install test"
 	fi
 
 	# start the build
