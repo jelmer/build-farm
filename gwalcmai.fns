@@ -1,15 +1,13 @@
 test_tree lorikeet-heimdal . gcc-4.0
 test_tree lorikeet-heimdal . tcc
 
+for compiler in gcc-3.3 gcc-3.4 gcc-4.0 gcc-4.1 tcc; do
 . common.fns
+config="--enable-socket-wrapper" test_tree samba4 source $compiler
+done
+
 test_tree samba_3_0 source gcc
 test_tree samba_3_0 source gcc-4.0
-
-config="--enable-socket-wrapper" test_tree samba4 source gcc-3.3
-config="--enable-socket-wrapper" test_tree samba4 source gcc-3.4
-config="--enable-socket-wrapper" test_tree samba4 source gcc-4.0
-config="--enable-socket-wrapper" test_tree samba4 source gcc-4.1
-config="--enable-socket-wrapper" test_tree samba4 source tcc
 
 test_tree ppp . gcc
 per_run_hook
