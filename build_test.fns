@@ -178,8 +178,6 @@ action_configure() {
 	./timelimit $MAXTIME $srcdir/configure $config_and_prefix
 	cstatus=$?
 	echo "CONFIGURE STATUS: $cstatus"
-	echo "contents of config.log:"
-	cat config.log
 	return $cstatus;
 }
 
