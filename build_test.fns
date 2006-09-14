@@ -564,6 +564,9 @@ per_run_hook() {
 	tridge)
 	    kill_old_processes
 	    ;;
+	deckchair)
+	    rm -f deckchair.fns
+	    ;;
     esac
     # trim the log if too large
     if [ "`wc -c < build.log`" -gt 2000000 ]; then
