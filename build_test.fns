@@ -348,6 +348,11 @@ test_tree() {
 	    tdb | talloc | ldb | libreplace)
 		builddir="$test_root/tmp.$tree.$compiler"
 		usingtmpbuild=1
+		if [ -d $builddir ]; then
+		    mv $builddir $builddir.$$
+		    rm -rf $builddir.$$ &
+		fi
+		mkdir -p $builddir
 		export builddir
 	    ;;
 	    *)
