@@ -193,7 +193,7 @@ action_configure() {
 # show the configure log
 action_config_log() {
         if [ ! -f config.log ]; then
-	    return -1;
+	    return 0;
 	fi
 	echo "contents of config.log:"
 	cat config.log
