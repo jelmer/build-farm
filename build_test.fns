@@ -94,24 +94,24 @@ locknesting=0
 # grab a lock file. Not atomic, but close :)
 # tries to cope with NFS
 lock_file() {
-	lck="$1"
-	machine=`cat "$lck" 2> /dev/null | cut -d: -f1`
-	pid=`cat "$lck" 2> /dev/null | cut -d: -f2`
+	lckf="$1"
+	machine=`cat "$lckf" 2> /dev/null | cut -d: -f1`
+	pid=`cat "$lckf" 2> /dev/null | cut -d: -f2`
 
 	if [ "$pid" = "$$" ]; then
 	    locknesting=`expr $locknesting + 1`
 	    echo "lock nesting now $locknesting"
 	fi
 
-	if [ -f "$lck" ] && 
+	if [ -f "$lckf" ] && 
 	    ( [ $machine != $host ] || kill -0 $pid ) 2> /dev/null; then
-		echo "lock file $lck is valid for $machine:$pid"
+		echo "lock file $lckf is valid for $machine:$pid"
 		return 1
 	fi
-	echo "stale lock file $lck for $machine:$pid"
-	cat "$lck"
-	/bin/rm -f "$lck"
-	echo "$host:$$" > "$lck"
+	echo "stale lock file $lckf for $machine:$pid"
+	cat "$lckf"
+	/bin/rm -f "$lckf"
+	echo "$host:$$" > "$lckf"
 	return 0
 }
 
@@ -122,8 +122,8 @@ unlock_file() {
 	    locknesting=`expr $locknesting - 1`
 	    echo "lock nesting now $locknesting"
 	else 
-	    lck="$1"
-	    /bin/rm -f "$lck"
+	    lckf="$1"
+	    /bin/rm -f "$lckf"
 	fi
 }
 
@@ -373,6 +373,7 @@ test_tree() {
 	    cp $test_root/$tree.svn $test_root/$tree.$compiler.svn
 	    if cmp $test_root/$tree.$compiler.svn $test_root/$tree.$compiler.svn.old > /dev/null; then
 		echo "skip: $tree.$compiler nothing changed in svn"
+		cd $test_root
 		touch "$log" "$err"
 		send_logs "$log" "$err"
 		unlock_file "$lck"
@@ -382,12 +383,14 @@ test_tree() {
 
 	# pull the tree
 	fetch_tree "$tree" || {
+	    cd $test_root
 	    unlock_file "$lck"
 	    return
 	}
 
         if [ ! -x $srcdir/configure ]; then
 		echo "skip: $tree.$compiler configure not present, try again next time!"
+		cd $test_root
 		unlock_file "$lck"
 		return
 	fi
@@ -442,6 +445,7 @@ test_tree() {
 
 	if cmp "$sum" "$sum.old" > /dev/null; then
 		echo "skip: $tree.$compiler nothing changed"
+		cd $test_root
 		touch "$log" "$err"
 		send_logs "$log" "$err"
 		unlock_file "$lck"
@@ -526,6 +530,8 @@ test_tree() {
 		date
 	) > "$log" 2> "$err"
 	
+	cd $test_root
+
 	# send the logs to the master site
 	send_logs "$log" "$err"
 
