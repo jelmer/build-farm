@@ -11,6 +11,8 @@ MAXTIME=7200
 RUN_FROM_BUILD_FARM=yes
 export RUN_FROM_BUILD_FARM
 
+deptrees="";
+
 #############################
 # build a signature of a tree, used to see if we
 # need to rebuild 
@@ -26,6 +28,14 @@ sum_tree() {
 	else
             sum generic.fns >> $sum_tree_sum
 	fi
+	if [ -f "$test_root/$tree.svn" ]; then
+	    sum "$test_root/$tree.svn" >> $sum_tree_sum
+	fi
+	for d in $deptrees; do
+	    if [ -f "$test_root/$d.svn" ]; then
+		sum "$test_root/$d.svn" >> $sum_tree_sum
+	    fi
+	done
 }
 
 #############################
@@ -361,6 +371,16 @@ test_tree() {
 		export builddir
 	    ;;
 	esac
+	
+	# work out what other trees this package depends on
+	case "$tree" in
+	    talloc | tdb)
+		deptrees="libreplace";
+	    ;;
+	    ldb)
+		deptrees="libreplace talloc tdb";
+	    ;;
+	esac
 
 	lock_file "$lck" || {
 		return
@@ -368,6 +388,11 @@ test_tree() {
 
 	# pull the svn entries, if any
 	if fetch_svn "$tree"; then
+	    for d in $deptrees; do
+		if [ -f "$test_root/$d.svn" ]; then
+		    cat "$test_root/$d.svn" >> $test_root/$tree.svn
+		fi
+	    done
 	    rm -f $test_root/$tree.$compiler.svn.old
 	    mv $test_root/$tree.$compiler.svn $test_root/$tree.$compiler.svn.old
 	    cp $test_root/$tree.svn $test_root/$tree.$compiler.svn
