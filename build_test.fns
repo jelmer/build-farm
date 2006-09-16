@@ -145,21 +145,30 @@ do_make() {
   then
     MAKE=make
   fi 
+
+  MMTIME=$MAXTIME
+  # some trees don't need as much time
+  case "$tree" in
+	rsync | tdb | talloc | libreplace | ccache | distcc)
+	  MMTIME=`expr $MMTIME / 5`
+	  ;;
+  esac
+  
     
   for t in $*; do
     if [ x"$BUILD_FARM_NUM_JOBS" = x ]; then
       echo "$MAKE $t"
-      ./timelimit $MAXTIME "$MAKE" "$t"
+      ./timelimit $MMTIME "$MAKE" "$t"
       status=$?
     else
       # we can parallelize everything and all targets
       if [ x"$t" = xeverything ] || [ x"$t" = xall]; then
         echo "$MAKE" "-j$BUILD_FARM_NUM_JOBS"  "$t"
-        ./timelimit $MAXTIME "$MAKE" "-j$BUILD_FARM_NUM_JOBS"  "$t"
+        ./timelimit $MMTIME "$MAKE" "-j$BUILD_FARM_NUM_JOBS"  "$t"
         status=$?
       else
         echo "$MAKE $t"
-        ./timelimit $MAXTIME "$MAKE" "$t"
+        ./timelimit $MMTIME "$MAKE" "$t"
         status=$?
       fi
     fi
