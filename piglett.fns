@@ -1,5 +1,9 @@
 export CFLAGS="-O2 -g -Wall"
 
+per_run_hook
+
+global_lock
+
 . common.fns
 
 test_tree lorikeet-heimdal . gcc
@@ -9,4 +13,5 @@ test_tree samba4 source gcc
 export config="--with-quotas --with-smbmount --enable-krb5developer"
 
 test_tree samba_3_0 source gcc
-per_run_hook
+
+global_unlock
