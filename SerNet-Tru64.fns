@@ -1,0 +1,15 @@
+per_run_hook
+
+global_lock
+
+compiler=cc
+
+# ldap.h seems to be broken on this box??
+config="--with-ldap=no"
+. common.fns
+test_tree samba_3_0 source $compiler
+test_tree lorikeet-heimdal . $compiler
+test_tree samba4 source $compiler
+test_tree smb-build . $compiler
+
+global_unlock
