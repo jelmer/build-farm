@@ -37,7 +37,5 @@ for compiler in gcc cc icc; do
     fi
   fi
 done
-    
-
 
 global_unlock
