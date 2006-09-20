@@ -105,7 +105,10 @@ locknesting=0
 # grab a lock file. Not atomic, but close :)
 # tries to cope with NFS
 lock_file() {
-        lckf="$1"
+        if [ -z "$lock_root" ]; then
+	  lock_root=`pwd`;
+        fi
+        lckf="$lock_root/$1"
         machine=`cat "$lckf" 2> /dev/null | cut -d: -f1`
         pid=`cat "$lckf" 2> /dev/null | cut -d: -f2`
 
@@ -135,11 +138,14 @@ lock_file() {
 ############################
 # unlock a lock file
 unlock_file() {
+        if [ -z "$lock_root" ]; then
+	  lock_root=`pwd`;
+        fi
 	if [ "$locknesting" != "0" ]; then
 	    locknesting=`expr $locknesting - 1`
 	    echo "lock nesting now $locknesting"
 	else 
-	    lckf="$1"
+	    lckf="$lock_root/$1"
 	    /bin/rm -f "$lckf"
 	fi
 }
@@ -367,7 +373,7 @@ test_tree() {
 	log="build.$tree.$host.$compiler.log"
 	err="build.$tree.$host.$compiler.err"
 	sum="build.$tree.$host.$compiler.sum"
-	lck="$test_root/build.$tree.lck"
+	lck="build.$tree.lck"
         srcdir="$test_root/$tree/$source"
 
 	case "$tree" in
