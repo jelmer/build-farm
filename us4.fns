@@ -2,8 +2,6 @@ export PATH="/usr/freeware/bin:$PATH"
 
 per_run_hook
 
-global_lock
-
 compiler=cc
 . common.fns
 
@@ -19,4 +17,4 @@ test_tree samba_3_0 source cc
 export CFLAGS="-O -Wall"
 test_tree samba_3_0 source gcc
 
-global_unlock
+
