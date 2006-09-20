@@ -105,25 +105,31 @@ locknesting=0
 # grab a lock file. Not atomic, but close :)
 # tries to cope with NFS
 lock_file() {
-	lckf="$1"
-	machine=`cat "$lckf" 2> /dev/null | cut -d: -f1`
-	pid=`cat "$lckf" 2> /dev/null | cut -d: -f2`
+        lckf="$1"
+        machine=`cat "$lckf" 2> /dev/null | cut -d: -f1`
+        pid=`cat "$lckf" 2> /dev/null | cut -d: -f2`
 
-	if [ "$pid" = "$$" ]; then
-	    locknesting=`expr $locknesting + 1`
-	    echo "lock nesting now $locknesting"
-	fi
+        if [ "$pid" = "$$" ]; then
+            locknesting=`expr $locknesting + 1`
+            echo "lock nesting now $locknesting"
+            return 0
+        fi
 
-	if [ -f "$lckf" ] && 
-	    ( [ $machine != $host ] || kill -0 $pid ) 2> /dev/null; then
-		echo "lock file $lckf is valid for $machine:$pid"
-		return 1
-	fi
-	echo "stale lock file $lckf for $machine:$pid"
-	cat "$lckf"
-	/bin/rm -f "$lckf"
-	echo "$host:$$" > "$lckf"
-	return 0
+        if test -f "$lckf"; then
+            test $machine = $host || {
+                echo "lock file $lckf is valid for other machine $machine"
+                return 1		 
+	    }
+	    kill -0 $pid && {
+                echo "lock file $lckf is valid for process $pid"
+                return 1
+	    }
+            echo "stale lock file $lckf for $machine:$pid"
+            cat "$lckf"
+            /bin/rm -f "$lckf"
+        fi
+        echo "$host:$$" > "$lckf"
+        return 0
 }
 
 ############################
