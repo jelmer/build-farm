@@ -412,7 +412,9 @@ test_tree() {
 	if fetch_svn "$tree"; then
 	    for d in $deptrees; do
 		if [ -f "$test_root/$d.svn" ]; then
-		    cat "$test_root/$d.svn" >> $test_root/$tree.svn
+		    if [ "$d" != "$tree" ]; then
+			cat "$test_root/$d.svn" >> $test_root/$tree.svn
+		    fi
 		fi
 	    done
 	    rm -f $test_root/$tree.$compiler.svn.old
