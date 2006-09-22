@@ -9,3 +9,4 @@ export TORTURE_MAXTIME=3600
 export SMBD_MAXTIME=18000
 
 test_tree samba4 source gcc
+test_tree samba_3_0 source gcc
