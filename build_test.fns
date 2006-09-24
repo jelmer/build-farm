@@ -444,6 +444,8 @@ test_tree() {
 		return
 	fi
 
+	echo "Starting build of $tree.$compiler in process $$ at `date`"
+
 	if [ ! $USER = "" ]; then
 	    whoami=$USER
 	else 
@@ -498,6 +500,7 @@ test_tree() {
 		touch "$log" "$err"
 		send_logs "$log" "$err"
 		unlock_file "$lck"
+		echo "Ending build of $tree.$compiler in process $$ at `date`"
 		return
 	fi
 
@@ -585,6 +588,7 @@ test_tree() {
 	send_logs "$log" "$err"
 
 	# cleanup
+	echo "Ending build of $tree.$compiler in process $$ at `date`"
 	unlock_file "$lck"
 }
 
