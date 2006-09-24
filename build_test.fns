@@ -360,8 +360,8 @@ test_tree() {
 	fi
 
 	# limit our resource usage
-	ulimit -t $MAXTIME
-	ulimit -m 100000
+	ulimit -t $MAXTIME 2> /dev/null
+	ulimit -m 100000 2> /dev/null
 
 	# Keep stuff private
 	umask 077
@@ -376,13 +376,16 @@ test_tree() {
 	lck="build.$tree.lck"
         srcdir="$test_root/$tree/$source"
 
+	lock_file "$lck" || {
+		return
+	}
+
 	case "$tree" in
 	    tdb | talloc | ldb | libreplace)
 		builddir="$test_root/tmp.$tree.$compiler"
 		usingtmpbuild=1
 		if [ -d $builddir ]; then
-		    mv $builddir $builddir.$$
-		    rm -rf $builddir.$$ &
+		    rm -rf $builddir
 		fi
 		mkdir -p $builddir
 		export builddir
@@ -403,10 +406,6 @@ test_tree() {
 		deptrees="libreplace talloc tdb";
 	    ;;
 	esac
-
-	lock_file "$lck" || {
-		return
-	}
 
 	# pull the svn entries, if any
 	if fetch_svn "$tree"; then
@@ -456,11 +455,8 @@ test_tree() {
 	    fi
 	fi
 
-	prefix="$test_root/prefix"
-	if [ ! -d $prefix ]; then
-		mkdir $prefix
-	fi
-	prefix="$prefix/$tree"
+	prefix="$test_root/prefix/$tree.$compiler"
+	mkdir -p "$prefix"
 
 	smbtorture4=$test_root/smbtorture4
 	export smbtorture4
@@ -525,6 +521,8 @@ test_tree() {
 		ps -fu $USER 2> /dev/null
 
 		echo "building $tree with CC=$compiler on $host at "`date`
+		echo "builddir=$builddir"
+		echo "prefix=$prefix"
 
            	# build the timelimit utility
 		echo "Building timelimit"
@@ -574,16 +572,17 @@ test_tree() {
 		else
 		    echo cleaning up
 		    do_make clean
-		    /bin/rm -rf $prefix
-		    if [ "$usingtmpbuild" = "1" ]; then
-			/bin/rm -rf $builddir
-		    fi
 		fi
 		date
 	) > "$log" 2> "$err"
-	
+
 	cd $test_root
 
+        /bin/rm -rf $prefix
+	if [ "$usingtmpbuild" = "1" ]; then
+		/bin/rm -rf $builddir
+	fi
+	
 	# send the logs to the master site
 	send_logs "$log" "$err"
 
