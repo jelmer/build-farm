@@ -150,6 +150,11 @@ $log =~ s/\n(r(\d+).*)/$1\nhttp:\/\/build.samba.org\/?function=diff;tree=${tree}
 
 my $recipients = join(",", keys %culprits);
 
+# temporarily only email tridge about us4 breakage until we get the races fixed
+if ($host == "us4") {
+	$recipients="tridge";
+}
+
 # send the nastygram
 if ($dry_run) {
   open(MAIL,"|cat");
