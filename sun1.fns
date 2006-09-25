@@ -17,7 +17,6 @@ for compiler in gcc cc icc; do
     fi
     if [ $compiler = gcc -o $isgcc = 0 ]; then
       . common.fns
-      test_tree samba_3_0 source $compiler
       test_tree lorikeet-heimdal . $compiler
 
       # only attempt samba4 if we have perl
@@ -30,6 +29,7 @@ for compiler in gcc cc icc; do
         fi
         test_tree smb-build . $compiler
       fi
+      test_tree samba_3_0 source $compiler
     fi
   fi
 done

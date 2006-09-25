@@ -1,2 +1,3 @@
-test_tree rsync . gcc
 per_run_hook
+
+. common.fns

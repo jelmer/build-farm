@@ -8,7 +8,6 @@ for compiler in gcc gcc-4.0 gcc-4.1; do
 
     . common.fns
 
-    test_tree samba_3_0 source $compiler
     test_tree lorikeet-heimdal . $compiler
 
     # only attempt samba4 if we have perl
@@ -16,6 +15,8 @@ for compiler in gcc gcc-4.0 gcc-4.1; do
       test_tree samba4 source $compiler
       test_tree smb-build . $compiler
     fi
+
+    test_tree samba_3_0 source $compiler
   fi
 done
   

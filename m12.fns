@@ -1,5 +1,6 @@
 # Build control file for Stratus VOS HP PA-RISC
 # Contact: Paul.Green at stratus.com (paulg at samba.org)
+per_run_hook
 
 export CC="gcc"
 export CFLAGS=""
@@ -8,8 +9,6 @@ export MAXLIMIT=10800
 export TIMELIMIT_FLAGS="-D_POSIX_C_SOURCE=200112L"
 
 . common.fns
-test_tree samba_3_0 source gcc
 #Skip Samba4 until we shorten file names
 #test_tree samba4 source gcc
-
-per_run_hook
+test_tree samba_3_0 source gcc

@@ -1,6 +1,7 @@
+per_run_hook
+
 test_tree samba4 source cc
 
 config="--with-pam" test_tree samba_3_0 source cc
 
 . common.fns
-per_run_hook

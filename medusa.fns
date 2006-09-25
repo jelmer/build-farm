@@ -1,10 +1,10 @@
+per_run_hook
+
 export CFLAGS="-O -Wall"
 
 . common.fns
 
-export config="--with-quotas --with-smbmount"
-
-test_tree samba_3_0 source gcc
 test_tree samba4 source gcc
 
-per_run_hook
+export config="--with-quotas --with-smbmount"
+test_tree samba_3_0 source gcc

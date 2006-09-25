@@ -1,3 +1,5 @@
+per_run_hook
+
 . common.fns
 
 test_tree samba4 source gcc
@@ -5,5 +7,3 @@ test_tree ppp . gcc
 
 export config="--with-utmp --with-pam --with-quotas --with-smbmount"
 test_tree samba_3_0 source gcc
-
-per_run_hook

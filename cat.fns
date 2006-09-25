@@ -1,11 +1,11 @@
-export config="--with-acl-support --with-pam --with-utmp"
+per_run_hook
 
 export CFLAGS="-O -Wall"
-test_tree samba_3_0 source gcc
-export config="" 
-test_tree samba4 source gcc
-
 compiler=gcc
+
 . common.fns
 
-per_run_hook
+test_tree samba4 source gcc
+
+export config="--with-acl-support --with-pam --with-utmp"
+test_tree samba_3_0 source gcc
