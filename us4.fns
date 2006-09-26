@@ -2,6 +2,10 @@ export PATH="/usr/freeware/bin:$PATH"
 
 per_run_hook
 
+export MAXTIME=18000
+export TORTURE_MAXTIME=3600
+export SMBD_MAXTIME=18000
+
 compiler=cc
 . common.fns
 
