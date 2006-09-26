@@ -3,9 +3,8 @@ per_run_hook
 global_lock
 
 test_tree lorikeet-heimdal . gcc-4.0
-test_tree lorikeet-heimdal . tcc
 
-for compiler in gcc-3.3 gcc-3.4 gcc-4.0 gcc-4.1 gcc-4.2 tcc gcc-cvs; do
+for compiler in gcc-3.3 gcc-3.4 gcc-4.0 gcc-4.1 gcc-cvs; do
 . common.fns
 test_tree samba4 source $compiler
 done
