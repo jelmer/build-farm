@@ -363,6 +363,13 @@ test_tree() {
 	ulimit -t $MAXTIME 2> /dev/null
 	ulimit -m 100000 2> /dev/null
 
+	# try and limit the number of open files to 150. That means we'll discover
+	# fd leaks faster
+	ulimit -n 150 2> /dev/null
+
+	echo "Showing limits"
+	ulimit -a 2> /dev/null
+
 	# Keep stuff private
 	umask 077
 
