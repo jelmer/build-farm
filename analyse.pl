@@ -154,7 +154,7 @@ my $recipients = join(",", keys %culprits);
 if ($dry_run) {
   open(MAIL,"|cat");
 } else {
-  open(MAIL,"|Mail -s \"BUILD of $tree BROKEN on $host AT REVISION $rev\" $recipients");
+  open(MAIL,"|Mail -s \"BUILD of $tree BROKEN on $host with $compiler AT REVISION $rev\" $recipients");
 }
 
 print MAIL << "__EOF__";
