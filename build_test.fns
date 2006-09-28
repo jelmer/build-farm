@@ -367,9 +367,6 @@ test_tree() {
 	# fd leaks faster
 	ulimit -n 150 2> /dev/null
 
-	echo "Showing limits"
-	ulimit -a 2> /dev/null
-
 	# Keep stuff private
 	umask 077
 
@@ -530,6 +527,9 @@ test_tree() {
 		echo "building $tree with CC=$compiler on $host at "`date`
 		echo "builddir=$builddir"
 		echo "prefix=$prefix"
+
+		echo "Showing limits"
+		ulimit -a 2> /dev/null
 
            	# build the timelimit utility
 		echo "Building timelimit"
