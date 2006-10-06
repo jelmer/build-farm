@@ -6,5 +6,5 @@ export CHECK_FLAGS="-Wall --beam::source=/home/tridge/beam/config.tcl --beam::pa
 for d in samba4 samba_3_0 ldb tdb talloc libreplace lorikeet-heimdal ccache rsync distcc; do
     export CFLAGS="$CHECK_FLAGS --beam::data=/home/tridge/beam/$d"
     mkdir -p /home/tridge/beam/$d
-    test_tree $d source gcc configure build cc_checker install test
+    test_tree $d source checker configure build cc_checker install test
 done
