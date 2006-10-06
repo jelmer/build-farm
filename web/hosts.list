@@ -87,6 +87,7 @@ PCS1: SuSE Linux 10.1 (i686)
 opi: SuSE SLES 9 (x86_64)
 PeeWee: SuSE 9.3 (i686)
 SerNet-Tru64: Tru64 UNIX V5.1B-2-PK4
+SerNet-imini: Darwin Kernel Version 8.8.1
 utrecht: Ubuntu 5.04 (i686)
 fort: Debian x86 valgrind
 burns: Debian Linux 2.6
