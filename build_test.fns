@@ -402,6 +402,7 @@ test_tree() {
 	esac
 	
 	# work out what other trees this package depends on
+	deptrees=""
 	case "$tree" in
 	    talloc | tdb)
 		deptrees="libreplace";
