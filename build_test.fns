@@ -91,7 +91,7 @@ fetch_svn() {
 	fi
 	rsync -q --timeout=200 -clz --ignore-errors \
 	    samba.org::ftp/unpacked/$tree/.svn/entries $test_root/$tree.svn.tmp
-	chmod u+w $test_root/$tree.svn
+	chmod u+w $test_root/$tree.svn.tmp
 	sort -u < $test_root/$tree.svn.tmp > $test_root/$tree.svn
 	rm -f $test_root/$tree.svn.tmp
     fi
