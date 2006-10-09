@@ -466,16 +466,18 @@ test_tree() {
 	smbtorture4=$test_root/smbtorture4
 	export smbtorture4
 
+	sw_config=$config
+
 	case "$tree" in
 	samba4)
-	    config="$config --enable-socket-wrapper"
+	    sw_config="$config --enable-socket-wrapper"
 	    ;;
 	samba|samba_3_0)
-	    config="$config --enable-socket-wrapper"
+	    sw_config="$config --enable-socket-wrapper"
 	    if [ -f $smbtorture4 ]; then
 	        # we create a local copy to make sure the same binary is used for all tests
 	    	cp $smbtorture4 $smbtorture4.$tree 
-		config="$config --with-smbtorture4-path=$smbtorture4.$tree"
+		sw_config="$sw_config --with-smbtorture4-path=$smbtorture4.$tree"
 	    fi
 	    ;;
 	ldb)
@@ -489,7 +491,7 @@ test_tree() {
 	    ;;
 	esac
 
-	config_and_prefix="$config --prefix=$prefix"
+	config_and_prefix="$sw_config --prefix=$prefix"
 
 	# see if we need to rebuild
 	sum_tree $test_root $tree $sum
