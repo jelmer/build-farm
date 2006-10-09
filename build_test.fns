@@ -90,8 +90,10 @@ fetch_svn() {
 	    mv $test_root/$tree.svn $test_root/$tree.svn.old
 	fi
 	rsync -q --timeout=200 -clz --ignore-errors \
-	    samba.org::ftp/unpacked/$tree/.svn/entries $test_root/$tree.svn
+	    samba.org::ftp/unpacked/$tree/.svn/entries $test_root/$tree.svn.tmp
 	chmod u+w $test_root/$tree.svn
+	sort -u < $test_root/$tree.svn.tmp > $test_root/$tree.svn
+	rm -f $test_root/$tree.svn.tmp
     fi
     if [ -r $test_root/$tree.svn ]; then
 	return 0;
