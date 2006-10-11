@@ -808,6 +808,7 @@ sub view_host() {
 
 		for my $compiler (@compilers) {
 			for my $tree (sort keys %trees) {
+				my $revision = build_revision($host, $tree, $compiler, "");
 				my $age = build_age($host, $tree, $compiler, "");
 				my $warnings = err_count($host, $tree, $compiler, "");
 				if ($age != -1 && $age < $DEADAGE) {
@@ -826,7 +827,7 @@ sub view_host() {
   <table class="real">
     <thead>
       <tr>
-        <th>Target</th><th>Build&nbsp;Age</th><th>Status<br />config/build<br />install/test</th><th>Warnings</th>
+        <th>Target</th><th>Build&nbsp;Revision</th><th>Build&nbsp;Age</th><th>Status<br />config/build<br />install/test</th><th>Warnings</th>
       </tr>
     </thead>
     <tbody>
@@ -840,7 +841,7 @@ EOHEADER
 								strip_html($status), $warnings;
 					}
 					else {
-						print "    <tr><td><span class=\"tree\">$tree</span>/$compiler</td><td class=\"age\">" . red_age($age) . "</td><td class=\"status\">$status</td><td>$warnings</td></tr>\n";
+						print "    <tr><td><span class=\"tree\">$tree</span>/$compiler</td><td>$revision</td><td class=\"age\">" . red_age($age) . "</td><td class=\"status\">$status</td><td>$warnings</td></tr>\n";
 					}
 					$row++;
 				}
