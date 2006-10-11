@@ -827,7 +827,7 @@ sub view_host() {
   <table class="real">
     <thead>
       <tr>
-        <th>Target</th><th>Build&nbsp;Revision</th><th>Build&nbsp;Age</th><th>Status<br />config/build<br />install/test</th><th>Warnings</th>
+        <th>Target</th><th>Build<br />Revision</th><th>Build<br />Age</th><th>Status<br />config/build<br />install/test</th><th>Warnings</th>
       </tr>
     </thead>
     <tbody>
