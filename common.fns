@@ -6,8 +6,10 @@ fi
 
 test_tree libreplace . $compiler
 test_tree rsync . $compiler
-test_tree distcc . $compiler
 test_tree ccache . $compiler
 test_tree talloc . $compiler
 test_tree tdb . $compiler
 test_tree ldb . $compiler
+
+# disabled for now - distcc is using gnu arch not samba.org cvs
+# test_tree distcc . $compiler
