@@ -165,7 +165,9 @@ do_make() {
   # some trees don't need as much time
   case "$tree" in
 	rsync | tdb | talloc | libreplace | ccache | distcc)
-	  MMTIME=`expr $MMTIME / 5`
+	  if [ "$compiler" != "checker" ]; then
+	      MMTIME=`expr $MMTIME / 5`
+	  fi
 	  ;;
   esac
   
