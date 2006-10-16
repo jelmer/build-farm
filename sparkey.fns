@@ -22,7 +22,6 @@ for compiler in gcc cc icc gcc-4.2; do
       # only attempt samba4 if we have perl
       if which perl > /dev/null; then
         test_tree samba4 source $compiler
-        test_tree smb-build . $compiler
       fi
       test_tree samba_3_0 source $compiler
     fi
