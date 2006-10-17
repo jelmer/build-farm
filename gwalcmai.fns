@@ -7,10 +7,8 @@ test_tree lorikeet-heimdal . gcc-4.0
 for compiler in gcc-3.3 gcc-3.4 gcc-4.0 gcc-4.1 gcc-cvs; do
 . common.fns
 test_tree samba4 source $compiler
+test_tree samba_3_0 source $compiler
 done
-
-test_tree samba_3_0 source gcc
-test_tree samba_3_0 source gcc-4.0
 
 test_tree ppp . gcc
 
