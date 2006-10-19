@@ -473,7 +473,7 @@ test_tree() {
 	sw_config=$config
 
 	case "$tree" in
-	samba4)
+	samba4|lorikeet-heimdal)
 	    sw_config="$config --enable-socket-wrapper"
 	    ;;
 	samba|samba_3_0)
