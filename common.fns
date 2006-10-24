@@ -5,7 +5,7 @@ if [ -z "$compiler" ]; then
 fi
 
 test_tree libreplace . $compiler
-#test_tree rsync . $compiler
+test_tree rsync . $compiler
 test_tree ccache . $compiler
 test_tree talloc . $compiler
 test_tree tdb . $compiler
