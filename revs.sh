@@ -37,7 +37,11 @@ done
 find oldrevs -type f -mtime +4 -links 1 | xargs rm -f
 
 # delete any really old data
-find . -type f -mtime +60 | xargs rm -f
+find . -type f -mtime +120 | xargs rm -f
 
 # delete old cache data
 find ../cache -type f -name "build.*" -mtime +1 | xargs rm -f
+
+# delete partially uploaded files (crashed rsync)
+find . -type f -mtime +2 -name ".build.*" | xargs rm -f
+
