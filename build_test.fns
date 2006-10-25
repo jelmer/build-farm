@@ -370,7 +370,8 @@ test_tree() {
 	ulimit -m 100000 2> /dev/null
 
 	# max file size 100M
-	ulimit -f 100000 2> /dev/null
+	# darn, this affects sparse files too! disable it
+	# ulimit -f 100000 2> /dev/null
 
 	# try and limit the number of open files to 150. That means we'll discover
 	# fd leaks faster
