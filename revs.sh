@@ -17,6 +17,8 @@ cd data || exit 1
 
 mkdir -p oldrevs
 
+alist=""
+
 for f in `find . -maxdepth 1 -type f -name "*.log" -links 1`; do
     rev=`cat $f | egrep ^BUILD.REVISION | awk '{print $3}' | head -1`
     test -z "$rev" && rev=0;
@@ -29,6 +31,10 @@ for f in `find . -maxdepth 1 -type f -name "*.log" -links 1`; do
     ln -f $base.log $log_revname
     ln -f $base.err $err_revname
 
+    alist="$alist $base";
+done
+
+for base in $alist; do
     # possibly mail the culprits if the build broke
     ../analyse.pl $base.log
 done
