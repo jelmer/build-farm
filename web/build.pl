@@ -190,9 +190,14 @@ sub get_old_revs($$$)
     return %ret;
 }
 
+###################
+# the mtime age is used to determine if builds are still happening
+# on a host.
+# the ctime age is used to determine when the last real build happened
+
 ##############################################
 # get the age of build from mtime
-sub build_age($$$$)
+sub build_age_mtime($$$$)
 {
     my $host=shift;
     my $tree=shift;
@@ -209,6 +214,27 @@ sub build_age($$$$)
 
     return $age;
 }
+
+##############################################
+# get the age of build from ctime
+sub build_age_ctime($$$$)
+{
+    my $host=shift;
+    my $tree=shift;
+    my $compiler=shift;
+    my $rev=shift;
+    my $file=build_fname($tree, $host, $compiler, $rev);
+    my $age = -1;
+    my $st;
+
+    $st = stat("$file.log");
+    if ($st) {
+	$age = time() - $st->ctime;
+    }
+
+    return $age;
+}
+
 
 ##############################################
 # get the svn revision of build
@@ -233,7 +259,9 @@ sub build_revision($$$$)
     }
     my $st2 = stat("$CACHEDIR/$file.revision");
 
-    if ($st1 && $st2 && $st1->mtime <= $st2->mtime) {
+    # the ctime/mtime asymmetry is needed so we don't get fooled by
+    # the mtime update from rsync 
+    if ($st1 && $st2 && $st1->ctime <= $st2->mtime) {
 	    return util::FileLoad("$CACHEDIR/$file.revision");
     }
 
@@ -256,7 +284,7 @@ sub host_age($)
 	my $ret = -1;
 	for my $compiler (@compilers) {
 		for my $tree (keys %trees) {
-			my $age = build_age($host, $tree, $compiler, "");
+			my $age = build_age_mtime($host, $tree, $compiler, "");
 			if ($age != -1 && ($age < $ret || $ret == -1)) {
 				$ret = $age;
 			}
@@ -301,7 +329,7 @@ sub build_status($$$$)
     }
     my $st2 = stat("$cachefile");
 
-    if ($st1 && $st2 && $st1->mtime <= $st2->mtime) {
+    if ($st1 && $st2 && $st1->ctime <= $st2->mtime) {
 	return util::FileLoad($cachefile);
     }
 
@@ -388,7 +416,7 @@ sub err_count($$$$)
     }
     my $st2 = stat("$CACHEDIR/$file.errcount");
 
-    if ($st1 && $st2 && $st1->mtime <= $st2->mtime) {
+    if ($st1 && $st2 && $st1->ctime <= $st2->mtime) {
 	    return util::FileLoad("$CACHEDIR/$file.errcount");
     }
 
@@ -444,13 +472,13 @@ sub view_summary($) {
 		    for my $tree (keys %trees) {
 			    my $status = build_status($host, $tree, $compiler, "");
 			    next if $status =~ /^Unknown Build/;
-			    my $age = build_age($host, $tree, $compiler, "");
+			    my $age_mtime = build_age_mtime($host, $tree, $compiler, "");
 			    
-			    if ($age != -1 && $age < $DEADAGE) {
+			    if ($age_mtime != -1 && $age_mtime < $DEADAGE) {
 				    $host_count{$tree}++;
 			    }
 
-			    if ($age < $DEADAGE && $status =~ /status failed/) {
+			    if ($age_mtime < $DEADAGE && $status =~ /status failed/) {
 				    $broken_count{$tree}++;
 				    if ($status =~ /PANIC/) {
 					    $panic_count{$tree}++;
@@ -549,10 +577,11 @@ sub view_recent_builds() {
     for my $host (@hosts) {
       for my $compiler (@compilers) {
 	  my $status = build_status($host, $tree, $compiler, "");
-	  my $age = build_age($host, $tree, $compiler, "");
+	  my $age_mtime = build_age_mtime($host, $tree, $compiler, "");
+	  my $age_ctime = build_age_ctime($host, $tree, $compiler, "");
 	  my $revision = build_revision($host, $tree, $compiler, "");
-	  push @all_builds, [$age, $hosts{$host}, "<a href=\"$myself?function=View+Host;host=$host;tree=$tree;compiler=$compiler#$host\">$host</a>", $compiler, $tree, $status, $revision]
-	  	unless $age == -1 or $age >= $DEADAGE;
+	  push @all_builds, [$age_ctime, $hosts{$host}, "<a href=\"$myself?function=View+Host;host=$host;tree=$tree;compiler=$compiler#$host\">$host</a>", $compiler, $tree, $status, $revision]
+	  	unless $age_mtime == -1 or $age_mtime >= $DEADAGE;
       }
     }
 
@@ -581,10 +610,10 @@ sub view_recent_builds() {
 EOHEADER
 
     for my $build (@all_builds) {
-	my $age = $$build[0];
+	my $age_mtime = $$build[0];
 	my $rev = $$build[6];
 	print "    <tr><td>",
-	  join("</td><td>" , util::dhm_time($age),
+	  join("</td><td>" , util::dhm_time($age_mtime),
 	       $rev, @$build[4, 1, 2, 3, 5]),
 	  "</td></tr>\n";
     }
@@ -619,8 +648,8 @@ sub draw_dead_hosts {
 EOHEADER
 
     for my $host (@deadhosts) {
-	my $age = host_age($host);
-	print "    <tr><td>$host</td><td>$hosts{$host}</td><td>", util::dhm_time($age), "</td></tr>";
+	my $age_ctime = host_age($host);
+	print "    <tr><td>$host</td><td>$hosts{$host}</td><td>", util::dhm_time($age_ctime), "</td></tr>";
     }
 
 
@@ -677,7 +706,7 @@ sub view_build() {
     my $uname="";
     my $cflags="";
     my $config="";
-    my $age = build_age($host, $tree, $compiler, $rev);
+    my $age_mtime = build_age_mtime($host, $tree, $compiler, $rev);
     my $revision = build_revision($host, $tree, $compiler, $rev);
     my $status = build_status($host, $tree, $compiler, $rev);
 
@@ -708,7 +737,7 @@ sub view_build() {
 <tr><td>Uname:</td><td>$uname</td></tr>
 <tr><td>Tree:</td><td>$tree</td></tr>
 <tr><td>Build Revision:</td><td>" . $revision . "</td></tr>
-<tr><td>Build age:</td><td class=\"age\">" . red_age($age) . "</td></tr>
+<tr><td>Build age:</td><td class=\"age\">" . red_age($age_mtime) . "</td></tr>
 <tr><td>Status:</td><td>$status</td></tr>
 <tr><td>Compiler:</td><td>$compiler</td></tr>
 <tr><td>CFLAGS:</td><td>$cflags</td></tr>
@@ -809,9 +838,10 @@ sub view_host() {
 		for my $compiler (@compilers) {
 			for my $tree (sort keys %trees) {
 				my $revision = build_revision($host, $tree, $compiler, "");
-				my $age = build_age($host, $tree, $compiler, "");
+				my $age_mtime = build_age_mtime($host, $tree, $compiler, "");
+				my $age_ctime = build_age_ctime($host, $tree, $compiler, "");
 				my $warnings = err_count($host, $tree, $compiler, "");
-				if ($age != -1 && $age < $DEADAGE) {
+				if ($age_ctime != -1 && $age_ctime < $DEADAGE) {
 					my $status = build_status($host, $tree, $compiler, "");
 					if ($row == 0) {
 						if ($output_type eq 'text') {
@@ -837,11 +867,11 @@ EOHEADER
 
 					if ($output_type eq 'text') {
 						printf "%-12s %-10s %-10s %-10s %-10s\n",
-							$tree, $compiler, util::dhm_time($age), 
+							$tree, $compiler, util::dhm_time($age_mtime), 
 								strip_html($status), $warnings;
 					}
 					else {
-						print "    <tr><td><span class=\"tree\">$tree</span>/$compiler</td><td>$revision</td><td class=\"age\">" . red_age($age) . "</td><td class=\"status\">$status</td><td>$warnings</td></tr>\n";
+						print "    <tr><td><span class=\"tree\">$tree</span>/$compiler</td><td>$revision</td><td class=\"age\">" . red_age($age_mtime) . "</td><td class=\"status\">$status</td><td>$warnings</td></tr>\n";
 					}
 					$row++;
 				}
