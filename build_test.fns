@@ -46,10 +46,22 @@ send_logs() {
 	else
 		log="$1"
 		err="$2"
+		shift
+		shift
 		chmod 0644 "$log" "$err"
-		rsync -q --password-file=.password -z --timeout=200 \
+		rsync $* -q --password-file=.password -z --timeout=200 \
 			"$log" "$err" $host@samba.org::build_farm_data/
 	fi
+}
+
+#############################
+# send the logs when they haven't changed
+# the aim is to just update the servers timestamp.
+# sending with a very large rsync block size does this
+# with minimal network traffic
+send_logs_skip() {
+    touch "$1" "$2"
+    send_logs "$1" "$2" -B 10000000
 }
 
 ############################
@@ -437,8 +449,7 @@ test_tree() {
 	    if cmp $test_root/$tree.$compiler.svn $test_root/$tree.$compiler.svn.old > /dev/null; then
 		echo "skip: $tree.$compiler nothing changed in svn"
 		cd $test_root
-		touch "$log" "$err"
-		send_logs "$log" "$err"
+		send_logs_skip "$log" "$err"
 		unlock_file "$lck"
 		return
 	    fi
@@ -510,8 +521,7 @@ test_tree() {
 	if cmp "$sum" "$sum.old" > /dev/null; then
 		echo "skip: $tree.$compiler nothing changed"
 		cd $test_root
-		touch "$log" "$err"
-		send_logs "$log" "$err"
+		send_logs_skip "$log" "$err"
 		unlock_file "$lck"
 		echo "Ending build of $tree.$compiler in process $$ at `date`"
 		return
