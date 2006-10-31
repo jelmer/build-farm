@@ -47,7 +47,7 @@ send_logs() {
 		log="$1"
 		err="$2"
 		chmod 0644 "$log" "$err"
-		rsync -q --password-file=.password -cz --timeout=200 \
+		rsync -q --password-file=.password -z --timeout=200 \
 			"$log" "$err" $host@samba.org::build_farm_data/
 	fi
 }
