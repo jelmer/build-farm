@@ -103,6 +103,10 @@ if ($fname =~ /^build\.([\w-]+)\.([\w-]+)\.([\w.-]+)\.log$/) {
 my $rev = build_revision($fname);
 my $status = build_status($fname);
 
+if ($dry_run) {
+    printf("rev=$rev status=$status\n");
+}
+
 if ($rev == 0) {
 	# we can't analyse trees without revisions
 	exit(0);
@@ -117,12 +121,17 @@ for ($rev2=$rev-1;$rev2 > 0;$rev2--) {
 }
 
 if ($rev2 == 0) {
+    $dry_run && printf("no previous revision\n");
 	# no previous revision
 	exit(0);
 }
 
 
 my $status2 = build_status($fname);
+
+if ($dry_run) {
+    printf("status=$status status2=$status2\n");
+}
 
 if ($status2 <= $status && !$dry_run) {
 	# the build didn't get worse
