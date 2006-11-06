@@ -330,11 +330,11 @@ action_test_lorikeet_heimdal() {
 	export CC
 	SOCKET_WRAPPER_DIR=`pwd`/sw
 	mkdir $SOCKET_WRAPPER_DIR
- 	export $SOCKET_WRAPPER_DIR
+ 	export SOCKET_WRAPPER_DIR
 	do_make check
 	totalstatus=$?
 	SOCKET_WRAPPER_DIR=
- 	export $SOCKET_WRAPPER_DIR
+ 	export SOCKET_WRAPPER_DIR
 	echo "TEST STATUS: $totalstatus"
 	return "$totalstatus"
 }
