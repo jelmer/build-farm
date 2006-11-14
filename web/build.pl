@@ -316,7 +316,7 @@ sub build_status($$$$)
     my $rev=shift;
     my $file=build_fname($tree, $host, $compiler, $rev);
     my $cachefile="$CACHEDIR/" . $file . ".status";
-    my ($cstatus, $bstatus, $istatus, $tstatus, $sstatus);
+    my ($cstatus, $bstatus, $istatus, $tstatus, $sstatus, $dstatus);
     $cstatus = $bstatus = $istatus = $tstatus = $sstatus = $dstatus = 
       "<span class=\"status unknown\">?</span>";
 
