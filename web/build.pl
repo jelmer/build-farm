@@ -317,7 +317,7 @@ sub build_status($$$$)
     my $file=build_fname($tree, $host, $compiler, $rev);
     my $cachefile="$CACHEDIR/" . $file . ".status";
     my ($cstatus, $bstatus, $istatus, $tstatus, $sstatus);
-    $cstatus = $bstatus = $istatus = $tstatus = $sstatus =
+    $cstatus = $bstatus = $istatus = $tstatus = $sstatus = $dstatus = 
       "<span class=\"status unknown\">?</span>";
 
     my $log;
@@ -373,6 +373,12 @@ sub build_status($$$$)
 	$sstatus = "";
     }
 
+    if ($log =~ /No space left on device.*/ ) {
+	$dstatus = "/<span class=\"status failed\">disk full</span>";
+    } else {
+	$dstatus = "";
+    }
+
     if ($log =~ /CC_CHECKER STATUS: (.*)/ && $1 > 0) {
 	$sstatus .= "/<span class=\"status checker\">$1</span>";
     }
@@ -381,7 +387,7 @@ sub build_status($$$$)
     if ($rev) {
 	    $ret .= ";revision=$rev";
     }
-    $ret .= "\">$cstatus/$bstatus/$istatus/$tstatus$sstatus</a>";
+    $ret .= "\">$cstatus/$bstatus/$istatus/$tstatus$sstatus$dstatus</a>";
 
     util::FileSave("$CACHEDIR/$file.status", $ret);
 
