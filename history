@@ -28,4 +28,6 @@
 ./cvslog.pl /data/cvs/CVSROOT/ccache.updates 60 ccache "" cache/history.ccache
 ./cvslog.pl /data/cvs/CVSROOT/ppp.updates 60 ppp "" cache/history.ppp
 
+./bzrlog.pl /home/ftp/pub/unpacked/ctdb 60 cache/history.ctdb
+
 ) > history.log 2>&1
