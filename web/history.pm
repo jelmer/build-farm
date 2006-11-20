@@ -45,6 +45,9 @@ my (%cvs_trees) = ('rsync' => " <a href=\"$CVSWEB_BASE/rsync/%s\">%s</a>",
 		   'ccache' => " <a href=\"$CVSWEB_BASE/ccache/%s\">%s</a>",
 		   'ppp' => " <a href=\"$CVSWEB_BASE/ppp/%s\">%s</a>");
 
+# a map of names to bzr paths
+my (%bzr_trees) = ('ctdb' => " <a href=\"$CVSWEB_BASE/bzr/%s\">%s</a>");
+
 my $unpacked_dir = "/home/ftp/pub/unpacked";
 
 ###############################################
@@ -139,6 +142,12 @@ sub web_paths($$)
 	    while ($paths =~ /\s*([^\s]+)(.*)/) {
 	    
 		    $ret .= sprintf($svn_trees{$tree}, $1, $1);
+		    $paths = $2;
+	    }
+    }
+    elsif (grep {/$tree/} keys %bzr_trees) {
+	    while ($paths =~ /\s*([^\s]+)(.*)/) {
+		    $ret .= sprintf($bzr_trees{$tree}, $1, $1);
 		    $paths = $2;
 	    }
     }
@@ -238,15 +247,16 @@ sub diff($$$$$)
 
 
     # validate the tree
-    util::InArray($tree, [keys %cvs_trees, keys %svn_trees]);
+    util::InArray($tree, [keys %cvs_trees, keys %svn_trees, keys %bzr_trees]);
 
 
     chdir("$unpacked_dir/$tree") || fatal("no tree $unpacked_dir/$tree available");
 
     if (grep {/$tree/} keys %cvs_trees) {
 	cvs_diff($author, $date, $tree, $text_html);
-    }
-    else {
+    } if (grep {/$tree/} keys %bzr_trees) {
+	bzr_diff($revision, $tree, $text_html);
+    } else {
 	svn_diff($revision, $tree, $text_html);
     }
 }
@@ -260,7 +270,7 @@ sub svn_diff($$$)
     my $text_html = shift;
 
     # ensure the user-specified tree is a valid tree
-    util::InArray($tree, [keys %svn_trees]) || fatal("unknown tree");
+    util::InArray($tree, [keys %svn_trees]) || fatal("unknown svn tree");
 
     chdir("$unpacked_dir/$tree") || fatal("no tree $unpacked_dir/$tree available");
 
@@ -337,7 +347,7 @@ sub cvs_diff($$$$)
     my $log = util::LoadStructure("$HISTORYDIR/history.$tree");
 
     # ensure the user-specified tree is a valid tree
-    util::InArray($tree, [keys %cvs_trees]) || fatal("unknown tree");
+    util::InArray($tree, [keys %cvs_trees]) || fatal("unknown cvs tree");
 
     # for paranoia, check that the date string is a valid date
     if ($date =~ /[^\d]/) {
@@ -433,6 +443,70 @@ in cvs</b>
     }
 }
 
+
+###############################################
+# show recent bzr entries
+sub bzr_diff($$$)
+{
+    my $revision = shift;
+    my $tree = shift;
+    my $text_html = shift;
+
+    # ensure the user-specified tree is a valid tree
+    util::InArray($tree, [keys %bzr_trees]) || fatal("unknown bzr tree $tree");
+
+    chdir("$unpacked_dir/$tree") || fatal("no tree $unpacked_dir/$tree available");
+
+    my $log = util::LoadStructure("$HISTORYDIR/history.$tree");
+    my $entry;
+
+    # backwards? why? well, usually our users are looking for the newest
+    # stuff, so it's most likely to be found sooner
+    my $i = $#{$log};
+    for (; $i >= 0; $i--) {
+	    if ($log->[$i]->{REVISION} eq $revision) {
+		    $entry = $log->[$i];
+	    }
+    }
+
+    # get information about the current diff
+    if ($text_html eq "html") {
+	print "<h2>bzr Diff in $tree for revision r$revision</h2>\n";
+	print "<div class=\"history row\">\n";
+
+	if (!defined($entry->{REVISION})) {
+	    print "Unable to locate commit information.\n";
+	} else {
+	    history_row($entry, $tree);
+	}
+
+	print "</div>\n";
+    }
+    else {
+	if (!defined($entry->{REVISION})) {
+	    print "Unable to locate commit information.\n";
+	} else {
+	    history_row_text($entry, $tree);
+	}
+    }
+
+
+    my $old_revision = $revision - 1;
+    my $cmd = "bzr diff -r $old_revision..$revision";
+
+    my $diff = `$cmd 2> /dev/null`;
+
+    if ($text_html eq "html") {
+	print "<!-- $cmd --!>\n";
+	$diff = util::cgi_escape($diff);
+	$diff = diff_pretty($diff);
+	print "<pre>$diff</pre>\n";
+    }
+    else {
+	print "$diff\n";
+    }
+}
+
 ###############################################
 # get commit history for the given tree
 sub history($)
@@ -443,7 +517,7 @@ sub history($)
     my $author;
 
     # ensure that the tree is a valid tree
-    util::InArray($tree, [keys %svn_trees, keys %cvs_trees]) ||
+    util::InArray($tree, [keys %svn_trees, keys %cvs_trees, keys %bzr_trees]) ||
 	      fatal("unknown tree");
 
     my $log = util::LoadStructure("$HISTORYDIR/history.$tree");

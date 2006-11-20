@@ -16,3 +16,4 @@ ccache:
 lorikeet-heimdal:
 SOC:
 build_farm:
+ctdb:
