@@ -76,7 +76,12 @@ sub bzr_parse($$)
 		}
 
 		if ($line =~ /^committer: (.*)$/) {
-			$entry->{AUTHOR} = $1;
+			my $author = $1;
+			if ($author =~ /^.*?(\w+)\@.*/) {
+				$entry->{AUTHOR} = $1;
+			} else {
+				$entry->{AUTHOR} = $author;
+			}
 		}
 
 		if ($line =~ /^branch nick: (.*)$/) {
