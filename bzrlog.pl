@@ -96,7 +96,7 @@ sub bzr_parse($$)
 			$addto = "ADDED";
 		}
 		if ($line =~ /^modified:/) {
-			$addto = "MODIFIED";
+			$addto = "FILES";
 		}
 		if ($line =~ /^removed:/) {
 			$addto = "REMOVED";
