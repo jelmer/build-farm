@@ -52,6 +52,10 @@ sub bzr_parse($$)
 			next;
 		}
 
+		if ($line =~ /^\s\s\s\s-----/) {
+			$addto = "MESSAGE";
+		}
+
 		if ($line =~ /^\s\s(.*)$/) {
 			my $s = $1;
 			if ($addto eq "MESSAGE") {
