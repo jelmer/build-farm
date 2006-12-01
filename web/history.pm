@@ -21,6 +21,7 @@ my $req = new CGI;
 my $HEADCOLOR = "#a0a0e0";
 my $CVSWEB_BASE = "http://pserver.samba.org/cgi-bin/cvsweb";
 my $VIEWCVS_BASE = "http://websvn.samba.org/cgi-bin/viewcvs.cgi";
+my $UNPACKED_BASE = "http://websvn.samba.org/ftp/unpacked/";
 
 # a map of names to web svn log locations
 my (%svn_trees) = ('samba' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=samba\">%s</a>",
@@ -46,7 +47,7 @@ my (%cvs_trees) = ('rsync' => " <a href=\"$CVSWEB_BASE/rsync/%s\">%s</a>",
 		   'ppp' => " <a href=\"$CVSWEB_BASE/ppp/%s\">%s</a>");
 
 # a map of names to bzr paths
-my (%bzr_trees) = ('ctdb' => " <a href=\"$CVSWEB_BASE/bzr/%s\">%s</a>");
+my (%bzr_trees) = ('ctdb' => " <a href=\"$UNPACKED_BASE/ctdb/%s\">%s</a>");
 
 my $unpacked_dir = "/home/ftp/pub/unpacked";
 
