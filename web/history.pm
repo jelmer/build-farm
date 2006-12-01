@@ -21,7 +21,7 @@ my $req = new CGI;
 my $HEADCOLOR = "#a0a0e0";
 my $CVSWEB_BASE = "http://pserver.samba.org/cgi-bin/cvsweb";
 my $VIEWCVS_BASE = "http://websvn.samba.org/cgi-bin/viewcvs.cgi";
-my $UNPACKED_BASE = "http://websvn.samba.org/ftp/unpacked/";
+my $UNPACKED_BASE = "http://svn.samba.org/ftp/unpacked";
 
 # a map of names to web svn log locations
 my (%svn_trees) = ('samba' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=samba\">%s</a>",
