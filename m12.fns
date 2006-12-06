@@ -12,7 +12,7 @@ export noclean="yes"
 export LDFLAGS="-specs=/s/pg/bf/posix/command_library/pg.specs"
 
 # avoid vos bug ac-79
-export ac_cv_prog_cc_ccache_gcc_c_o=yes
+export ac_cv_prog_cc_ccache_c_o=yes
 
 # ensure vos pathnames do not contain % or # characters
 # workaround until vos suggestion posix-1014 is implemented
