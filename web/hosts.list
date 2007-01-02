@@ -83,12 +83,13 @@ m104: Stratus VOS i786
 suse71ppc: SuSE 7.1 ppc gcc2.95.2
 metze02: SuSE 7.3 i386 (PIII)
 metze01: SuSE 8.2 i386 (athlon)
-PCS1: SuSE Linux 10.1 (i686)
+PCS1: OpenSuSE Linux 10.2 (i686)
 opi: SuSE SLES 9 (x86_64)
 PeeWee: SuSE 9.3 (i686)
 SerNet-Tru64: Tru64 UNIX V5.1B-2-PK4
 SerNet-imini: Mac OS X 10.4.8 (intel)
 utrecht: Ubuntu 5.04 (i686)
+bigboy: Ubuntu GNU/Linux 6.06.1 (PIII)
 fort: Debian x86 valgrind
 burns: Debian Linux 2.6
 snab: Debian x86 IBM checker
