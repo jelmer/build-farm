@@ -7,7 +7,7 @@ compiler=cc
 # ldap.h seems to be broken on this box??
 . common.fns
 test_tree lorikeet-heimdal . $compiler
-CFLAGS="-g" test_tree samba4 source $compiler
-CFLAGS="-g1" test_tree samba_3_0 source $compiler
+CFLAGS="-g ${CFLAGS}" test_tree samba4 source $compiler
+CFLAGS="-g1 ${CFLAGS}" test_tree samba_3_0 source $compiler
 
 global_unlock
