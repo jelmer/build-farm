@@ -97,3 +97,10 @@ tridge: Debian Unstable PPC64
 aix53bf: AIX 5.3
 aico:Ubuntu Edgy 6.10 AMD64
 hape:HP-UX 11.00
+fsccbaix52pn: AIX 5.2 (32bit) PowerPC/native
+fsccbaix53pn: AIX 5.3 (32bit) PowerPC/native
+fsccbaix53pnx: AIX 5.3 (64bit) PowerPC/native
+fsccbsles9iv-gpfs: SLES 9 (32bit) Intel/VMWare+GPFS
+fsccbsles10iv-gpfs: SLES10 (32bit) Intel/VMWare+GPFS
+smbj62x86: FreeBSD 6.2-RELEASE i386
+samba-klop: FreeBSD 6.2-RELEASE i386
