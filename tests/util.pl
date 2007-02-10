@@ -5,7 +5,7 @@ use FindBin qw($RealBin);
 use lib "$RealBin/..";
 use lib "$RealBin/../web";
 
-use Test::More tests => 23;
+use Test::More tests => 27;
 use strict;
 
 use util;
@@ -40,5 +40,10 @@ is_deeply({a => 1, b => "a" },
 ok(util::InArray("a", ["a", "b", "c"]));
 ok(not util::InArray("a", ["b", "c"]));
 ok(util::InArray("a", ["b", "c", "a"]));
+
+is("", util::strip_html("<!--foo-->"));
+is("bar ", util::strip_html("<!--foo-->bar <!--bloe-->"));
+is("bar <bloe>", util::strip_html("<bar>bar <bloe></bar>"));
+is("", util::strip_html("<bar><bloe></bloe></bar>"));
 
 1;

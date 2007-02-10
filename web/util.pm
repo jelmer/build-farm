@@ -236,4 +236,20 @@ sub dhm_time($)
 	return sprintf("%ds", $sec);
 }
 
+##############################################
+# simple html markup stripper
+sub strip_html($) {
+	my $string = shift;
+
+	# get rid of comments
+	$string =~ s/<!\-\-(.*?)\-\->/$2/g;
+
+	# and remove tags.
+	while ($string =~ s&<(\w+).*?>(.*?)</\1>&$2&) {
+		;
+	}
+
+	return $string;
+}
+
 1;

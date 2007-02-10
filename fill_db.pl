@@ -34,7 +34,6 @@ my $build = $dbh->func('last_insert_rowid');
 
 $st = $dbh->prepare("INSERT INTO test_run (build, test, result, output) VALUES ($build, ?, ?, ?)");
 
-
 while ($data =~ /--==--==--==--==--==--==--==--==--==--==--.*?
 Running\ test\ ([\w\-=,_:\ \/.&;]+).*?
 --==--==--==--==--==--==--==--==--==--==--

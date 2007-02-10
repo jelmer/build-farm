@@ -59,17 +59,8 @@ my @pseudo_trees = util::load_list("$WEBDIR/pseudo.list");
 my (@deadhosts) = ();
 
 ###############################################
-# work out a URL so I can refer to myself in links
-my $myself = $req->self_url;
-if ($myself =~ /(.*)[?].*/) {
-    $myself = $1;
-}
-if ($myself =~ /http:\/\/.*\/(.*)/) {
-    $myself = $1;
-}
-
-# for now, hard code the self url - need to sanitize self_url
-$myself = "http://build.samba.org/";
+# URL so I can refer to myself in links
+my $myself = $req->url();
 
 my $cgi_headers_done = 0;
 
@@ -168,9 +159,7 @@ sub build_fname($$$$)
 # get a list of old builds and their status
 sub get_old_revs($$$)
 {
-    my $tree=shift;
-    my $host=shift;
-    my $compiler=shift;
+    my ($tree, $host, $compiler) = @_;
     my @list = split('\n', `ls oldrevs/build.$tree.$host.$compiler-*.log`);
     my %ret;
     for my $l (@list) {
@@ -199,7 +188,7 @@ sub build_age_mtime($$$$)
 
     $st = stat("$file.log");
     if ($st) {
-	$age = time() - $st->mtime;
+		$age = time() - $st->mtime;
     }
 
     return $age;
@@ -216,7 +205,7 @@ sub build_age_ctime($$$$)
 
     $st = stat("$file.log");
     if ($st) {
-	$age = time() - $st->ctime;
+		$age = time() - $st->ctime;
     }
 
     return $age;
@@ -376,7 +365,7 @@ sub build_status($$$$)
 ##############################################
 # translate a status into a set of int representing status
 sub build_status_vals($) {
-    my $status = strip_html(shift);
+    my $status = util::strip_html(shift);
 
     $status =~ s/ok/0/g;
     $status =~ s/\?/0/g;
@@ -384,6 +373,7 @@ sub build_status_vals($) {
 
     return split m%/%, $status;
 }
+
 ##############################################
 # get status of build
 sub err_count($$$$)
@@ -402,9 +392,7 @@ sub err_count($$$$)
 	    return util::FileLoad("$CACHEDIR/$file.errcount");
     }
 
-    $err = util::FileLoad("$file.err");
-
-    if (! $err) { return 0; }
+    $err = util::FileLoad("$file.err") or return 0;
 
     my $ret = util::count_lines($err);
 
@@ -511,11 +499,8 @@ EOHEADER
 # Draw the "recent builds" view
 sub view_recent_builds() {
     my $i = 0;
-
     my $cols = 2;
-
     my $broken = 0;
-
     my $host_os;
     my $last_host = "";
     my @all_builds = ();
@@ -784,8 +769,7 @@ sub view_host() {
 
 	if ($output_type eq 'text') {
 		print "Host summary:\n";
-	}
-	else {
+	} else {
 		print "<div class=\"build-section\" id=\"build-summary\">\n";
 		print "<h2>Host summary:</h2>\n";
 	}
@@ -822,8 +806,7 @@ sub view_host() {
 							printf "%-12s %-10s %-10s %-10s %-10s\n",
 								"Tree", "Compiler", "Build Age", "Status", "Warnings";
                                     
-						}
-						else {
+						} else {
 							print <<EOHEADER;
 <div class="host summary">
   <a id="$host" name="$host" />
@@ -842,9 +825,8 @@ EOHEADER
 					if ($output_type eq 'text') {
 						printf "%-12s %-10s %-10s %-10s %-10s\n",
 							$tree, $compiler, util::dhm_time($age_mtime), 
-								strip_html($status), $warnings;
-					}
-					else {
+								util::strip_html($status), $warnings;
+					} else {
 						print "    <tr><td><span class=\"tree\">$tree</span>/$compiler</td><td>$revision</td><td class=\"age\">" . red_age($age_mtime) . "</td><td class=\"status\">$status</td><td>$warnings</td></tr>\n";
 					}
 					$row++;
@@ -854,8 +836,7 @@ EOHEADER
 		if ($row != 0) {
 			if ($output_type eq 'text') {
 				print "\n";
-			}
-			else {
+			} else {
 				print "  </tbody>\n</table></div>\n";
 			}
 		} else {
@@ -1005,22 +986,6 @@ sub make_collapsible_html($$$$)
                "</div>";
 
   return $return
-}
-
-##############################################
-# simple html markup stripper
-sub strip_html($) {
-	my $string = shift;
-
-	# get rid of comments
-	$string =~ s/<!\-\-(.*?)\-\->/$2/g;
-
-	# and remove tags.
-	while ($string =~ s&<(\w+).*?>(.*?)</\1>&$2&) {
-		;
-	}
-
-	return $string;
 }
 
 ##############################################
