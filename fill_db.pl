@@ -10,9 +10,11 @@ use Digest::SHA1 qw(sha1_hex);
 use strict;
 use util;
 
-my ($tree, $host, $compiler) = @ARGV;
+my ($logfn) = @ARGV;
 
-my $logfn = "build.$tree.$host.$compiler.log";
+die("Can't find log file $logfn") if (not -f $logfn);
+
+my ($tree, $host, $compiler) = ($logfn =~ /build\.([^.]+)\.([^.]+)\.([^.]+)\.log$/);
 
 my $dbh = DBI->connect( "dbi:SQLite:data.dbl" ) || die "Cannot connect: $DBI::errstr";
 
