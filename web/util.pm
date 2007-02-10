@@ -1,5 +1,5 @@
 ###################################################
-# utility functions to support pidl
+# utility functions to support the build farm
 # Copyright (C) tridge@samba.org, 2001
 #
 #   This program is free software; you can redistribute it and/or modify
@@ -44,15 +44,13 @@ sub load_hash($)
 	return %ret;
 }
 
-
 #####################################################################
 # check if a string is in an array
 sub InArray($$)
 {
-    my $s = shift;
-    my $a = shift;
+    my ($s, $a) = @_;
     for my $v (@{$a}) {
-	if ($v eq $s) { return 1; }
+		return 1 if ($v eq $s);
     }
     return 0;
 }
@@ -64,9 +62,7 @@ sub FlattenArray($)
     my $a = shift;
     my @b;
     for my $d (@{$a}) {
-	for my $d1 (@{$d}) {
-	    push(@b, $d1);
-	}
+		push(@b, $_) foreach (@{$d});
     }
     return \@b;
 }
@@ -78,13 +74,12 @@ sub FlattenHash($)
     my $a = shift;
     my %b;
     for my $d (@{$a}) {
-	for my $k (keys %{$d}) {
-	    $b{$k} = $d->{$k};
-	}
+		for my $k (keys %{$d}) {
+			$b{$k} = $d->{$k};
+		}
     }
     return \%b;
 }
-
 
 #####################################################################
 # return the modification time of a file
@@ -93,7 +88,6 @@ sub FileModtime($)
     my($filename) = shift;
     return (stat($filename))[9];
 }
-
 
 #####################################################################
 # read a file into a string
@@ -126,11 +120,8 @@ sub FileSave($$)
 # return a filename with a changed extension
 sub ChangeExtension($$)
 {
-    my($fname) = shift;
-    my($ext) = shift;
-    if ($fname =~ /^(.*)\.(.*?)$/) {
-	return "$1.$ext";
-    }
+    my($fname,$ext) = @_;
+	return "$1.$ext" if ($fname =~ /^(.*)\.(.*?)$/);
     return "$fname.$ext";
 }
 
@@ -149,7 +140,6 @@ sub LoadStructure($)
 {
     return eval FileLoad(shift);
 }
-
 
 ####################################################################
 # setup for gzipped output of a web page if possible. 
@@ -171,7 +161,7 @@ sub cgi_gzip()
 # Turn off gzip if running under mod_perl. piping does
 # not work as expected inside the server. One can probably
 # achieve the same result using Apache::GZIPFilter.
-    my $maycompress = (($ENV{'HTTP_ACCEPT_ENCODING'} =~ m|gzip|
+    my $maycompress = ((defined($ENV{'HTTP_ACCEPT_ENCODING'}) and $ENV{'HTTP_ACCEPT_ENCODING'} =~ m|gzip|
 			|| $Browser =~ m%^Mozilla/3%)
 		       && ($Browser !~ m/MSIE/)
 		       && !defined($ENV{'MOD_PERL'}));
@@ -247,4 +237,3 @@ sub dhm_time($)
 }
 
 1;
-

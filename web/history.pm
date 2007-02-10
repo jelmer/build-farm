@@ -1,6 +1,6 @@
 # Copyright (C) Andrew Tridgell <tridge@samba.org>     2001
 # Copyright (C) Martin Pool <mbp@samba.org>            2003
-# script to show recent checkins in cvs
+# script to show recent checkins in cvs / bzr / svn
 
 package history;
 
@@ -18,7 +18,6 @@ use File::stat;
 
 my $req = new CGI;
 
-my $HEADCOLOR = "#a0a0e0";
 my $CVSWEB_BASE = "http://pserver.samba.org/cgi-bin/cvsweb";
 my $VIEWCVS_BASE = "http://websvn.samba.org/cgi-bin/viewcvs.cgi";
 my $UNPACKED_BASE = "http://svn.samba.org/ftp/unpacked";
@@ -240,25 +239,19 @@ sub history_row_text($$)
 # get recent cvs/svn entries
 sub diff($$$$$)
 {
-    my $author = shift;
-    my $date = shift;
-    my $tree = shift;
-    my $revision = shift;
-    my $text_html = shift;
-
+    my ($author, $date, $tree, $revision, $text_html) = @_;
 
     # validate the tree
     util::InArray($tree, [keys %cvs_trees, keys %svn_trees, keys %bzr_trees]);
 
-
     chdir("$unpacked_dir/$tree") || fatal("no tree $unpacked_dir/$tree available");
 
     if (grep {/$tree/} keys %cvs_trees) {
-	cvs_diff($author, $date, $tree, $text_html);
+		cvs_diff($author, $date, $tree, $text_html);
     } if (grep {/$tree/} keys %bzr_trees) {
-	bzr_diff($revision, $tree, $text_html);
+		bzr_diff($revision, $tree, $text_html);
     } else {
-	svn_diff($revision, $tree, $text_html);
+		svn_diff($revision, $tree, $text_html);
     }
 }
 
@@ -266,9 +259,7 @@ sub diff($$$$$)
 # show recent svn entries
 sub svn_diff($$$)
 {
-    my $revision = shift;
-    my $tree = shift;
-    my $text_html = shift;
+    my ($revision, $tree, $text_html) = @_;
 
     # ensure the user-specified tree is a valid tree
     util::InArray($tree, [keys %svn_trees]) || fatal("unknown svn tree");
@@ -280,10 +271,8 @@ sub svn_diff($$$)
     chomp $current_revision;
     $current_revision =~ s/.*?(\d+)$/$1/;
 
-    if ($revision !~ /^\d+$/ || $revision < 0 ||
-	$revision > $current_revision) {
-	fatal("unknown revision");
-    }
+	fatal("unknown revision") if ($revision !~ /^\d+$/ or $revision < 0 or
+		                          $revision > $current_revision);
 
     my $log = util::LoadStructure("$HISTORYDIR/history.$tree");
     my $entry;
@@ -449,9 +438,7 @@ in cvs</b>
 # show recent bzr entries
 sub bzr_diff($$$)
 {
-    my $revision = shift;
-    my $tree = shift;
-    my $text_html = shift;
+    my ($revision, $tree, $text_html) = @_;
 
     # ensure the user-specified tree is a valid tree
     util::InArray($tree, [keys %bzr_trees]) || fatal("unknown bzr tree $tree");

@@ -41,7 +41,6 @@ my $CACHEDIR = "$WEBDIR/../cache";
 
 my $req = new CGI;
 
-my $HEADCOLOR = "#a0a0e0";
 my $OLDAGE = 60*60*4;
 my $DEADAGE = 60*60*24*4;
 
@@ -235,7 +234,6 @@ sub build_age_ctime($$$$)
     return $age;
 }
 
-
 ##############################################
 # get the svn revision of build
 sub build_revision($$$$)
@@ -304,7 +302,6 @@ sub red_age($)
 	}
 	return util::dhm_time($age);
 }
-
 
 ##############################################
 # get status of build
@@ -437,8 +434,6 @@ sub err_count($$$$)
     return $ret;
 }
 
-
-
 ##############################################
 # view build summary
 sub view_summary($) {
@@ -538,7 +533,6 @@ EOHEADER
 
 ##############################################
 # Draw the "recent builds" view
-
 sub view_recent_builds() {
     my $i = 0;
 
@@ -625,7 +619,6 @@ EOHEADER
     }
     print "  </tbody>\n</table>\n</div>\n";
 }
-
 
 ##############################################
 # Draw the "dead hosts" table
@@ -722,15 +715,15 @@ sub view_build() {
     $err = util::FileLoad("$file.err");
     
     if ($log) {
-	$log = util::cgi_escape($log);
+		$log = util::cgi_escape($log);
 
-	if ($log =~ /(.*)/) { $uname=$1; }
-	if ($log =~ /CFLAGS=(.*)/) { $cflags=$1; }
-	if ($log =~ /configure options: (.*)/) { $config=$1; }
+		if ($log =~ /(.*)/) { $uname=$1; }
+		if ($log =~ /CFLAGS=(.*)/) { $cflags=$1; }
+		if ($log =~ /configure options: (.*)/) { $config=$1; }
     }
 
     if ($err) {
-	$err = util::cgi_escape($err);
+		$err = util::cgi_escape($err);
     }
 
     print "<h2>Host information:</h2>\n";
@@ -1056,7 +1049,6 @@ sub strip_html($) {
 	return $string;
 }
 
-
 ##############################################
 # main page
 sub main_menu() {
@@ -1077,14 +1069,12 @@ sub main_menu() {
     print $req->endform() . "\n";
 }
 
-
 ###############################################
 # display top of page
 sub page_top() {
     cgi_headers();
     chdir("$BASEDIR/data") || fatal("can't change to data directory");
 }
-
 
 ###############################################
 # main program
@@ -1104,32 +1094,25 @@ elsif ($fn_name eq 'Text_Summary') {
 	cgi_headers_text();
 	chdir("$BASEDIR/data") || fatal("can't change to data directory");
 	view_summary('text');
-}
-else {
+} else {
   page_top();
 
-  if    ($fn_name eq "View_Build") {
+  if ($fn_name eq "View_Build") {
     view_build();
-  }
-  elsif ($fn_name eq "View_Host") {
+  } elsif ($fn_name eq "View_Host") {
     view_host();
-  }
-  elsif ($fn_name eq "Recent_Builds") {
+  } elsif ($fn_name eq "Recent_Builds") {
     view_recent_builds();
-  }
-  elsif ($fn_name eq "Recent_Checkins") {
+  } elsif ($fn_name eq "Recent_Checkins") {
     history::history(get_param('tree'));
-  }
-  elsif ($fn_name eq "diff") {
+  } elsif ($fn_name eq "diff") {
     history::diff(get_param('author'),
 		  get_param('date'),
 		  get_param('tree'),
 		  get_param('revision'),
 		  "html");
-  }
-  else {
+  } else {
     view_summary('html');
   }
   cgi_footers();
 }
-

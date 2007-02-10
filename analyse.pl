@@ -126,7 +126,6 @@ if ($rev2 == 0) {
 	exit(0);
 }
 
-
 my $status2 = build_status($fname);
 
 if ($dry_run) {
