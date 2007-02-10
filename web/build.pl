@@ -76,9 +76,7 @@ my $cgi_headers_done = 0;
 ################################################
 # start CGI headers
 sub cgi_headers() {
-    if ($cgi_headers_done) {
-	return;
-    }
+    return if ($cgi_headers_done);
     $cgi_headers_done = 1;
 
     print "Content-type: text/html\r\n";
@@ -110,13 +108,13 @@ sub cgi_headers_text() {
 ################################################
 # end CGI
 sub cgi_footers() {
-  print util::FileLoad("$BASEDIR/web/footer.html");
+	print util::FileLoad("$BASEDIR/web/footer.html");
 }
 
 ################################################
 # print an error on fatal errors
 sub fatal($) {
-    my $msg=shift;
+    my $msg = shift;
 
     cgi_headers();
     print "<h1>ERROR: $msg</h1>\n";
@@ -129,9 +127,8 @@ sub fatal($) {
 sub get_param($) {
     my $param = shift;
 
-
     if (!defined $req->param($param)) {
-	return wantarray ? () : undef;
+		return wantarray ? () : undef;
     }
 
     my @result = ();
@@ -160,10 +157,7 @@ sub get_param($) {
 # get the name of the build file
 sub build_fname($$$$)
 {
-    my $tree=shift;
-    my $host=shift;
-    my $compiler=shift;
-    my $rev=shift;
+    my ($tree, $host, $compiler, $rev) = @_;
     if ($rev) {
 	    return "oldrevs/build.$tree.$host.$compiler-$rev";
     }
@@ -198,10 +192,7 @@ sub get_old_revs($$$)
 # get the age of build from mtime
 sub build_age_mtime($$$$)
 {
-    my $host=shift;
-    my $tree=shift;
-    my $compiler=shift;
-    my $rev=shift;
+	my ($host, $tree, $compiler, $rev) = @_;
     my $file=build_fname($tree, $host, $compiler, $rev);
     my $age = -1;
     my $st;
@@ -218,11 +209,8 @@ sub build_age_mtime($$$$)
 # get the age of build from ctime
 sub build_age_ctime($$$$)
 {
-    my $host=shift;
-    my $tree=shift;
-    my $compiler=shift;
-    my $rev=shift;
-    my $file=build_fname($tree, $host, $compiler, $rev);
+	my ($host, $tree, $compiler, $rev) = @_;
+    my $file = build_fname($tree, $host, $compiler, $rev);
     my $age = -1;
     my $st;
 
@@ -238,11 +226,8 @@ sub build_age_ctime($$$$)
 # get the svn revision of build
 sub build_revision($$$$)
 {
-    my $host=shift;
-    my $tree=shift;
-    my $compiler=shift;
-    my $rev=shift;
-    my $file=build_fname($tree, $host, $compiler, $rev);
+	my ($host, $tree, $compiler, $rev) = @_;
+    my $file = build_fname($tree, $host, $compiler, $rev);
     my $log;
     my $ret = 0;
 
@@ -307,11 +292,8 @@ sub red_age($)
 # get status of build
 sub build_status($$$$)
 {
-    my $host=shift;
-    my $tree=shift;
-    my $compiler=shift;
-    my $rev=shift;
-    my $file=build_fname($tree, $host, $compiler, $rev);
+	my ($host, $tree, $compiler, $rev) = @_;
+    my $file = build_fname($tree, $host, $compiler, $rev);
     my $cachefile="$CACHEDIR/" . $file . ".status";
     my ($cstatus, $bstatus, $istatus, $tstatus, $sstatus, $dstatus);
     $cstatus = $bstatus = $istatus = $tstatus = $sstatus = $dstatus = 
@@ -406,11 +388,8 @@ sub build_status_vals($) {
 # get status of build
 sub err_count($$$$)
 {
-    my $host=shift;
-    my $tree=shift;
-    my $compiler=shift;
-    my $rev=shift;
-    my $file=build_fname($tree, $host, $compiler, $rev);
+    my ($host, $tree, $compiler, $rev) = @_;
+    my $file = build_fname($tree, $host, $compiler, $rev);
     my $err;
 
     my $st1 = stat("$file.err");
@@ -452,12 +431,12 @@ sub view_summary($) {
 
     # zero broken and panic counters
     for my $tree (keys %trees) {
-	$broken_count{$tree} = 0;
-	$panic_count{$tree} = 0;
-	$host_count{$tree} = 0;
+		$broken_count{$tree} = 0;
+		$panic_count{$tree} = 0;
+		$host_count{$tree} = 0;
     }
 
-    #set up a variable to store the broken builds table's code, so we can output when we want
+    # set up a variable to store the broken builds table's code, so we can output when we want
     my $broken_table = "";
     my $host_os;
     my $last_host = "";
@@ -507,13 +486,11 @@ sub view_summary($) {
 EOHEADER
     }
 
-
     for my $tree (sort keys %trees) {
 	    if ($output_type eq 'text') {
 		    printf "%-12s %-6s %-6s %-6s\n", $tree, $host_count{$tree},
 			    $broken_count{$tree}, $panic_count{$tree};
-	    }
-	    else {
+	    } else {
 		    print "    <tr><td><a href=\"$myself?function=Recent+Builds;tree=$tree\" title=\"View recent builds for $tree\">$tree</a></td><td>$host_count{$tree}</td><td>$broken_count{$tree}</td>";
 		    my $panic = "";
 		    if ($panic_count{$tree}) {
@@ -525,8 +502,7 @@ EOHEADER
 
     if ($output_type eq 'text') {
 	    print "\n";
-    }
-    else {
+    } else {
 	    print "  </tbody>\n</table></div>\n";
     }
 }
@@ -556,8 +532,7 @@ sub view_recent_builds() {
 			 # handle panic
 			 if (defined $bstat[4] && !defined $astat[4]) {
 				 return 1;
-			 }
-			 elsif (!defined $bstat[4] && defined $astat[4]) {
+			 } elsif (!defined $bstat[4] && defined $astat[4]) {
 				 return -1;
 			 }
 			 return ($bstat[0] <=> $astat[0] || # configure
@@ -565,11 +540,11 @@ sub view_recent_builds() {
 				 $bstat[2] <=> $astat[2] || # install
 				 $bstat[3] <=> $astat[3]    # test
 				);
-		 }
-	       };
+			}
+	};
 
-    my $tree=get_param("tree");
-    my $sort_by=get_param("sortby") || "revision"; # default to revision
+    my $tree = get_param("tree");
+    my $sort_by = get_param("sortby") || "revision"; # default to revision
 
     util::InArray($tree, [keys %trees]) || fatal("not a build tree");
     util::InArray($sort_by, [keys %$sort]) || fatal("not a valid sort");
@@ -1006,10 +981,9 @@ sub print_log_cc_checker($) {
 # generate html for a collapsible section
 sub make_collapsible_html($$$$)
 {
-  my $type = shift;   # the logical type of it. e.g. "test" or "action"
-  my $title = shift;   # the title to be displayed 
-  my $output = shift;
-  my $id = shift;
+  my ($type, # the logical type of it. e.g. "test" or "action"
+      $title, # the title to be displayed 
+      $output, $id) = @_;
   my $status = (shift or "");
 
   my $icon = (defined $status && ($status =~ /failed/i)) ? 'icon_hide_16.png' : 'icon_unhide_16.png';

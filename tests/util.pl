@@ -1,7 +1,9 @@
 #!/usr/bin/perl
 
-use lib "..";
-use lib "../web";
+use FindBin qw($RealBin);
+
+use lib "$RealBin/..";
+use lib "$RealBin/../web";
 
 use Test::More tests => 23;
 use strict;
