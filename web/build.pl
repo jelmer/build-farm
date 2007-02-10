@@ -1063,8 +1063,7 @@ if ($fn_name eq 'text_diff') {
 		get_param('tree'),
 		get_param('revision'),
 		"text");
-}
-elsif ($fn_name eq 'Text_Summary') {
+} elsif ($fn_name eq 'Text_Summary') {
 	cgi_headers_text();
 	chdir("$BASEDIR/data") || fatal("can't change to data directory");
 	view_summary('text');
