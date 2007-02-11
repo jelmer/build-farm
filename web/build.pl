@@ -497,7 +497,19 @@ sub revision_link($$)
 {
 	my ($revision, $tree) = @_;
 
-	return "$myself?function=diff;tree=$tree;revision=$revision";
+	$revision =~ s/^\s+//g;
+	return "0" if ($revision eq "0");
+
+	return $req->a({-href=>"$myself?function=diff;tree=$tree;revision=$revision"}, $revision);
+}
+
+###############################################
+# return a link to a particular tree
+sub tree_link($)
+{
+	my ($tree) = @_;
+
+	return $req->a({-href=>"$myself?function=Recent+Builds;tree=$tree"}, $tree);
 }
 
 ##############################################
@@ -543,7 +555,7 @@ sub view_recent_builds($$) {
 	  my $age_mtime = build_age_mtime($host, $tree, $compiler, "");
 	  my $age_ctime = build_age_ctime($host, $tree, $compiler, "");
 	  my $revision = build_revision($host, $tree, $compiler, "");
-	  push @all_builds, [$age_ctime, $hosts{$host}, $req->a({-href=>"$myself?function=View+Host;host=$host;tree=$tree;compiler=$compiler#$host"}, $host), $compiler, $tree, $status, $req->a({-href=>revision_link($revision, $tree)}, $revision)]
+	  push @all_builds, [$age_ctime, $hosts{$host}, $req->a({-href=>"$myself?function=View+Host;host=$host;tree=$tree;compiler=$compiler#$host"}, $host), $compiler, $tree, $status, revision_link($revision, $tree)]
 	  	unless $age_mtime == -1 or $age_mtime >= $DEADAGE;
       }
     }
@@ -646,7 +658,7 @@ sub show_oldrevs($$$)
 	    $s =~ s/$rev/0/;
 	    next if ($s eq $lastrev);
 	    $lastrev = $s;
-	    $ret.=$req->Tr($req->td([$req->a({-href=>revision_link($rev, $tree)}, $rev), $revs{$rev}]));
+	    $ret.=$req->Tr($req->td([revision_link($rev, $tree), $revs{$rev}]));
     }
     if ($lastrev ne "") {
     	print $ret . $req->end_tbody, $req->end_table;
@@ -697,8 +709,8 @@ sub view_build($$$$) {
 		$req->Tr([
 			$req->td(["Host:", $req->a({-href=>"$myself?function=View+Host;host=$host;tree=$tree;compiler=$compiler#$host"}, $host)." - $hosts{$host}"]),
 			$req->td(["Uname:", $uname]),
-			$req->td(["Tree:", $tree]),
-			$req->td(["Build Revision:", $req->a({-href=>revision_link($revision, $tree)}, $revision)]),
+			$req->td(["Tree:", tree_link($tree)]),
+			$req->td(["Build Revision:", revision_link($revision, $tree)]),
 			$req->td(["Build age:", $req->div({-class=>"age"}, red_age($age_mtime))]),
 			$req->td(["Status:", $status]),
 			$req->td(["Compiler:", $compiler]),
@@ -820,7 +832,7 @@ sub view_host {
 							$tree, $compiler, util::dhm_time($age_mtime), 
 								util::strip_html($status), $warnings;
 					} else {
-						print $req->Tr($req->td([$req->span({-class=>"tree"}, $tree)."/$compiler", $req->a({-href=>revision_link($revision, $tree)}, $revision), $req->div({-class=>"age"}, red_age($age_mtime)), $req->div({-class=>"status"}, $status), $warnings]));
+						print $req->Tr($req->td([$req->span({-class=>"tree"}, tree_link($tree))."/$compiler", revision_link($revision, $tree), $req->div({-class=>"age"}, red_age($age_mtime)), $req->div({-class=>"status"}, $status), $warnings]));
 					}
 					$row++;
 				}
