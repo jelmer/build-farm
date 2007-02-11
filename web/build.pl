@@ -714,7 +714,7 @@ sub view_build() {
 	    $rev_var = ";revision=$rev";
     }
 
-    print $req->start_div(-id=>"log");
+    print $req->start_div({-id=>"log"});
 
     if (!$plain_logs) {
 
@@ -745,14 +745,14 @@ sub view_build() {
 		    print $req->h2("No error log available");
 	    } else {
 		    print $req->h2('Error log:');
-		    print $req->div({-id=>"errorLog"}, $req->pre(join('', $err)));
+		    print $req->div({-id=>"errorLog"}, $req->pre($err));
 	    }
 	    if ($log eq "") {
 		    print $req->h2('No build log available');
 	    }
 	    else {
 		    print $req->h2('Build log:');
-		    print $req->div({-id=>"buildLog"}, $req->pre(join('', $log)));
+		    print $req->div({-id=>"buildLog"}, $req->pre($log));
 	    }
     }
 
@@ -820,7 +820,7 @@ sub view_host() {
 							$tree, $compiler, util::dhm_time($age_mtime), 
 								util::strip_html($status), $warnings;
 					} else {
-						print $req->Tr($req->td([$req->span({-class=>"tree"}, $tree)."/$compiler", $revision, "<div class=\"age\">" . red_age($age_mtime) . "</div>", $req->div({-class=>"status"}, $status), $warnings]));
+						print $req->Tr($req->td([$req->span({-class=>"tree"}, $tree)."/$compiler", $revision, $req->div({-class=>"age"}, red_age($age_mtime)), $req->div({-class=>"status"}, $status), $warnings]));
 					}
 					$row++;
 				}
@@ -881,7 +881,7 @@ sub print_log_pretty() {
 	      ==========================================\s+
 	     }{make_collapsible_html('test', $1, $2, $id++, $3)}exgs;
 
-  print $req->tt($req->pre(join('', $log)))."<p>\n";
+  print $req->p($req->tt($req->pre($log)))."\n";
 }
 
 ##############################################
@@ -966,19 +966,16 @@ sub make_collapsible_html($$$$)
   $output =~ s/\s+$//s;
 
   # note that we may be inside a <pre>, so we don't put any extra whitespace in this html
-  my $return = $req->div({-class=>"$type unit $status",
+  return $req->div({-class=>"$type unit $status",
 		                  -id=>"$type-$id"},
 					  $req->a({-href=>"javascript:handle('$id');"},
 						  $req->img({-id=>"img-$id", -name=>"img-$id",
 								    -alt=>$status,
 									-src=>$icon}),
 						  $req->div({-class => "$type title"}, $title),
-					  ) . 
+					  ) ." ". 
 					  $req->div({-class=> "$type status $status"}, $status) .
-					  $req->div({-class => "$type output", -id=>"output-$id"},
-					  $req->pre($output)));
-
-  return $return
+					  $req->div({-class => "$type output", -id=>"output-$id"}, $req->pre($output)));
 }
 
 ##############################################
