@@ -141,50 +141,6 @@ sub LoadStructure($)
     return eval FileLoad(shift);
 }
 
-####################################################################
-# setup for gzipped output of a web page if possible. 
-# based on cvsweb.pl method
-# as a side effect this function adds the final line ot the HTTP headers
-sub cgi_gzip()
-{
-    my $paths = ['/usr/bin/gzip', '/bin/gzip'];
-    my $GZIPBIN;
-    my $Browser = $ENV{'HTTP_USER_AGENT'} || "";
-
-#  newer browsers accept gzip content encoding
-# and state this in a header
-# (netscape did always but didn't state it)
-# It has been reported that these
-#  braindamaged MS-Internet Exploders claim that they
-# accept gzip .. but don't in fact and
-# display garbage then :-/
-# Turn off gzip if running under mod_perl. piping does
-# not work as expected inside the server. One can probably
-# achieve the same result using Apache::GZIPFilter.
-    my $maycompress = ((defined($ENV{'HTTP_ACCEPT_ENCODING'}) and $ENV{'HTTP_ACCEPT_ENCODING'} =~ m|gzip|
-			|| $Browser =~ m%^Mozilla/3%)
-		       && ($Browser !~ m/MSIE/)
-		       && !defined($ENV{'MOD_PERL'}));
-    
-    if (!$maycompress) { print "\r\n"; return; }
-
-    for my $p (@{$paths}) {
-	if (stat($p)) { $GZIPBIN = $p; }
-    }
-
-    my $fh = do {local(*FH);};
-
-    if (stat($GZIPBIN) && open($fh, "|$GZIPBIN -1 -c")) {
-	print "Content-encoding: x-gzip\r\n";
-	print "Vary: Accept-Encoding\r\n";  #RFC 2068, 14.43
-	print "\r\n"; # Close headers
-	$| = 1; $| = 0; # Flush header output
-	select ($fh);
-    } else {
-	print "\r\n";
-    }
-}
-
 ##########################################
 # count the number of lines in a buffer
 sub count_lines($)
