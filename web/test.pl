@@ -21,7 +21,7 @@ sub show_summary($)
 	my $tree = shift;
 
 	print $cgi->start_table,
-	      $cgi->thead($cgi->Tr($cgi->th(["Test", "Breakages", "Hosts"]))),
+	      $cgi->thead($cgi->Tr($cgi->th(["Test", "Breakages", "Last Broken Build", "Hosts"]))),
 		  $cgi->start_tbody;
 
 	my $failed = {};
@@ -48,20 +48,32 @@ sub show_summary($)
 		
 		my $percentage = $numfails / ($numfails+$success->{$_}) * 100.0;
 		my $hosts = "";
+		my $last_broken_rev = 0;
 		foreach (@{$failed->{$_}}) {
 			$hosts .= $cgi->a({-href=>"/test.pl?build=".uri_escape($_->[5]).";test=".uri_escape($_->[0])}, "$_->[1]/$_->[2]($_->[4])"). " ";
+			if ($_->[4] > $last_broken_rev) {
+				$last_broken_rev = $_->[4];
+			}
 		}
 
-		push (@problematic_tests, [$percentage, $numfails, $success->{$_}, $_, $hosts]);
+		push (@problematic_tests, [$last_broken_rev, $percentage, $numfails, $success->{$_}, $_, $hosts]);
+	}
+
+	sub sortfn {
+		my $ret = $$b[0] <=> $$a[0];
+		return $ret unless ($ret);
+		return $$b[1] <=> $$a[1];
 	}
 
 	@problematic_tests = sort { $$b[0] <=> $$a[0] } @problematic_tests;
 
 	foreach (@problematic_tests) {
-		my ($percentage, $numfails, $numpass, $name, $hosts) = @$_;
+		my ($last_broken_rev, $percentage, $numfails, $numpass, $name, $hosts) = @$_;
+		my $clr = int(2.55 * $percentage)+40;
 		print $cgi->start_Tr,
 		      $cgi->td($cgi->a({-href=>"/test.pl?test=".uri_escape($name)}, $name)),
-			  $cgi->td("$numfails/".($numpass+$numfails).sprintf(" (%.2f%%)", $percentage)), 
+			  $cgi->td({-style => "color: rgb($clr,".(255-$clr).",0);"}, "$numfails/".($numpass+$numfails).sprintf(" (%.2f%%)", $percentage)), 
+			  $cgi->td($last_broken_rev),
 			  $cgi->td($hosts),
 			  $cgi->end_Tr;
 	}
