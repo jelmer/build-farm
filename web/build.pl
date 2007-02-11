@@ -127,8 +127,7 @@ sub get_param($) {
     my @result = ();
     if (wantarray) {
 	    @result = $req->param($param);
-    }
-    else {
+    } else {
 	    $result[0] = $req->param($param);
     }
 
@@ -300,7 +299,7 @@ sub build_status($$$$)
     my $st2 = stat("$cachefile");
 
     if ($st1 && $st2 && $st1->ctime <= $st2->mtime) {
-	return util::FileLoad($cachefile);
+		return util::FileLoad($cachefile);
     }
 
     $log = util::FileLoad("$file.log");
