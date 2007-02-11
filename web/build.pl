@@ -5,6 +5,7 @@
 # Copyright (C) Andrew Bartlett <abartlet@samba.org>   2001
 # Copyright (C) Vance Lankhaar  <vance@samba.org>      2002-2005
 # Copyright (C) Martin Pool <mbp@samba.org>            2001
+# Copyright (C) Jelmer Vernooij <jelmer@samba.org>	   2007
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -102,6 +103,7 @@ sub cgi_headers() {
 # end CGI
 sub cgi_footers() {
 	print util::FileLoad("$BASEDIR/web/footer.html");
+	print end_html;
 }
 
 ################################################
@@ -462,9 +464,9 @@ sub view_summary($) {
 	    printf "%-12s %-6s %-6s %-6s\n", "Tree", "Total", "Broken", "Panic";
     }
     else {
-	    print <<EOHEADER;
-<div id="build-counts" class="build-section">
-<h2>Build counts:</h2>
+	    print $req->start_div(-id=>"build-counts", -class=>"build-section");
+		print $req->h2('Build counts:');
+		print <<EOHEADER
 <table class="real">
   <thead>
     <tr>
@@ -492,7 +494,8 @@ EOHEADER
     if ($output_type eq 'text') {
 	    print "\n";
     } else {
-	    print "  </tbody>\n</table></div>\n";
+	    print "  </tbody>\n</table>";
+		print end_div;
     }
 }
 
@@ -628,7 +631,7 @@ sub show_oldrevs($$$)
 
     return if ($#revs < 1);
 
-    print "<h2>Older builds:</h2>\n";
+    print $req->h2("Older builds:");
 
     print "
 <table class=\"real\">
@@ -716,13 +719,13 @@ sub view_build() {
 	    $rev_var = ";revision=$rev";
     }
 
-    print "<div id=\"log\">\n";
+    print $req->start_div(-id=>"log");
 
     if (!$plain_logs) {
 
 	    print "<p>Switch to the <a href=\"$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler$rev_var;plain=true\" title=\"Switch to bland, non-javascript, unstyled view\">Plain View</a></p>";
 
-	    print "<div id=\"actionList\">\n";
+	    print $req->start_div(-id=>"actionList");
 	    # These can be pretty wide -- perhaps we need to 
 	    # allow them to wrap in some way?
 	    if ($err eq "") {
@@ -740,26 +743,25 @@ sub view_build() {
 	    }
 
 	    print "<p><small>Some of the above icons derived from the <a href=\"http://www.gnome.org\">Gnome Project</a>'s stock icons.</p>";
-	    print "</div>\n";
-    }
-    else {
+		print $req->end_div;
+    } else {
 	    print "<p>Switch to the <a href=\"$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler$rev_var\" title=\"Switch to colourful, javascript-enabled, styled view \">Enhanced View</a></p>";
 	    if ($err eq "") {
 		    print "<h2>No error log available</h2>\n";
 	    } else {
-		    print "<h2>Error log:</h2>\n";
+		    print $req->h2('Error log:');
 		    print "<div id=\"errorLog\"><pre>" . join('', $err) . "</pre></div>\n";
 	    }
 	    if ($log eq "") {
-		    print "<h2>No build log available</h2>n";
+		    print $req->h2('No build log available');
 	    }
 	    else {
-		    print "<h2>Build log:</h2>\n";
+		    print $req->h2('Build log:');
 		    print "<div id=\"buildLog\"><pre>" . join('', $log) . "</pre></div>\n";
 	    }
     }
 
-    print "</div>\n";
+	print $req->end_div;
 }
 
 ##################################################
@@ -772,7 +774,7 @@ sub view_host() {
 		print "Host summary:\n";
 	} else {
 		print "<div class=\"build-section\" id=\"build-summary\">\n";
-		print "<h2>Host summary:</h2>\n";
+		print $req->h2('Host summary:');
 	}
 
 	my $list = `ls *.log`;
@@ -844,7 +846,6 @@ EOHEADER
 			push(@deadhosts, $host);
 		}
 	}
-
 
 	if ($output_type ne 'text') {
 		print "</div>\n\n";
@@ -993,7 +994,7 @@ sub make_collapsible_html($$$$)
 # main page
 sub main_menu() {
     print $req->startform("GET");
-    print "<div id=\"build-menu\">\n";
+	print $req->start_div(-id=>"build-menu");
     print $req->popup_menu(-name=>'host',
 			   -values=>\@hosts,
 			   -labels=>\%hosts) . "\n";
@@ -1005,7 +1006,7 @@ sub main_menu() {
     print $req->submit('function', 'Recent Checkins') . "\n";
     print $req->submit('function', 'Summary') . "\n";
     print $req->submit('function', 'Recent Builds') . "\n";
-    print "</div>\n";
+	print $req->end_div;
     print $req->endform() . "\n";
 }
 

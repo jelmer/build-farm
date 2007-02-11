@@ -21,6 +21,9 @@ use POSIX;
 use Data::Dumper;
 use File::stat;
 use Carp;
+use Net::XMPP;
+use Getopt::Long;
+use strict;
 
 my $WEBDIR = "$RealBin/web";
 my $BASEDIR = "$WEBDIR/..";
@@ -74,8 +77,7 @@ my $dry_run = 0;
 if ($#ARGV >= 0 && $ARGV[0] eq "-n") {
   $dry_run = 1;
   shift @ARGV;
-}
-if ($#ARGV < 0 || $ARGV[0] eq "-h" || $ARGV[0] eq "--help") {
+} if ($#ARGV < 0 || $ARGV[0] eq "-h" || $ARGV[0] eq "--help") {
   print <<EOU;
 Usage: analyse.pl [-n] <LOGFILE>
 
@@ -158,14 +160,17 @@ $log =~ s/\n(r(\d+).*)/$1\nhttp:\/\/build.samba.org\/?function=diff;tree=${tree}
 
 my $recipients = join(",", keys %culprits);
 
+my $subject = "BUILD of $tree BROKEN on $host with $compiler AT REVISION $rev";
+
 # send the nastygram
 if ($dry_run) {
+  print "$subject\n";
   open(MAIL,"|cat");
 } else {
-  open(MAIL,"|Mail -s \"BUILD of $tree BROKEN on $host with $compiler AT REVISION $rev\" $recipients");
+  open(MAIL,"|Mail -s \"$subject\" $recipients");
 }
 
-print MAIL << "__EOF__";
+my $body = << "__EOF__";
 Broken build for tree $tree on host $host with compiler $compiler
 Build status for revision $rev is $status
 Build status for revision $rev2 is $status2
@@ -176,5 +181,41 @@ The build may have been broken by one of the following commits:
 
 $log
 __EOF__
+print MAIL $body;
 
 close(MAIL);
+
+# Send message to jabber group
+my $cnx = new Net::XMPP::Client();
+
+$cnx->Connect(hostname => "jabber.org");
+
+require "/home/build/.jabberpw";
+
+$cnx->AuthSend('hostname' => "jabber.org",
+					  'username' => "samba-build",
+					  'password' => $pw,
+					  'resource' => "analyse");
+
+# set the presence
+my $pres = new Net::XMPP::Presence;
+my $res = $pres->SetTo("samba-build-breakage/analyse");
+
+$cnx->Send($pres); 
+
+# create/send the message
+my $groupmsg = new Net::XMPP::Message;
+$groupmsg->SetMessage(to => "samba-build-breakage", body => $body, subject => $subject, type => 'groupchat');
+$res = $cnx->Send($groupmsg);
+$pres->SetPresence (Type=>'unavailable', To=>"samba-build-breakage");
+
+require "jabber-users";
+
+# Send messages to individual users where the Jabber adress is known
+foreach (keys %culprits) {
+	next unless(defined($users{$_}));
+
+	$cnx->MessageSend('to' => $users{$_}, 'subject' => $subject, 'body' => $msg);
+}
+
+$cnx->Disconnect();

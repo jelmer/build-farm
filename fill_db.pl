@@ -36,6 +36,7 @@ foreach my $logfn (@ARGV) {
 
 	my ($rev) = ($data =~ /BUILD REVISION: ([^\n]+)/);
 	my $st = $dbh->prepare("INSERT INTO build (tree, revision, host, compiler, checksum) VALUES (?, ?, ?, ?, ?)");
+	# FIXME: add build time
 	$st->execute($tree, $rev, $host, $compiler, $checksum);
 	my $build = $dbh->func('last_insert_rowid');
 
