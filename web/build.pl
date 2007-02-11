@@ -576,9 +576,15 @@ sub view_recent_builds() {
     for my $build (@all_builds) {
 	my $age_mtime = $$build[0];
 	my $rev = $$build[6];
-	print $req->Tr(map($req->td, util::dhm_time($age_mtime),
-	       $rev, @$build[4, 1, 2, 3, 5]));
-    }
+		print $req->Tr(
+			  $req->td(util::dhm_time($age_mtime)),
+		      $req->td($rev), 
+			  $req->td($$build[4]),
+			  $req->td($$build[1]),
+			  $req->td($$build[2]),
+			  $req->td($$build[3]),
+			  $req->td($$build[5]));
+	}
     print $req->end_tbody, $req->end_table;
 	print $req->end_div;
 }
