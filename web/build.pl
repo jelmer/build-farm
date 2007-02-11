@@ -25,7 +25,8 @@
 # e.g. only broken builds or only builds that you care about.
 
 
-use strict qw{vars};
+use strict;
+use warnings;
 use FindBin qw($RealBin);
 
 use lib "$RealBin";
@@ -396,7 +397,8 @@ sub err_count($$$$)
 
 ##############################################
 # view build summary
-sub view_summary($) {
+sub view_summary($) 
+{
     my $i = 0;
     my $list = `ls *.log`;
     my $cols = 2;
@@ -452,8 +454,7 @@ sub view_summary($) {
     if ($output_type eq 'text') {
 	    print "Build counts:\n";
 	    printf "%-12s %-6s %-6s %-6s\n", "Tree", "Total", "Broken", "Panic";
-    }
-    else {
+    } else {
 	    print $req->start_div(-id=>"build-counts", -class=>"build-section");
 		print $req->h2('Build counts:');
 		print $req->start_table({-class => "real"}),
@@ -469,8 +470,7 @@ sub view_summary($) {
 			    $broken_count{$tree}, $panic_count{$tree};
 	    } else {
 			print $req->start_Tr;
-			print $req->td($req->a({-href=>"$myself?function=Recent+Builds;tree=$tree",
-					       -title=>"View recent builds for $tree"}, $tree));
+			print $req->td(tree_link($tree));
 			print $req->td($host_count{$tree});
 			print $req->td($broken_count{$tree});
 		    if ($panic_count{$tree}) {
@@ -500,7 +500,10 @@ sub revision_link($$)
 	$revision =~ s/^\s+//g;
 	return "0" if ($revision eq "0");
 
-	return $req->a({-href=>"$myself?function=diff;tree=$tree;revision=$revision"}, $revision);
+	return $req->a({
+			-href=>"$myself?function=diff;tree=$tree;revision=$revision",
+			-title=>"View Diff for $revision"
+		}, $revision);
 }
 
 ###############################################
@@ -509,7 +512,8 @@ sub tree_link($)
 {
 	my ($tree) = @_;
 
-	return $req->a({-href=>"$myself?function=Recent+Builds;tree=$tree"}, $tree);
+	return $req->a({-href=>"$myself?function=Recent+Builds;tree=$tree",
+					-title=>"View recent builds for $tree"}, $tree);
 }
 
 ##############################################
@@ -565,9 +569,8 @@ sub view_recent_builds($$) {
     my $sorturl = "$myself?tree=$tree;function=Recent+Builds";
 
 	print $req->start_div(-id=>"recent-builds", -class=>"build-section"),
-		  $req->h2("Recent builds of $tree");
-
-	print $req->start_table({-class => "real"}),
+		  $req->h2("Recent builds of $tree"),
+		  $req->start_table({-class => "real"}),
 	      $req->thead(
 			  $req->Tr(
 				  $req->th($req->a({-href => "$sorturl;sortby=age",
@@ -610,17 +613,14 @@ sub draw_dead_hosts {
 	return if ($output_type eq 'text');
 
 	print $req->start_div(-class => "build-section", -id=>"dead-hosts"),
-		  $req->h2('Dead Hosts:');
-	print $req->start_table({-class => "real"}),
-		  $req->thead(
-			  $req->Tr(
-				  $req->th("Host"), $req->th("OS"),
-				  $req->th("Min Age"))),
+		  $req->h2('Dead Hosts:'),
+		  $req->start_table({-class => "real"}),
+		  $req->thead($req->Tr($req->th(["Host", "OS", "Min Age"]))),
 		  $req->start_tbody;
 
     for my $host (@deadhosts) {
 	my $age_ctime = host_age($host);
-	print $req->tr($req->td([$host, $hosts{$host}, util::dhm_time($age_ctime)));
+	print $req->tr($req->td([$host, $hosts{$host}, util::dhm_time($age_ctime)]));
     }
 
 	print $req->end_tbody, $req->end_table;

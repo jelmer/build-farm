@@ -1,7 +1,5 @@
 #!/usr/bin/perl
 
-print "Content-Type: text/html\n\n";
-
 use DBI;
 
 use FindBin qw($RealBin);
@@ -16,13 +14,15 @@ my $dbh = DBI->connect( "dbi:SQLite:$RealBin/../data.dbl" ) || die "Cannot conne
 
 my $cgi = new CGI;
 
+print $cgi->header;
+
 sub show_summary($)
 {
 	my $tree = shift;
 
-	print $cgi->start_table();
-	print "<thead><tr><td>Test</td><td>Breakages</td><td>Hosts</td></tr></thead>\n";
-	print "<tbody>\n";
+	print $cgi->start_table,
+	      $cgi->thead($cgi->Tr($cgi->th(["Test", "Breakages", "Hosts"]))),
+		  $cgi->start_tbody;
 
 	my $failed = {};
 	my $success = {};
@@ -39,24 +39,34 @@ sub show_summary($)
 		}
 	}
 
+	my @problematic_tests = ();
+
 	foreach (keys %$failed) {
 		next if ($#{$failed->{$_}} == -1);
 		
 		my $numfails = $#{$failed->{$_}}+1;
 		
-		print "<tr>" . $cgi->td($cgi->a({-href=>"/test.pl?test=".uri_escape($_)}, $_));
-
-		printf "<td>$numfails (%.2f%%)</td><td>", ($numfails / ($numfails+$success->{$_}) * 100.0);
-
+		my $percentage = $numfails / ($numfails+$success->{$_}) * 100.0;
+		my $hosts = "";
 		foreach (@{$failed->{$_}}) {
-			print $cgi->a({-href=>"/test.pl?build=".uri_escape($_->[5]).";test=".uri_escape($_->[0])}, "$_->[1]/$_->[2]($_->[4])"). " ";
+			$hosts .= $cgi->a({-href=>"/test.pl?build=".uri_escape($_->[5]).";test=".uri_escape($_->[0])}, "$_->[1]/$_->[2]($_->[4])"). " ";
 		}
 
-		print "</td></tr>\n";
+		push (@problematic_tests, [$percentage, $numfails, $success->{$_}, $_, $hosts]);
 	}
 
-	print "</tbody>\n";
-	print $cgi->end_table;
+	@problematic_tests = sort { $$b[0] <=> $$a[0] } @problematic_tests;
+
+	foreach (@problematic_tests) {
+		my ($percentage, $numfails, $numpass, $name, $hosts) = @$_;
+		print $cgi->start_Tr,
+		      $cgi->td($cgi->a({-href=>"/test.pl?test=".uri_escape($name)}, $name)),
+			  $cgi->td("$numfails/".($numpass+$numfails).sprintf(" (%.2f%%)", $percentage)), 
+			  $cgi->td($hosts),
+			  $cgi->end_Tr;
+	}
+
+	print $cgi->end_tbody, $cgi->end_table;
 }
 
 sub show_test_host($$)
