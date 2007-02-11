@@ -10,7 +10,7 @@
 # $ ../analyse.pl -n build.$PRODUCT.$HOST.$COMPILER.log
 #
 
-use strict qw{vars};
+#use strict qw{vars};
 use FindBin qw($RealBin);
 
 use lib "$RealBin";
@@ -94,7 +94,7 @@ my $fname = $ARGV[0];
 my ($tree, $host, $compiler);
 
 # break up the name into components
-if ($fname =~ /^build\.([\w-]+)\.([\w-]+)\.([\w.-]+)\.log$/) {
+if ($fname =~ /build\.([\w-]+)\.([\w-]+)\.([\w.-]+)\.log$/) {
 	$tree = $1;
 	$host = $2;
 	$compiler = $3;
@@ -150,9 +150,9 @@ my $log = `svn log --non-interactive -r $firstrev:$rev $unpacked_dir/$tree` || d
 my $log2 = $log;
 my %culprits;
 
-while ($log2 =~ /\nr\d+ \| (\w+) \|.*?lines\n(.*)$/s) {
+while ($log2 =~ /\nr\d+ \| (\w+) \|.*?line(s?)\n(.*)$/s) {
     $culprits{$1} = 1; 
-    $log2 = $2;
+    $log2 = $3;
 }
 
 # Add a URL to the diffs for each change
@@ -190,32 +190,73 @@ my $cnx = new Net::XMPP::Client();
 
 $cnx->Connect(hostname => "jabber.org");
 
-require "/home/build/.jabberpw";
+sub read_config_file ($) {
+	# This function was copied from the sendxmpp source, (C) DJCBB
+    my $cfg_file = shift;
+    
+    open (CFG,"<$cfg_file") || die("cannot open $cfg_file for reading: $!");
 
-$cnx->AuthSend('hostname' => "jabber.org",
-					  'username' => "samba-build",
-					  'password' => $pw,
-					  'resource' => "analyse");
+	my $line = 0;
+    my %config;
+    while (<CFG>) {
+		++$line;
+	next if (/^\s*$/);     # ignore empty lines
+	next if (/^\s*\#.*/);  # ignore comment lines
+	
+	s/\#.*$//; # ignore comments in lines
+	
+	if (/([-\.\w]+)@([-\.\w:]+)\s+(\S+)\s*$/) {
+	    %config = ('username' => $1,
+		       'jserver'  => $2, 
+		       'port'     => 0,
+		       'password' => $3);
+
+	    if ($config{'jserver'} =~ /(.*):(\d+)/) {
+		$config{'jserver'} = $1;
+		$config{'port'}    = $2;
+	    }
+	} else {
+	    close CFG;
+	    die("syntax error in line $line of $cfg_file");
+	}
+    }
+    
+    close CFG;
+    
+    die ("no correct config found in $cfg_file") 
+      unless (scalar(%config));       
+
+    return \%config;	           
+}
+
+my $jabber_config = read_config_file("$ENV{HOME}/.sendxmpprc");
+
+$cnx->AuthSend(%$jabber_config);
 
 # set the presence
-my $pres = new Net::XMPP::Presence;
-my $res = $pres->SetTo("samba-build-breakage/analyse");
-
-$cnx->Send($pres); 
-
-# create/send the message
-my $groupmsg = new Net::XMPP::Message;
-$groupmsg->SetMessage(to => "samba-build-breakage", body => $body, subject => $subject, type => 'groupchat');
-$res = $cnx->Send($groupmsg);
-$pres->SetPresence (Type=>'unavailable', To=>"samba-build-breakage");
-
-require "jabber-users";
+my $users = {
+	jelmer => "ctrlsoft\@jabber.org"
+};
 
 # Send messages to individual users where the Jabber adress is known
 foreach (keys %culprits) {
-	next unless(defined($users{$_}));
+	next unless(defined($users->{$_}));
 
-	$cnx->MessageSend('to' => $users{$_}, 'subject' => $subject, 'body' => $msg);
+	$cnx->MessageSend('to' => $users->{$_}, 'subject' => $subject, 'body' => "You might have broken the build!\n\n" . $body);
 }
+
+# set the presence
+my $pres = new Net::XMPP::Presence;
+my $res = $pres->SetTo("samba-build-breakage\@conference.jabber.org/analyse");
+
+$cnx->Send($pres); 
+
+my $groupmsg = new Net::XMPP::Message;
+$groupmsg->SetMessage(to => "samba-build-breakage\@conference.jabber.org", body => $body, type => 'groupchat');
+
+$cnx->Send($groupmsg);
+
+# leave the group
+$pres->SetPresence (Type=>'unavailable',To=>"samba-build-breakage\@conference.jabber.org");
 
 $cnx->Disconnect();
