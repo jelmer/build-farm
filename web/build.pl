@@ -77,7 +77,7 @@ sub cgi_headers() {
 			-lang => "en-us",
 			-head => [
 				Link({-rel => "stylesheet",
-					  -href => "build_farm.css",
+					  -href => "/build_farm.css",
 					  -type => "text/css",
 					  -media => "all"}),
 			    Link({-rel => "stylesheet",
@@ -106,7 +106,6 @@ sub cgi_footers() {
 sub fatal($) {
     my $msg = shift;
 
-    cgi_headers();
     print $req->h1("ERROR: $msg");
     cgi_footers();
     exit(0);
@@ -349,7 +348,7 @@ sub build_status($$$$)
 	$sstatus .= "/".$req->span({-class=>"status checker"}, $1);
     }
 
-	$req->a({-href=>"$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler" . ($rev?";revision=$rev":"")}, "$cstatus/$bstatus/$istatus/$tstatus$sstatus$dstatus");
+    $ret = $req->a({-href=>"$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler" . ($rev?";revision=$rev":"")}, "$cstatus/$bstatus/$istatus/$tstatus$sstatus$dstatus");
 
     util::FileSave("$CACHEDIR/$file.status", $ret);
 
@@ -1032,9 +1031,13 @@ if ($fn_name eq 'text_diff') {
 		  get_param('tree'),
 		  get_param('revision'),
 		  "html");
-  } elsif (path_info() ne "") {
-	my $paths = split('/');
-	print $paths[0];
+  } elsif (path_info() ne "" and path_info() ne "/") {
+	my @paths = split('/', path_info());
+	if ($paths[1] eq "recent") {
+		view_recent_builds($paths[2], get_param('sortby') || 'revision');
+	} elsif ($paths[1] eq "host") {
+		view_host($paths[2]);
+	}
   } else {
     view_summary('html');
   }
