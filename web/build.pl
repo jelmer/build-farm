@@ -461,7 +461,7 @@ sub view_summary($) {
     else {
 	    print $req->start_div(-id=>"build-counts", -class=>"build-section");
 		print $req->h2('Build counts:');
-		print $req->start_table(-class => "real"),
+		print $req->start_table({-class => "real"}),
 			  $req->thead(
 				  $req->Tr($req->th("Tree"), $req->th("Total"), 
 					       $req->th("Broken"), $req->th("Panic"))),
@@ -473,7 +473,7 @@ sub view_summary($) {
 		    printf "%-12s %-6s %-6s %-6s\n", $tree, $host_count{$tree},
 			    $broken_count{$tree}, $panic_count{$tree};
 	    } else {
-			print $req->start_tr;
+			print $req->start_Tr;
 			print $req->td($req->a({-href=>"$myself?function=Recent+Builds;tree=$tree",
 					       -title=>"View recent builds for $tree"}, $tree));
 			print $req->td($host_count{$tree});
@@ -483,7 +483,7 @@ sub view_summary($) {
 			    $panic = " class=\"panic\"";
 		    }
 		    print "<td$panic>$panic_count{$tree}</td>";
-			print $req->end_tr;
+			print $req->end_Tr;
 	    }
     }
 
@@ -552,7 +552,7 @@ sub view_recent_builds() {
 	print $req->start_div(-id=>"recent-builds", -class=>"build-section"),
 		  $req->h2("Recent builds of $tree");
 
-	print $req->start_table(-class => "real"),
+	print $req->start_table({-class => "real"}),
 	      $req->thead(
 			  $req->Tr(
 				  $req->th($req->a({-href => "$sorturl;sortby=age",
