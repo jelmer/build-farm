@@ -63,14 +63,9 @@ my (@deadhosts) = ();
 # URL so I can refer to myself in links
 my $myself = $req->url();
 
-my $cgi_headers_done = 0;
-
 ################################################
 # start CGI headers
 sub cgi_headers() {
-    return if ($cgi_headers_done);
-    $cgi_headers_done = 1;
-
 	print header;
 	print start_html(-title => 'samba.org build farm',
 		    -script => {-language=> 'JAVASCRIPT', -src=>"/build_farm.js" },
@@ -103,7 +98,7 @@ sub cgi_headers() {
 # end CGI
 sub cgi_footers() {
 	print util::FileLoad("$BASEDIR/web/footer.html");
-	print end_html;
+	print $req->end_html;
 }
 
 ################################################
@@ -112,7 +107,7 @@ sub fatal($) {
     my $msg = shift;
 
     cgi_headers();
-    print "<h1>ERROR: $msg</h1>\n";
+    print $req->h1("ERROR: $msg");
     cgi_footers();
     exit(0);
 }
@@ -466,15 +461,11 @@ sub view_summary($) {
     else {
 	    print $req->start_div(-id=>"build-counts", -class=>"build-section");
 		print $req->h2('Build counts:');
-		print <<EOHEADER
-<table class="real">
-  <thead>
-    <tr>
-      <th>Tree</th><th>Total</th><th>Broken</th><th>Panic</th>
-    </tr>
-  </thead>
-  <tbody>
-EOHEADER
+		print $req->start_table(-class => "real"),
+			  $req->thead(
+				  $req->tr($req->th("Tree"), $req->th("Total"), 
+					       $req->th("Broken"), $req->th("Panic"))),
+		      $req->start_tbody;
     }
 
     for my $tree (sort keys %trees) {
@@ -482,23 +473,25 @@ EOHEADER
 		    printf "%-12s %-6s %-6s %-6s\n", $tree, $host_count{$tree},
 			    $broken_count{$tree}, $panic_count{$tree};
 	    } else {
-		    print "    <tr><td>";
-			print $req->a({-href=>"$myself?function=Recent+Builds;tree=$tree",
-					       -title=>"View recent builds for $tree"}, $tree);
-			print "</td><td>$host_count{$tree}</td><td>$broken_count{$tree}</td>";
+			print $req->start_tr;
+			print $req->td($req->a({-href=>"$myself?function=Recent+Builds;tree=$tree",
+					       -title=>"View recent builds for $tree"}, $tree));
+			print $req->td($host_count{$tree});
+			print $req->td($broken_count{$tree});
 		    my $panic = "";
 		    if ($panic_count{$tree}) {
 			    $panic = " class=\"panic\"";
 		    }
-		    print "<td$panic>$panic_count{$tree}</td></tr>\n";
+		    print "<td$panic>$panic_count{$tree}</td>";
+			print $req->end_tr;
 	    }
     }
 
     if ($output_type eq 'text') {
 	    print "\n";
     } else {
-	    print "  </tbody>\n</table>";
-		print end_div;
+		print $req->end_tbody, $req->end_table;
+		print $req->end_div;
     }
 }
 
@@ -547,7 +540,7 @@ sub view_recent_builds() {
 	  my $age_mtime = build_age_mtime($host, $tree, $compiler, "");
 	  my $age_ctime = build_age_ctime($host, $tree, $compiler, "");
 	  my $revision = build_revision($host, $tree, $compiler, "");
-	  push @all_builds, [$age_ctime, $hosts{$host}, "<a href=\"$myself?function=View+Host;host=$host;tree=$tree;compiler=$compiler#$host\">$host</a>", $compiler, $tree, $status, $revision]
+	  push @all_builds, [$age_ctime, $hosts{$host}, $req->a({-href=>"$myself?function=View+Host;host=$host;tree=$tree;compiler=$compiler#$host"}, $host), $compiler, $tree, $status, $revision]
 	  	unless $age_mtime == -1 or $age_mtime >= $DEADAGE;
       }
     }
@@ -556,35 +549,38 @@ sub view_recent_builds() {
 
     my $sorturl = "$myself?tree=$tree;function=Recent+Builds";
 
-    print <<EOHEADER;
+	print $req->start_div(-id=>"recent-builds", -class=>"build-section"),
+		  $req->h2("Recent builds of $tree");
 
-    <div id="recent-builds" class="build-section">
-    <h2>Recent builds of $tree</h2>
-      <table class="real">
-	<thead>
-	  <tr>
-            <th><a href="$sorturl;sortby=age" title="Sort by build age">Age</a></th>
-            <th><a href="$sorturl;sortby=revision" title="Sort by build revision">Revision</a></th>
-            <th>Tree</th>
-            <th><a href="$sorturl;sortby=platform" title="Sort by platform">Platform</a></th>
-            <th><a href="$sorturl;sortby=host" title="Sort by host">Host</a></th>
-            <th><a href="$sorturl;sortby=compiler" title="Sort by compiler">Compiler</a></th>
-            <th><a href="$sorturl;sortby=status" title="Sort by build status">Status</a></th>
-
-	  </tr>
-	</thead>
-        <tbody>
-EOHEADER
+	print $req->start_table(-class => "real"),
+	      $req->thead(
+			  $req->tr(
+				  $req->th($req->a({-href => "$sorturl;sortby=age",
+							        -title="Sort by build age"}, "Age")),
+				  $req->th($req->a({-href => "$sorturl;sortby=revision",
+							        -title => "Sort by build revision"},
+								    "Revision")),
+				  $req->th("Tree"),
+				  $req->th($req->a({-href => "$sorturl;sortby=platform",
+						           -title => "Sort by platform"}, "Platform")),
+				  $req->th($req->a({-href => "$sorturl;sortby=host",
+						           -title => "Sort by host"}, "Host")),
+				  $req->th($req->a({-href=>"$sorturl;sortby=compiler",
+							        -title=>"Sort by compiler"}, "Compiler")),
+				  $req->th($req->a({-href=>"$sorturl;sortby=status",
+							        -title=>"Sort by build status"}, "Status"))
+					)
+				),
+			$req->start_tbody;
 
     for my $build (@all_builds) {
 	my $age_mtime = $$build[0];
 	my $rev = $$build[6];
-	print "    <tr><td>",
-	  join("</td><td>" , util::dhm_time($age_mtime),
-	       $rev, @$build[4, 1, 2, 3, 5]),
-	  "</td></tr>\n";
+	print $req->tr(map($req->td, util::dhm_time($age_mtime),
+	       $rev, @$build[4, 1, 2, 3, 5]));
     }
-    print "  </tbody>\n</table>\n</div>\n";
+    print $req->end_tbody, $req->end_table;
+	print $req->end_div;
 }
 
 ##############################################
@@ -594,18 +590,14 @@ sub draw_dead_hosts {
     my @deadhosts = @_;
 
     # don't output anything if there are no dead hosts
-    if ($#deadhosts < 0) {
-      return;
-    }
+    return if ($#deadhosts < 0);
 
     # don't include in text report
-    if ($output_type eq 'text') {
-	    return;
-    }
+	return if ($output_type eq 'text');
 
+	print $req->start_div(-class => "build-section", -id=>"dead-hosts"),
+		  $req->h2('Dead Hosts:');
 	print <<EOHEADER;
-<div class="build-section" id="dead-hosts">
-<h2>Dead Hosts:</h2>
 <table class="real">
 <thead>
 <tr><th>Host</th><th>OS</th><th>Min Age</th></tr>
@@ -618,17 +610,15 @@ EOHEADER
 	print "    <tr><td>$host</td><td>$hosts{$host}</td><td>", util::dhm_time($age_ctime), "</td></tr>";
     }
 
-
-    print "  </tbody>\n</table>\n</div>\n";
+    print "  </tbody>\n</table>\n";
+	print $req->end_div;
 }
 
 ##############################################
 # show the available old revisions, if any
 sub show_oldrevs($$$)
 {
-    my $tree=shift;
-    my $host=shift;
-    my $compiler=shift;
+    my ($tree, $host, $compiler) = @_;
     my %revs = get_old_revs($tree, $host, $compiler);
     my @revs = sort { $revs{$b} cmp $revs{$a} } keys %revs;
 
@@ -693,7 +683,7 @@ sub view_build() {
 		$err = escapeHTML($err);
     }
 
-    print "<h2>Host information:</h2>\n";
+    print $req->h2('Host information:');
 
     print util::FileLoad("../web/$host.html");
 
@@ -726,41 +716,41 @@ sub view_build() {
 
     if (!$plain_logs) {
 
-	    print "<p>Switch to the <a href=\"$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler$rev_var;plain=true\" title=\"Switch to bland, non-javascript, unstyled view\">Plain View</a></p>";
+	    print $req->p("Switch to the ".$req->a({-href => "$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler$rev_var;plain=true", -title=> "Switch to bland, non-javascript, unstyled view"}, "Plain View"));
 
 	    print $req->start_div(-id=>"actionList");
 	    # These can be pretty wide -- perhaps we need to 
 	    # allow them to wrap in some way?
 	    if ($err eq "") {
-		    print "<h2>No error log available</h2>\n";
+		    print $req->h2("No error log available");
 	    } else {
-		    print "<h2>Error log:</h2>\n";
+		    print $req->h2("Error log:");
 		    print make_collapsible_html('action', "Error Output", "\n$err", "stderr-0");
 	    }
 
 	    if ($log eq "") {
-		    print "<h2>No build log available</h2>\n";
+		    print $req->h2("No build log available");
 	    } else {
-		    print "<h2>Build log:</h2>\n";
+		    print $req->h2("Build log:");
 		    print_log_pretty($log);
 	    }
 
-	    print "<p><small>Some of the above icons derived from the <a href=\"http://www.gnome.org\">Gnome Project</a>'s stock icons.</p>";
+	    print $req->p("<small>Some of the above icons derived from the <a href=\"http://www.gnome.org\">Gnome Project</a>'s stock icons.");
 		print $req->end_div;
     } else {
 	    print "<p>Switch to the <a href=\"$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler$rev_var\" title=\"Switch to colourful, javascript-enabled, styled view \">Enhanced View</a></p>";
 	    if ($err eq "") {
-		    print "<h2>No error log available</h2>\n";
+		    print $req->h2("No error log available");
 	    } else {
 		    print $req->h2('Error log:');
-		    print "<div id=\"errorLog\"><pre>" . join('', $err) . "</pre></div>\n";
+		    print $req->div({-id=>"errorLog"}, $req->pre(join('', $err)));
 	    }
 	    if ($log eq "") {
 		    print $req->h2('No build log available');
 	    }
 	    else {
 		    print $req->h2('Build log:');
-		    print "<div id=\"buildLog\"><pre>" . join('', $log) . "</pre></div>\n";
+		    print $req->div({-id=>"buildLog"}, $req->pre(join('', $log)));
 	    }
     }
 
@@ -776,7 +766,7 @@ sub view_host() {
 	if ($output_type eq 'text') {
 		print "Host summary:\n";
 	} else {
-		print "<div class=\"build-section\" id=\"build-summary\">\n";
+		print $req->start_div({-class=>"build-section", -id=>"build-summary"});
 		print $req->h2('Host summary:');
 	}
 
@@ -843,7 +833,8 @@ EOHEADER
 			if ($output_type eq 'text') {
 				print "\n";
 			} else {
-				print "  </tbody>\n</table></div>\n";
+				print "  </tbody>\n</table>\n";
+				print $req->end_div;
 			}
 		} else {
 			push(@deadhosts, $host);
@@ -851,11 +842,10 @@ EOHEADER
 	}
 
 	if ($output_type ne 'text') {
-		print "</div>\n\n";
+		print $req->end_div;
 	}
 
 	draw_dead_hosts($output_type, @deadhosts);
-
 }
 
 ##############################################
@@ -894,7 +884,7 @@ sub print_log_pretty() {
 	      ==========================================\s+
 	     }{make_collapsible_html('test', $1, $2, $id++, $3)}exgs;
 
-  print "<tt><pre>" .join('', $log) . "</pre></tt><p>\n";
+  print $req->tt($req->pre(join('', $log))."<p>\n";
 }
 
 ##############################################
@@ -979,16 +969,17 @@ sub make_collapsible_html($$$$)
   $output =~ s/\s+$//s;
 
   # note that we may be inside a <pre>, so we don't put any extra whitespace in this html
-  my $return = "<div class=\"$type unit \L$status\E\" id=\"$type-$id\">" .
-                "<a href=\"javascript:handle('$id');\">" .
-                 "<img id=\"img-$id\" name=\"img-$id\" src=\"$icon\" /> " .
-                  "<div class=\"$type title\">$title</div>" .
-                "</a> " .
-                "<div class=\"$type status \L$status\E\">$status</div>" .
-                "<div class=\"$type output\" id=\"output-$id\">" .
-                 "<pre>$output</pre>" .
-                "</div>".
-               "</div>";
+  my $return = $req->div({-class=>"$type unit \L$status\E",
+		                  -id=>"$type-$id"},
+					  $req->a({-href=>"javascript:handle('$id');"},
+						  $req->img(-id=>"img-$id",
+							        -name=>"img-$id",
+									-src=>$icon),
+						  $req->div({-class => "$type title"}, $title),
+					  ) . 
+					  div({-class=>"$type status \L$status\E"}, $status) .
+					  div({-class => "$type output", -id=>"output-$id"},
+					  pre($output)));
 
   return $return
 }
@@ -1003,7 +994,7 @@ sub main_menu() {
 			   -labels=>\%hosts) . "\n";
     print $req->popup_menu("tree", [sort (keys %trees, @pseudo_trees)]) . "\n";
     print $req->popup_menu("compiler", \@compilers) . "\n";
-    print "<br />\n";
+    print $req->br();
     print $req->submit('function', 'View Build') . "\n";
     print $req->submit('function', 'View Host') . "\n";
     print $req->submit('function', 'Recent Checkins') . "\n";
