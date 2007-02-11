@@ -30,10 +30,9 @@ foreach my $logfn (@ARGV) {
 	while (<LOG>) { $data .= $_; }
 	close(LOG);
 
-	print "$logfn\n";
-
 	my $checksum = sha1_hex($data);
-	$dbh->do("SELECT * FROM build WHERE checksum = ?", {}, $checksum) or next;
+	$dbh->do("SELECT * FROM build WHERE checksum = ?", {}, $checksum) and next;
+	print "$logfn\n";
 
 	my ($rev) = ($data =~ /BUILD REVISION: ([^\n]+)/);
 	my $st = $dbh->prepare("INSERT INTO build (tree, revision, host, compiler, checksum) VALUES (?, ?, ?, ?, ?)");
