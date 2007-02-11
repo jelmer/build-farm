@@ -71,11 +71,28 @@ sub cgi_headers() {
     $cgi_headers_done = 1;
 
 	print header;
+	print start_html(-title => 'samba.org build farm',
+		    -script => {-language=> 'JAVASCRIPT', -src=>"/build_farm.js" },
+			-meta => {
+				-keywords => "Samba SMB CIFS Build Farm",
+				-description => "Home of the Samba Build Farm, the automated testing facility.",
+				-robots => "noindex"
+			},
+			-lang => "en-us",
+			-head => [
+				Link({-rel => "stylesheet",
+					  -href => "build_farm.css",
+					  -type => "text/css",
+					  -media => "all"}),
+			    Link({-rel => "stylesheet",
+					  -href => "http://master.samba.org/samba/style/common.css",
+					  -type => "text/css",
+					  -media => "all"}),
+			    Link({-rel=>"shortcut icon",
+					  -href=>"http://www.samba.org/samba/images/favicon.ico"})
+			  ]
+		);
 
-    util::cgi_gzip();
-
-    print util::FileLoad("$BASEDIR/web/header.html");
-    print '<title>samba.org build farm</title>';
     print util::FileLoad("$BASEDIR/web/header2.html");
     main_menu();
     print util::FileLoad("$BASEDIR/web/header3.html");

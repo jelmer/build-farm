@@ -46,10 +46,10 @@ TEST\ (FAILED|PASSED|SKIPPED):.*?
 	$st->execute($1, $3, $2);
 }
 
-$st = $dbh->prepare("INSERT INTO build_stage_run (build, action, result) VALUES ($build, ?, ?);");
+$st = $dbh->prepare("INSERT INTO build_stage_run (output, build, action, result) VALUES (?, $build, ?, ?);");
 
-while ($data =~ /ACTION (FAILED|PASSED): (.*)/g) {
-	$st->execute($2, $1);
-	print "$2: $1\n";
+while ($data =~ /(.*?)?ACTION (FAILED|PASSED): ([^\n]+)/sg) {
+	$st->execute($1, $3, $2);
+	print "$3: $2\n";
 }
 $st->finish();
