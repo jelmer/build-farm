@@ -26,7 +26,7 @@ sub show_summary($)
 	my $failed = {};
 	my $success = {};
 
-	my $resultref = $dbh->selectall_arrayref("SELECT test_run.test AS test, build.host AS host, build.compiler AS compiler, test_run.result AS testresult, build.revision AS revision, build.checksum AS checksum FROM build, test_run WHERE test_run.build = build.id GROUP BY test, host, compiler ORDER BY revision");
+	my $resultref = $dbh->selectall_arrayref("SELECT test_run.test AS test, build.host AS host, build.compiler AS compiler, test_run.result AS testresult, build.revision AS revision, build.checksum AS checksum FROM build, test_run WHERE build.tree = ? AND test_run.build = build.id GROUP BY test, host, compiler ORDER BY revision", undef, $tree);
 	foreach (@$resultref) {
 		unless (defined($failed->{$_->[0]})) { $failed->{$_->[0]} = []; }
 		unless (defined($success->{$_->[0]})) { $success->{$_->[0]} = 0; }
