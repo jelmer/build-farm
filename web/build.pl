@@ -301,7 +301,7 @@ sub build_status($$$$)
 
     $log = util::FileLoad("$file.log");
 
-    if ($log =~ /TEST STATUS:(.*)/) {
+    if ($log =~ /TEST STATUS:([0-9]+)/) {
 	if ($1 == 0) {
 	    $tstatus = "<span class=\"status passed\">ok</span>";
 	} else {
@@ -463,7 +463,7 @@ sub view_summary($) {
 		print $req->h2('Build counts:');
 		print $req->start_table(-class => "real"),
 			  $req->thead(
-				  $req->tr($req->th("Tree"), $req->th("Total"), 
+				  $req->Tr($req->th("Tree"), $req->th("Total"), 
 					       $req->th("Broken"), $req->th("Panic"))),
 		      $req->start_tbody;
     }
@@ -554,7 +554,7 @@ sub view_recent_builds() {
 
 	print $req->start_table(-class => "real"),
 	      $req->thead(
-			  $req->tr(
+			  $req->Tr(
 				  $req->th($req->a({-href => "$sorturl;sortby=age",
 							        -title => "Sort by build age"}, "Age")),
 				  $req->th($req->a({-href => "$sorturl;sortby=revision",
@@ -576,7 +576,7 @@ sub view_recent_builds() {
     for my $build (@all_builds) {
 	my $age_mtime = $$build[0];
 	my $rev = $$build[6];
-	print $req->tr(map($req->td, util::dhm_time($age_mtime),
+	print $req->Tr(map($req->td, util::dhm_time($age_mtime),
 	       $rev, @$build[4, 1, 2, 3, 5]));
     }
     print $req->end_tbody, $req->end_table;
