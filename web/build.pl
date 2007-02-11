@@ -31,7 +31,8 @@ use FindBin qw($RealBin);
 
 use lib "$RealBin";
 use data qw(@compilers %hosts @hosts %trees @pseudo_trees $OLDAGE $DEADAGE
-            build_fname);
+            build_age_mtime build_age_ctime build_revision get_old_revs
+	    build_status err_count read_log read_err);
 use util;
 use history;
 use POSIX;
@@ -136,22 +137,6 @@ sub build_status($$$$)
 	return a({-href=>"$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler" . ($rev?";revision=$rev":"")}, data::build_status($host, $tree, $compiler, $rev));
 }
 
-###########################################
-# get a list of old builds and their status
-sub get_old_revs($$$)
-{
-    my ($tree, $host, $compiler) = @_;
-    my @list = split('\n', `ls oldrevs/build.$tree.$host.$compiler-*.log`);
-    my %ret;
-    for my $l (@list) {
-	    if ($l =~ /-(\d+).log$/) {
-		    my $rev = $1;
-		    $ret{$rev} = build_status($host, $tree, $compiler, $rev);
-	    }
-    }
-
-    return %ret;
-}
 
 #############################################
 # get the overall age of a host
@@ -467,9 +452,6 @@ sub view_build($$$$) {
     util::InArray($compiler, \@compilers) || fatal("unknown compiler");
     util::InArray($tree, [keys %trees]) || fatal("not a build tree");
 
-    my $file=build_fname($tree, $host, $compiler, $rev);
-    my $log;
-    my $err;
     my $uname="";
     my $cflags="";
     my $config="";
@@ -479,8 +461,8 @@ sub view_build($$$$) {
 
     $rev = int($rev) if $rev;
 
-    $log = util::FileLoad("$file.log");
-    $err = util::FileLoad("$file.err");
+    my $log = read_log($tree, $host, $compiler, $rev);
+    my $err = read_err($tree, $host, $compiler, $rev);
     
     if ($log) {
 		$log = escapeHTML($log);

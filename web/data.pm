@@ -32,8 +32,8 @@ use FindBin qw($RealBin);
 require Exporter;
 @ISA = qw(Exporter);
 @EXPORT_OK = qw(@hosts %hosts @compilers @pseudo_trees %trees $OLDAGE $DEADAGE
-                build_fname build_age_mtime build_age_ctime build_revision
-				build_status err_count);
+                build_age_mtime build_age_ctime build_revision
+				build_status err_count read_log read_err get_old_revs);
 
 use strict;
 use warnings;
@@ -241,6 +241,38 @@ sub err_count($$$$)
     return $ret;
 }
 
+##############################################
+# read full log file
+sub read_log($$$$)
+{
+    my ($tree, $host, $compiler, $rev) = @_;
 
+	return util::LoadFile(build_fname($tree, $host, $compiler, $rev).".log");
+}
 
+##############################################
+# read full err file
+sub read_err($$$$)
+{
+    my ($tree, $host, $compiler, $rev) = @_;
+
+	return util::LoadFile(build_fname($tree, $host, $compiler, $rev).".err");
+}
+
+###########################################
+# get a list of old builds and their status
+sub get_old_revs($$$)
+{
+    my ($tree, $host, $compiler) = @_;
+    my @list = split('\n', `ls oldrevs/build.$tree.$host.$compiler-*.log`);
+    my %ret;
+    for my $l (@list) {
+	    if ($l =~ /-(\d+).log$/) {
+		    my $rev = $1;
+		    $ret{$rev} = build_status($host, $tree, $compiler, $rev);
+	    }
+    }
+
+    return %ret;
+}
 1;
