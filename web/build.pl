@@ -556,7 +556,7 @@ sub view_recent_builds() {
 	      $req->thead(
 			  $req->tr(
 				  $req->th($req->a({-href => "$sorturl;sortby=age",
-							        -title="Sort by build age"}, "Age")),
+							        -title => "Sort by build age"}, "Age")),
 				  $req->th($req->a({-href => "$sorturl;sortby=revision",
 							        -title => "Sort by build revision"},
 								    "Revision")),
@@ -884,7 +884,7 @@ sub print_log_pretty() {
 	      ==========================================\s+
 	     }{make_collapsible_html('test', $1, $2, $id++, $3)}exgs;
 
-  print $req->tt($req->pre(join('', $log))."<p>\n";
+  print $req->tt($req->pre(join('', $log)))."<p>\n";
 }
 
 ##############################################
