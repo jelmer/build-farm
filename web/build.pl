@@ -284,7 +284,7 @@ sub build_status($$$$)
     my $cachefile="$CACHEDIR/" . $file . ".status";
     my ($cstatus, $bstatus, $istatus, $tstatus, $sstatus, $dstatus);
     $cstatus = $bstatus = $istatus = $tstatus = $sstatus = $dstatus = 
-      "<span class=\"status unknown\">?</span>";
+      $req->span({-class=>"status unknown"}, "?");
 
     my $log;
     my $ret;
@@ -303,57 +303,53 @@ sub build_status($$$$)
 
     if ($log =~ /TEST STATUS:([0-9]+)/) {
 	if ($1 == 0) {
-	    $tstatus = "<span class=\"status passed\">ok</span>";
+	    $tstatus = $req->span({-class=>"status passed"}, "ok");
 	} else {
-	    $tstatus = "<span class=\"status failed\">$1</span>";
+	    $tstatus = $req->span({-class=>"status failed"}, $1);
 	}
     }
     
     if ($log =~ /INSTALL STATUS:(.*)/) {
 	if ($1 == 0) {
-	    $istatus = "<span class=\"status passed\">ok</span>";
+	    $istatus = $req->span({-class => "status passed"}, "ok");
 	} else {
-	    $istatus = "<span class=\"status failed\">$1</span>";
+	    $istatus = $req->span({-class=>"status failed"}, $1);
 	}
     }
     
     if ($log =~ /BUILD STATUS:(.*)/) {
 	if ($1 == 0) {
-	    $bstatus = "<span class=\"status passed\">ok</span>";
+	    $bstatus = $req->span({-class => "status passed"}, "ok");
 	} else {
-	    $bstatus = "<span class=\"status failed\">$1</span>";
+	    $bstatus = $req->span({-class => "status failed"}, $1);
 	}
     }
 
     if ($log =~ /CONFIGURE STATUS:(.*)/) {
 	if ($1 == 0) {
-	    $cstatus = "<span class=\"status passed\">ok</span>";
+	    $cstatus = $req->span({-class => "status passed"}, "ok");
 	} else {
-	    $cstatus = "<span class=\"status failed\">$1</span>";
+	    $cstatus = $req->span({-class=> "status failed"}, $1);
 	}
     }
     
     if ($log =~ /(PANIC|INTERNAL ERROR):.*/ ) {
-	$sstatus = "/<span class=\"status panic\">PANIC</span>";
+	$sstatus = "/".$req->span({-class=>"status panic"}, "PANIC");
     } else {
 	$sstatus = "";
     }
 
     if ($log =~ /No space left on device.*/ ) {
-	$dstatus = "/<span class=\"status failed\">disk full</span>";
+	$dstatus = "/".$req->span({-class=>"status failed"}, "disk full");
     } else {
 	$dstatus = "";
     }
 
     if ($log =~ /CC_CHECKER STATUS: (.*)/ && $1 > 0) {
-	$sstatus .= "/<span class=\"status checker\">$1</span>";
+	$sstatus .= "/".$req->span({-class=>"status checker"}, $1);
     }
 
-    $ret = "<a href=\"$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler";
-    if ($rev) {
-	    $ret .= ";revision=$rev";
-    }
-    $ret .= "\">$cstatus/$bstatus/$istatus/$tstatus$sstatus$dstatus</a>";
+	$req->a({-href=>"$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler" . ($rev?";revision=$rev":"")}, "$cstatus/$bstatus/$istatus/$tstatus$sstatus$dstatus");
 
     util::FileSave("$CACHEDIR/$file.status", $ret);
 
@@ -702,7 +698,7 @@ sub view_build() {
 			$req->td(["Uname:", $uname]),
 			$req->td(["Tree:", $tree]),
 			$req->td(["Build Revision:", $revision]),
-			$req->td(["Build age:", "<div class=\"age\">" . red_age($age_mtime) . "</div>"]),
+			$req->td(["Build age:", $req->div({-class=>"age"}, red_age($age_mtime))]),
 			$req->td(["Status:", $status]),
 			$req->td(["Compiler:", $compiler]),
 			$req->td(["CFLAGS:", $cflags]),
@@ -741,10 +737,10 @@ sub view_build() {
 		    print_log_pretty($log);
 	    }
 
-	    print $req->p($req->small("Some of the above icons derived from the <a href=\"http://www.gnome.org\">Gnome Project</a>'s stock icons."));
+	    print $req->p($req->small("Some of the above icons derived from the ".$req->a({-href=>"http://www.gnome.org"}, "Gnome Project")."'s stock icons."));
 		print $req->end_div;
     } else {
-	    print $req->p("Switch to the <a href=\"$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler$rev_var\" title=\"Switch to colourful, javascript-enabled, styled view \">Enhanced View</a>");
+	    print $req->p("Switch to the ".$req->a({-href=>"$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler$rev_var", -title=>"Switch to colourful, javascript-enabled, styled view"}, "Enhanced View"));
 	    if ($err eq "") {
 		    print $req->h2("No error log available");
 	    } else {
@@ -810,17 +806,12 @@ sub view_host() {
                                     
 						} else {
 							print $req->start_div({-class=>"host summary"});
-							print <<EOHEADER;
-  <a id="$host" name="$host" />
-  <h3>$host - $hosts{$host}</h3>
-  <table class="real">
-    <thead>
-      <tr>
-        <th>Target</th><th>Build<br />Revision</th><th>Build<br />Age</th><th>Status<br />config/build<br />install/test</th><th>Warnings</th>
-      </tr>
-    </thead>
-    <tbody>
-EOHEADER
+							print $req->a({-id=>$host, -name=>$host});
+							print $req->h3("$host - $hosts{$host}");
+							print $req->start_table({-class=>"real"}),
+							      $req->thead($req->Tr(
+								  $req->th(["Target", "Build<br/>Revision", "Build<br />Age", "Status<br />config/build<br />install/test", "Warnings"]))),
+						  		  $req->start_tbody;
 						}
 					}
 
@@ -829,7 +820,7 @@ EOHEADER
 							$tree, $compiler, util::dhm_time($age_mtime), 
 								util::strip_html($status), $warnings;
 					} else {
-						print "    <tr><td><span class=\"tree\">$tree</span>/$compiler</td><td>$revision</td><td class=\"age\">" . red_age($age_mtime) . "</td><td class=\"status\">$status</td><td>$warnings</td></tr>\n";
+						print $req->Tr($req->td([$req->span({-class=>"tree"}, $tree)."/$compiler", $revision, "<div class=\"age\">" . red_age($age_mtime) . "</div>", $req->div({-class=>"status"}, $status), $warnings]));
 					}
 					$row++;
 				}
@@ -839,7 +830,7 @@ EOHEADER
 			if ($output_type eq 'text') {
 				print "\n";
 			} else {
-				print "  </tbody>\n</table>\n";
+				print $req->end_tbody, $req->end_table;
 				print $req->end_div;
 			}
 		} else {
