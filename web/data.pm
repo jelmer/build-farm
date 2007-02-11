@@ -28,8 +28,8 @@ use POSIX;
 use File::stat;
 use FindBin qw($RealBin);
 
+require Exporter;
 @ISA = qw(Exporter);
-use Exporter;
 @EXPORT_OK = qw(@hosts %hosts @compilers @pseudo_trees %trees $OLDAGE $DEADAGE);
 
 use strict;
@@ -37,18 +37,18 @@ use warnings;
 
 my $WEBDIR = "$RealBin";
 
-my $OLDAGE = 60*60*4;
-my $DEADAGE = 60*60*24*4;
+our $OLDAGE = 60*60*4;
+our $DEADAGE = 60*60*24*4;
 
 ##############################################
 # this defines what it is possible to build 
 # and what boxes. Should be in a config file
-my @compilers = util::load_list("$WEBDIR/compilers.list");
-my (%hosts) = util::load_hash("$WEBDIR/hosts.list");
-my @hosts = sort { $hosts{$a} cmp $hosts{$b} } keys %hosts;
-my (%trees) = util::load_hash("$WEBDIR/trees.list");
+our @compilers = util::load_list("$WEBDIR/compilers.list");
+our (%hosts) = util::load_hash("$WEBDIR/hosts.list");
+our @hosts = sort { $hosts{$a} cmp $hosts{$b} } keys %hosts;
+our (%trees) = util::load_hash("$WEBDIR/trees.list");
 # these aren't really trees... they're just things we want in the menu.
 # (for recent checkins)
-my @pseudo_trees = util::load_list("$WEBDIR/pseudo.list");
+our @pseudo_trees = util::load_list("$WEBDIR/pseudo.list");
 
 1;

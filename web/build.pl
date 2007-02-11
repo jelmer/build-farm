@@ -30,7 +30,7 @@ use warnings;
 use FindBin qw($RealBin);
 
 use lib "$RealBin";
-use data qw(@compilers %hosts @hosts %trees @pseudo_trees);
+use data qw(@compilers %hosts @hosts %trees @pseudo_trees $OLDAGE $DEADAGE);
 use util;
 use history;
 use POSIX;
@@ -43,9 +43,6 @@ my $BASEDIR = "$WEBDIR/..";
 my $CACHEDIR = "$WEBDIR/../cache";
 
 my $req = new CGI;
-
-my $OLDAGE = 60*60*4;
-my $DEADAGE = 60*60*24*4;
 
 # this is automatically filled in
 my (@deadhosts) = ();
