@@ -482,7 +482,10 @@ EOHEADER
 		    printf "%-12s %-6s %-6s %-6s\n", $tree, $host_count{$tree},
 			    $broken_count{$tree}, $panic_count{$tree};
 	    } else {
-		    print "    <tr><td><a href=\"$myself?function=Recent+Builds;tree=$tree\" title=\"View recent builds for $tree\">$tree</a></td><td>$host_count{$tree}</td><td>$broken_count{$tree}</td>";
+		    print "    <tr><td>";
+			print $req->a({-href=>"$myself?function=Recent+Builds;tree=$tree",
+					       -title=>"View recent builds for $tree"}, $tree);
+			print "</td><td>$host_count{$tree}</td><td>$broken_count{$tree}</td>";
 		    my $panic = "";
 		    if ($panic_count{$tree}) {
 			    $panic = " class=\"panic\"";

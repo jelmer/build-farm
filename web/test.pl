@@ -10,6 +10,7 @@ use strict;
 use warnings;
 use util;
 use CGI;
+use URI::Escape;
 
 my $dbh = DBI->connect( "dbi:SQLite:$RealBin/../data.dbl" ) || die "Cannot connect: $DBI::errstr";
 
@@ -46,7 +47,7 @@ sub show_summary($)
 		printf "<tr><td>$_</td><td>$numfails (%.2f%%)</td><td>", ($numfails / ($numfails+$success->{$_}) * 100.0);
 
 		foreach (@{$failed->{$_}}) {
-			print "<a href=\"/test.pl?build=$_->[5];test=$_->[0]\">$_->[1]/$_->[2]($_->[4])</a> ";
+			print $cgi->a({-href=>"/test.pl?build=".uri_escape($_->[5]).";test=".uri_escape($_->[0])}, "$_->[1]/$_->[2]($_->[4])"). " ";
 		}
 
 		print "</td></tr>\n";
