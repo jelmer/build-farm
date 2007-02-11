@@ -270,7 +270,7 @@ sub red_age($)
 	my $age = shift;
 
 	if ($age > $OLDAGE) {
-		return sprintf("<span class=\"old\">%s</span>",  util::dhm_time($age));
+		return $req->span({-class=>"old"}, util::dhm_time($age));
 	}
 	return util::dhm_time($age);
 }
@@ -478,11 +478,12 @@ sub view_summary($) {
 					       -title=>"View recent builds for $tree"}, $tree));
 			print $req->td($host_count{$tree});
 			print $req->td($broken_count{$tree});
-		    my $panic = "";
 		    if ($panic_count{$tree}) {
-			    $panic = " class=\"panic\"";
-		    }
-		    print "<td$panic>$panic_count{$tree}</td>";
+				print $req->start_td({-class => "panic"});
+		    } else {
+				print $req->start_td;
+			}
+			print $panic_count{$tree} . $req->end_td;
 			print $req->end_Tr;
 	    }
     }
@@ -603,20 +604,20 @@ sub draw_dead_hosts {
 
 	print $req->start_div(-class => "build-section", -id=>"dead-hosts"),
 		  $req->h2('Dead Hosts:');
-	print <<EOHEADER;
-<table class="real">
-<thead>
-<tr><th>Host</th><th>OS</th><th>Min Age</th></tr>
-</thead>
-<tbody>
-EOHEADER
+	print $req->start_table({-class => "real"}),
+		  $req->thead(
+			  $req->Tr(
+				  $req->th("Host"), $req->th("OS"),
+				  $req->th("Min Age"))),
+		  $req->start_tbody;
 
     for my $host (@deadhosts) {
 	my $age_ctime = host_age($host);
-	print "    <tr><td>$host</td><td>$hosts{$host}</td><td>", util::dhm_time($age_ctime), "</td></tr>";
+	print $req->tr($req->td($host), $req->td($hosts{$host}), 
+		           $req->td(util::dhm_time($age_ctime)));
     }
 
-    print "  </tbody>\n</table>\n";
+	print $req->end_tbody, $req->end_table;
 	print $req->end_div;
 }
 
@@ -632,10 +633,12 @@ sub show_oldrevs($$$)
 
     print $req->h2("Older builds:");
 
-    print "
-<table class=\"real\">
-<tr><th>Revision</th><th>Status</th></tr>
-";
+	print $req->start_table({-class => "real"}),
+	      $req->thead(
+			  $req->Tr(
+				  $req->th("Revision"),
+				  $req->th("Status"))),
+		  $req->start_tbody;
 
     my $lastrev = "";
 
@@ -644,9 +647,9 @@ sub show_oldrevs($$$)
 	    $s =~ s/$rev/0/;
 	    next if ($s eq $lastrev);
 	    $lastrev = $s;
-	    print "<tr><td>$rev</td><td>$revs{$rev}</td></tr>\n";
+		print $req->Tr($req->td($rev), $req->td($revs{$rev}));
     }
-    print "</table>\n";
+	print $req->end_tbody, $req->end_table;
 }
 
 ##############################################
@@ -693,22 +696,19 @@ sub view_build() {
 
     print util::FileLoad("../web/$host.html");
 
-    print "
-<table class=\"real\">
-<tr><td>Host:</td><td><a href=\"$myself?function=View+Host;host=$host;tree=$tree;compiler=$compiler#$host\">$host</a> - $hosts{$host}</td></tr>
-<tr><td>Uname:</td><td>$uname</td></tr>
-<tr><td>Tree:</td><td>$tree</td></tr>
-<tr><td>Build Revision:</td><td>" . $revision . "</td></tr>
-<tr><td>Build age:</td><td class=\"age\">" . red_age($age_mtime) . "</td></tr>
-<tr><td>Status:</td><td>$status</td></tr>
-<tr><td>Compiler:</td><td>$compiler</td></tr>
-<tr><td>CFLAGS:</td><td>$cflags</td></tr>
-<tr><td>configure options:  </td><td>$config</td></tr>
-</table>
-";
+    print $req->table({-class=>"real"},
+		$req->Tr([
+			$req->td(["Host:", $req->a({-href=>"$myself?function=View+Host;host=$host;tree=$tree;compiler=$compiler#$host"}, $host)." - $hosts{$host}"]),
+			$req->td(["Uname:", $uname]),
+			$req->td(["Tree:", $tree]),
+			$req->td(["Build Revision:", $revision]),
+			$req->td(["Build age:", "<div class=\"age\">" . red_age($age_mtime) . "</div>"]),
+			$req->td(["Status:", $status]),
+			$req->td(["Compiler:", $compiler]),
+			$req->td(["CFLAGS:", $cflags]),
+			$req->td(["configure options:", $config])]));
 
     show_oldrevs($tree, $host, $compiler);
-
 
     # check the head of the output for our magic string
     my $plain_logs = (defined get_param("plain") &&
@@ -741,10 +741,10 @@ sub view_build() {
 		    print_log_pretty($log);
 	    }
 
-	    print $req->p("<small>Some of the above icons derived from the <a href=\"http://www.gnome.org\">Gnome Project</a>'s stock icons.");
+	    print $req->p($req->small("Some of the above icons derived from the <a href=\"http://www.gnome.org\">Gnome Project</a>'s stock icons."));
 		print $req->end_div;
     } else {
-	    print "<p>Switch to the <a href=\"$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler$rev_var\" title=\"Switch to colourful, javascript-enabled, styled view \">Enhanced View</a></p>";
+	    print $req->p("Switch to the <a href=\"$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler$rev_var\" title=\"Switch to colourful, javascript-enabled, styled view \">Enhanced View</a>");
 	    if ($err eq "") {
 		    print $req->h2("No error log available");
 	    } else {
@@ -809,8 +809,8 @@ sub view_host() {
 								"Tree", "Compiler", "Build Age", "Status", "Warnings";
                                     
 						} else {
+							print $req->start_div({-class=>"host summary"});
 							print <<EOHEADER;
-<div class="host summary">
   <a id="$host" name="$host" />
   <h3>$host - $hosts{$host}</h3>
   <table class="real">
@@ -975,17 +975,16 @@ sub make_collapsible_html($$$$)
   $output =~ s/\s+$//s;
 
   # note that we may be inside a <pre>, so we don't put any extra whitespace in this html
-  my $return = $req->div({-class=>"$type unit \L$status\E",
+  my $return = $req->div({-class=>"$type unit $status",
 		                  -id=>"$type-$id"},
 					  $req->a({-href=>"javascript:handle('$id');"},
-						  $req->img(-id=>"img-$id",
-							        -name=>"img-$id",
-									-src=>$icon),
+						  $req->img({-id=>"img-$id", -name=>"img-$id",
+									-src=>$icon}),
 						  $req->div({-class => "$type title"}, $title),
 					  ) . 
-					  div({-class=>"$type status \L$status\E"}, $status) .
-					  div({-class => "$type output", -id=>"output-$id"},
-					  pre($output)));
+					  $req->div({-class=> "$type status $status"}, $status) .
+					  $req->div({-class => "$type output", -id=>"output-$id"},
+					  $req->pre($output)));
 
   return $return
 }
