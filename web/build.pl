@@ -288,7 +288,7 @@ sub build_status($$$$)
 
     $log = util::FileLoad("$file.log");
 
-    if ($log =~ /TEST STATUS:([0-9]+)/) {
+    if ($log =~ /TEST STATUS:(.*)/) {
 	if ($1 == 0) {
 	    $tstatus = $req->span({-class=>"status passed"}, "ok");
 	} else {
@@ -560,20 +560,21 @@ sub view_recent_builds($$) {
 		  $req->start_table({-class => "real"}),
 	      $req->thead(
 			  $req->Tr(
-				  $req->th($req->a({-href => "$sorturl;sortby=age",
-							        -title => "Sort by build age"}, "Age")),
-				  $req->th($req->a({-href => "$sorturl;sortby=revision",
+				  $req->th([
+					  $req->a({-href => "$sorturl;sortby=age",
+							   -title => "Sort by build age"}, "Age"),
+				  	  $req->a({-href => "$sorturl;sortby=revision",
 							        -title => "Sort by build revision"},
-								    "Revision")),
-				  $req->th("Tree"),
-				  $req->th($req->a({-href => "$sorturl;sortby=platform",
-						           -title => "Sort by platform"}, "Platform")),
-				  $req->th($req->a({-href => "$sorturl;sortby=host",
-						           -title => "Sort by host"}, "Host")),
-				  $req->th($req->a({-href=>"$sorturl;sortby=compiler",
-							        -title=>"Sort by compiler"}, "Compiler")),
-				  $req->th($req->a({-href=>"$sorturl;sortby=status",
-							        -title=>"Sort by build status"}, "Status"))
+								    "Revision"),
+					  "Tree",
+					  $req->a({-href => "$sorturl;sortby=platform",
+						           -title => "Sort by platform"}, "Platform"),
+					  $req->a({-href => "$sorturl;sortby=host",
+						           -title => "Sort by host"}, "Host"),
+					  $req->a({-href=>"$sorturl;sortby=compiler",
+							        -title=>"Sort by compiler"}, "Compiler"),
+					  $req->a({-href=>"$sorturl;sortby=status",
+							        -title=>"Sort by build status"}, "Status")
 					)
 				),
 			$req->start_tbody;
