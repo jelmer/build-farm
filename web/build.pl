@@ -970,6 +970,7 @@ sub make_collapsible_html($$$$)
 		                  -id=>"$type-$id"},
 					  $req->a({-href=>"javascript:handle('$id');"},
 						  $req->img({-id=>"img-$id", -name=>"img-$id",
+								    -alt=>$status,
 									-src=>$icon}),
 						  $req->div({-class => "$type title"}, $title),
 					  ) . 
