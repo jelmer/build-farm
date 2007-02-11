@@ -70,8 +70,7 @@ sub cgi_headers() {
     return if ($cgi_headers_done);
     $cgi_headers_done = 1;
 
-    print "Content-type: text/html\r\n";
-    #print "Content-type: application/xhtml+xml\r\n";
+	print header;
 
     util::cgi_gzip();
 
@@ -80,20 +79,6 @@ sub cgi_headers() {
     print util::FileLoad("$BASEDIR/web/header2.html");
     main_menu();
     print util::FileLoad("$BASEDIR/web/header3.html");
-}
-
-################################################
-# start CGI headers for diffs
-sub cgi_headers_diff() {
-    print "Content-type: application/x-diff\r\n";
-    print "\n";
-}
-
-################################################
-# start CGI headers for text output
-sub cgi_headers_text() {
-	print "Content-type: text/plain\r\n";
-	print "\r\n";
 }
 
 ################################################
@@ -1021,7 +1006,7 @@ sub page_top() {
 my $fn_name = get_param('function') || '';
 
 if ($fn_name eq 'text_diff') {
-  cgi_headers_diff();
+  print header('application/x-diff');
   chdir("$BASEDIR/data") || fatal("can't change to data directory");
   history::diff(get_param('author'),
 		get_param('date'),
@@ -1029,7 +1014,7 @@ if ($fn_name eq 'text_diff') {
 		get_param('revision'),
 		"text");
 } elsif ($fn_name eq 'Text_Summary') {
-	cgi_headers_text();
+	print header('text/plain');
 	chdir("$BASEDIR/data") || fatal("can't change to data directory");
 	view_summary('text');
 } else {
