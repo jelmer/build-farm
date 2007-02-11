@@ -90,7 +90,7 @@ sub cgi_headers() {
 		);
 
     print util::FileLoad("$BASEDIR/web/header2.html");
-    main_menu();
+    print main_menu();
     print util::FileLoad("$BASEDIR/web/header3.html");
 }
 
@@ -281,7 +281,7 @@ sub build_status($$$$)
 {
 	my ($host, $tree, $compiler, $rev) = @_;
     my $file = build_fname($tree, $host, $compiler, $rev);
-    my $cachefile="$CACHEDIR/" . $file . ".status";
+    my $cachefile="$CACHEDIR/$file.status";
     my ($cstatus, $bstatus, $istatus, $tstatus, $sstatus, $dstatus);
     $cstatus = $bstatus = $istatus = $tstatus = $sstatus = $dstatus = 
       $req->span({-class=>"status unknown"}, "?");
@@ -494,7 +494,8 @@ sub view_summary($) {
 
 ##############################################
 # Draw the "recent builds" view
-sub view_recent_builds() {
+sub view_recent_builds($$) {
+	my ($tree, $sort_by) = @_;
     my $i = 0;
     my $cols = 2;
     my $broken = 0;
@@ -524,9 +525,6 @@ sub view_recent_builds() {
 				);
 			}
 	};
-
-    my $tree = get_param("tree");
-    my $sort_by = get_param("sortby") || "revision"; # default to revision
 
     util::InArray($tree, [keys %trees]) || fatal("not a build tree");
     util::InArray($sort_by, [keys %$sort]) || fatal("not a valid sort");
@@ -627,14 +625,11 @@ sub show_oldrevs($$$)
 
     return if ($#revs < 1);
 
-    print $req->h2("Older builds:");
+    my $ret = $req->h2("Older builds:");
 
-	print $req->start_table({-class => "real"}),
-	      $req->thead(
-			  $req->Tr(
-				  $req->th("Revision"),
-				  $req->th("Status"))),
-		  $req->start_tbody;
+    $ret .= $req->start_table({-class => "real"}),
+	      $req->thead($req->Tr($req->th(["Revision", "Status"]))),
+	      $req->start_tbody;
 
     my $lastrev = "";
 
@@ -643,19 +638,17 @@ sub show_oldrevs($$$)
 	    $s =~ s/$rev/0/;
 	    next if ($s eq $lastrev);
 	    $lastrev = $s;
-		print $req->Tr($req->td($rev), $req->td($revs{$rev}));
+	    $ret.=$req->Tr($req->td([$rev, $revs{$rev}]));
     }
-	print $req->end_tbody, $req->end_table;
+    if ($lastrev ne "") {
+    	print $ret . $req->end_tbody, $req->end_table;
+   }
 }
 
 ##############################################
 # view one build in detail
-sub view_build() {
-    my $tree=get_param("tree");
-    my $host=get_param("host");
-    my $compiler=get_param("compiler");
-    my $rev=get_param('revision');
-
+sub view_build($$$$) {
+	my ($tree, $host, $compiler, $rev) = @_;
     # ensure the params are valid before using them
     util::InArray($host, [keys %hosts]) || fatal("unknown host");
     util::InArray($compiler, \@compilers) || fatal("unknown compiler");
@@ -761,7 +754,8 @@ sub view_build() {
 
 ##################################################
 # print the host's table of information
-sub view_host() {
+sub view_host {
+	my (@requested_hosts) = @_;
 
 	my $output_type = "html";
 
@@ -773,8 +767,6 @@ sub view_host() {
 	}
 
 	my $list = `ls *.log`;
-
-	my (@requested_hosts) = get_param('host');
 
 	foreach (@requested_hosts) {
 		util::InArray($_, [keys %hosts]) || fatal("unknown host");
@@ -981,21 +973,21 @@ sub make_collapsible_html($$$$)
 ##############################################
 # main page
 sub main_menu() {
-    print $req->startform("GET");
-	print $req->start_div(-id=>"build-menu");
-    print $req->popup_menu(-name=>'host',
+    return $req->startform("GET"), 
+	   $req->start_div({-id=>"build-menu"}),
+           $req->popup_menu(-name=>'host',
 			   -values=>\@hosts,
-			   -labels=>\%hosts) . "\n";
-    print $req->popup_menu("tree", [sort (keys %trees, @pseudo_trees)]) . "\n";
-    print $req->popup_menu("compiler", \@compilers) . "\n";
-    print $req->br();
-    print $req->submit('function', 'View Build') . "\n";
-    print $req->submit('function', 'View Host') . "\n";
-    print $req->submit('function', 'Recent Checkins') . "\n";
-    print $req->submit('function', 'Summary') . "\n";
-    print $req->submit('function', 'Recent Builds') . "\n";
-	print $req->end_div;
-    print $req->endform() . "\n";
+			   -labels=>\%hosts),
+          $req->popup_menu("tree", [sort (keys %trees, @pseudo_trees)]),
+          $req->popup_menu("compiler", \@compilers),
+          $req->br(),
+          $req->submit('function', 'View Build'),
+          $req->submit('function', 'View Host'),
+          $req->submit('function', 'Recent Checkins'),
+          $req->submit('function', 'Summary'),
+          $req->submit('function', 'Recent Builds'),
+          $req->end_div,
+          $req->endform() . "\n";
 }
 
 ###############################################
@@ -1026,11 +1018,12 @@ if ($fn_name eq 'text_diff') {
   page_top();
 
   if ($fn_name eq "View_Build") {
-    view_build();
+    view_build(get_param("tree"), get_param("host"), get_param("compiler"),
+		       get_param('revision'));
   } elsif ($fn_name eq "View_Host") {
-    view_host();
+    view_host(get_param('host'));
   } elsif ($fn_name eq "Recent_Builds") {
-    view_recent_builds();
+    view_recent_builds(get_param("tree"), get_param("sortby") || "revision");
   } elsif ($fn_name eq "Recent_Checkins") {
     history::history(get_param('tree'));
   } elsif ($fn_name eq "diff") {
