@@ -240,7 +240,7 @@ sub build_revision($$$$)
 	$ret = $1;
     }
 
-    util::FileSave("$CACHEDIR/$file.revision", "$ret");
+    util::FileSave("$CACHEDIR/$file.revision", $ret);
 
     return $ret;
 }
@@ -589,16 +589,9 @@ sub view_recent_builds($$) {
 			$req->start_tbody;
 
     for my $build (@all_builds) {
-	my $age_mtime = $$build[0];
-	my $rev = $$build[6];
 		print $req->Tr(
-			  $req->td(util::dhm_time($age_mtime)),
-		      $req->td($rev), 
-			  $req->td($$build[4]),
-			  $req->td($$build[1]),
-			  $req->td($$build[2]),
-			  $req->td($$build[3]),
-			  $req->td($$build[5]));
+			  $req->td([util::dhm_time($$build[0]), $$build[6], $$build[4], 
+				        $$build[1], $$build[2], $$build[3], $$build[5]]));
 	}
     print $req->end_tbody, $req->end_table;
 	print $req->end_div;
@@ -627,8 +620,7 @@ sub draw_dead_hosts {
 
     for my $host (@deadhosts) {
 	my $age_ctime = host_age($host);
-	print $req->tr($req->td($host), $req->td($hosts{$host}), 
-		           $req->td(util::dhm_time($age_ctime)));
+	print $req->tr($req->td([$host, $hosts{$host}, util::dhm_time($age_ctime)));
     }
 
 	print $req->end_tbody, $req->end_table;
@@ -661,6 +653,7 @@ sub show_oldrevs($$$)
 	    $ret.=$req->Tr($req->td([revision_link($rev, $tree), $revs{$rev}]));
     }
     if ($lastrev ne "") {
+		# Only print table if there was any actual data
     	print $ret . $req->end_tbody, $req->end_table;
    }
 }
@@ -730,7 +723,6 @@ sub view_build($$$$) {
     print $req->start_div({-id=>"log"});
 
     if (!$plain_logs) {
-
 	    print $req->p("Switch to the ".$req->a({-href => "$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler$rev_var;plain=true", -title=> "Switch to bland, non-javascript, unstyled view"}, "Plain View"));
 
 	    print $req->start_div(-id=>"actionList");
@@ -796,7 +788,7 @@ sub view_host {
 		# make sure we have some data from it
 		if (! ($list =~ /$host/)) {
 			if ($output_type ne 'text') {
-				print "<!-- skipping $host -->\n";
+				print $req->comment("skipping $host");
 			}
 			next;
 		}
