@@ -12,9 +12,9 @@ use util;
 
 my $dbh = DBI->connect( "dbi:SQLite:data.dbl" ) || die "Cannot connect: $DBI::errstr";
 
-$dbh->do("CREATE TABLE IF NOT EXISTS build ( id integer primary key autoincrement, tree text, revision text, host text, compiler text, checksum text );");
-$dbh->do("CREATE TABLE IF NOT EXISTS test_run ( build int, test text, result text, output text);");
-$dbh->do("CREATE TABLE IF NOT EXISTS build_stage_run ( build int, action text, result text, output text);");
+$dbh->do("CREATE TABLE build ( id integer primary key autoincrement, tree text, revision text, host text, compiler text, checksum text );");
+$dbh->do("CREATE TABLE test_run ( build int, test text, result text, output text);");
+$dbh->do("CREATE TABLE build_stage_run ( build int, action text, result text, output text);");
 
 foreach my $logfn (@ARGV) {
 	if (not -f $logfn) {
@@ -31,7 +31,7 @@ foreach my $logfn (@ARGV) {
 	close(LOG);
 
 	my $checksum = sha1_hex($data);
-	$dbh->do("SELECT * FROM build WHERE checksum = ?", {}, $checksum) and next;
+	$dbh->selectrow_array("SELECT * FROM build WHERE checksum = '$checksum'") and next;
 	print "$logfn\n";
 
 	my ($rev) = ($data =~ /BUILD REVISION: ([^\n]+)/);
