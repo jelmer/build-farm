@@ -186,20 +186,6 @@ sub cgi_gzip()
 }
 
 ##########################################
-# escape a string for cgi
-sub cgi_escape($)
-{
-    my $s = shift;
-
-    $s =~ s/&/&amp;/mg;
-    $s =~ s/</&lt;/mg;
-    $s =~ s/>/&gt;/mg;
-    $s =~ s/"/&quot;/mg;
-
-    return $s;
-}
-
-##########################################
 # count the number of lines in a buffer
 sub count_lines($)
 {

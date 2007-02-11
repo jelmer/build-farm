@@ -32,7 +32,7 @@ use util;
 use history;
 use POSIX;
 use Data::Dumper;
-use CGI;
+use CGI qw/:standard/;
 use File::stat;
 
 my $WEBDIR = "$RealBin";
@@ -660,7 +660,7 @@ sub view_build() {
     $err = util::FileLoad("$file.err");
     
     if ($log) {
-		$log = util::cgi_escape($log);
+		$log = escapeHTML($log);
 
 		if ($log =~ /(.*)/) { $uname=$1; }
 		if ($log =~ /CFLAGS=(.*)/) { $cflags=$1; }
@@ -668,7 +668,7 @@ sub view_build() {
     }
 
     if ($err) {
-		$err = util::cgi_escape($err);
+		$err = escapeHTML($err);
     }
 
     print "<h2>Host information:</h2>\n";

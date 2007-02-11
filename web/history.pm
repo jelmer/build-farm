@@ -13,7 +13,7 @@ use strict qw{vars};
 use util;
 use POSIX;
 use Data::Dumper;
-use CGI;
+use CGI qw/:standard/;
 use File::stat;
 
 my $req = new CGI;
@@ -52,16 +52,7 @@ my $unpacked_dir = "/home/ftp/pub/unpacked";
 
 ###############################################
 # work out a URL so I can refer to myself in links
-my $myself = $req->self_url;
-if ($myself =~ /(.*)[?].*/) {
-    $myself = $1;
-}
-if ($myself =~ /http:\/\/.*\/(.*)/) {
-    $myself = $1;
-}
-
-# for now, hard code the self url - need to sanitize self_url
-$myself = "http://build.samba.org/";
+my $myself = $req->url();
 
 ################################################
 # print an error on fatal errors
@@ -128,8 +119,7 @@ sub diff_pretty($)
 # change the given source paths into links
 sub web_paths($$)
 {
-    my $tree = shift;
-    my $paths = shift;
+    my ($tree, $paths) = @_;
     my $ret = "";
 
     if (grep {/$tree/} keys %cvs_trees) {
@@ -137,15 +127,13 @@ sub web_paths($$)
 	$ret .= sprintf($cvs_trees{$tree}, $1, $1);
 	$paths = $2;
       }
-    }
-    elsif (grep {/$tree/} keys %svn_trees) {
+    } elsif (grep {/$tree/} keys %svn_trees) {
 	    while ($paths =~ /\s*([^\s]+)(.*)/) {
 	    
 		    $ret .= sprintf($svn_trees{$tree}, $1, $1);
 		    $paths = $2;
 	    }
-    }
-    elsif (grep {/$tree/} keys %bzr_trees) {
+    } elsif (grep {/$tree/} keys %bzr_trees) {
 	    while ($paths =~ /\s*([^\s]+)(.*)/) {
 		    $ret .= sprintf($bzr_trees{$tree}, $1, $1);
 		    $paths = $2;
@@ -159,9 +147,8 @@ sub web_paths($$)
 # show one row of history table
 sub history_row($$)
 {
-    my $entry = shift;
-    my $tree = shift;
-    my $msg = util::cgi_escape($entry->{MESSAGE});
+    my ($entry, $tree) = @_;
+    my $msg = escapeHTML($entry->{MESSAGE});
     my $t = POSIX::asctime(POSIX::gmtime($entry->{DATE}));
     my $age = util::dhm_time(time()-$entry->{DATE});
 
@@ -219,9 +206,8 @@ sub history_row($$)
 # show one row of history table
 sub history_row_text($$)
 {
-    my $entry = shift;
-    my $tree = shift;
-    my $msg = util::cgi_escape($entry->{MESSAGE});
+    my ($entry, $tree) = @_;
+    my $msg = escapeHTML($entry->{MESSAGE});
     my $t = POSIX::asctime(POSIX::gmtime($entry->{DATE}));
     my $age = util::dhm_time(time()-$entry->{DATE});
 
@@ -271,7 +257,7 @@ sub svn_diff($$$)
     chomp $current_revision;
     $current_revision =~ s/.*?(\d+)$/$1/;
 
-	fatal("unknown revision") if ($revision !~ /^\d+$/ or $revision < 0 or
+    fatal("unknown revision") if ($revision !~ /^\d+$/ or $revision < 0 or
 		                          $revision > $current_revision);
 
     my $log = util::LoadStructure("$HISTORYDIR/history.$tree");
@@ -315,7 +301,7 @@ sub svn_diff($$$)
 
     if ($text_html eq "html") {
 	print "<!-- $cmd --!>\n";
-	$diff = util::cgi_escape($diff);
+	$diff = escapeHTML($diff);
 	$diff = diff_pretty($diff);
 	print "<pre>$diff</pre>\n";
     }
@@ -328,10 +314,7 @@ sub svn_diff($$$)
 # show recent cvs entries
 sub cvs_diff($$$$)
 {
-    my $author = shift;
-    my $date = shift;
-    my $tree = shift;
-    my $text_html = shift;
+    my ($author, $date, $tree, $text_html) = @_;
     my $module;
 
     my $log = util::LoadStructure("$HISTORYDIR/history.$tree");
@@ -399,7 +382,7 @@ in cvs</b>
 			
 			if ($text_html eq "html") { 
 			    print "<!-- $cmd --!>\n";
-			    $diff = util::cgi_escape($diff);
+			    $diff = escapeHTML($diff);
 			    $diff = diff_pretty($diff);
 			    print "<pre>$diff</pre>\n";
 			} else {
@@ -418,7 +401,7 @@ in cvs</b>
 
 		    if ($text_html eq "html") { 
 			print "<!-- $cmd --!>\n";
-			$diff = util::cgi_escape($diff);
+			$diff = escapeHTML($diff);
 			$diff = diff_pretty($diff);
 			print "<pre>$diff</pre>\n";
 		    }
@@ -486,11 +469,10 @@ sub bzr_diff($$$)
 
     if ($text_html eq "html") {
 	print "<!-- $cmd --!>\n";
-	$diff = util::cgi_escape($diff);
+	$diff = escapeHTML($diff);
 	$diff = diff_pretty($diff);
 	print "<pre>$diff</pre>\n";
-    }
-    else {
+    } else {
 	print "$diff\n";
     }
 }
@@ -499,7 +481,6 @@ sub bzr_diff($$$)
 # get commit history for the given tree
 sub history($)
 {
-
     my $tree = shift;
     my (%authors) = ('ALL' => 1);
     my $author;

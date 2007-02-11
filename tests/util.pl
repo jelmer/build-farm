@@ -5,7 +5,8 @@ use FindBin qw($RealBin);
 use lib "$RealBin/..";
 use lib "$RealBin/../web";
 
-use Test::More tests => 27;
+use Test::More tests => 21;
+use CGI qw/:standard/;
 use strict;
 
 use util;
@@ -13,13 +14,6 @@ use util;
 is(2, util::count_lines("foo\nbar"));
 is(1, util::count_lines("bar"));
 is(1, util::count_lines(""));
-
-is("&amp;", util::cgi_escape("&"));
-is("1 &amp;&amp; 2", util::cgi_escape("1 && 2"));
-is("&lt;&gt;", util::cgi_escape("<>"));
-is("&amp;amp;", util::cgi_escape("&amp;"));
-is("&quot;", util::cgi_escape("\""));
-is("nothing", util::cgi_escape("nothing"));
 
 is("foo.bar", util::ChangeExtension("foo.old", "bar"));
 is("foo.png", util::ChangeExtension("foo.png", "png"));
