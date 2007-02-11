@@ -30,7 +30,8 @@ use warnings;
 use FindBin qw($RealBin);
 
 use lib "$RealBin";
-use data qw(@compilers %hosts @hosts %trees @pseudo_trees $OLDAGE $DEADAGE);
+use data qw(@compilers %hosts @hosts %trees @pseudo_trees $OLDAGE $DEADAGE
+            build_fname);
 use util;
 use history;
 use POSIX;
@@ -40,7 +41,6 @@ use File::stat;
 
 my $WEBDIR = "$RealBin";
 my $BASEDIR = "$WEBDIR/..";
-my $CACHEDIR = "$WEBDIR/../cache";
 
 my $req = new CGI;
 
@@ -129,15 +129,11 @@ sub get_param($) {
     return wantarray ? @result : $result[0];
 }
 
-################################
-# get the name of the build file
-sub build_fname($$$$)
+sub build_status($$$$)
 {
-    my ($tree, $host, $compiler, $rev) = @_;
-    if ($rev) {
-	    return "oldrevs/build.$tree.$host.$compiler-$rev";
-    }
-    return "build.$tree.$host.$compiler";
+	my ($host, $tree, $compiler, $rev) = @_;
+
+	return a({-href=>"$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler" . ($rev?";revision=$rev":"")}, data::build_status($host, $tree, $compiler, $rev));
 }
 
 ###########################################
@@ -155,82 +151,6 @@ sub get_old_revs($$$)
     }
 
     return %ret;
-}
-
-###################
-# the mtime age is used to determine if builds are still happening
-# on a host.
-# the ctime age is used to determine when the last real build happened
-
-##############################################
-# get the age of build from mtime
-sub build_age_mtime($$$$)
-{
-	my ($host, $tree, $compiler, $rev) = @_;
-    my $file=build_fname($tree, $host, $compiler, $rev);
-    my $age = -1;
-    my $st;
-
-    $st = stat("$file.log");
-    if ($st) {
-		$age = time() - $st->mtime;
-    }
-
-    return $age;
-}
-
-##############################################
-# get the age of build from ctime
-sub build_age_ctime($$$$)
-{
-	my ($host, $tree, $compiler, $rev) = @_;
-    my $file = build_fname($tree, $host, $compiler, $rev);
-    my $age = -1;
-    my $st;
-
-    $st = stat("$file.log");
-    if ($st) {
-		$age = time() - $st->ctime;
-    }
-
-    return $age;
-}
-
-##############################################
-# get the svn revision of build
-sub build_revision($$$$)
-{
-	my ($host, $tree, $compiler, $rev) = @_;
-    my $file = build_fname($tree, $host, $compiler, $rev);
-    my $log;
-    my $ret = 0;
-
-    if ($rev) {
-	    return $rev;
-    }
-
-    my $st1 = stat("$file.log");
-
-    if (!$st1) {
-	    return $ret;
-    }
-    my $st2 = stat("$CACHEDIR/$file.revision");
-
-    # the ctime/mtime asymmetry is needed so we don't get fooled by
-    # the mtime update from rsync 
-    if ($st1 && $st2 && $st1->ctime <= $st2->mtime) {
-	    return util::FileLoad("$CACHEDIR/$file.revision");
-    }
-
-    $log = util::FileLoad("$file.log");
-
-    if ($log =~ /BUILD REVISION:(.*)/) {
-	$ret = $1;
-    }
-
-    util::FileSave("$CACHEDIR/$file.revision", $ret);
-
-    return $ret;
 }
 
 #############################################
@@ -263,87 +183,6 @@ sub red_age($)
 }
 
 ##############################################
-# get status of build
-sub build_status($$$$)
-{
-	my ($host, $tree, $compiler, $rev) = @_;
-    my $file = build_fname($tree, $host, $compiler, $rev);
-    my $cachefile="$CACHEDIR/$file.status";
-    my ($cstatus, $bstatus, $istatus, $tstatus, $sstatus, $dstatus);
-    $cstatus = $bstatus = $istatus = $tstatus = $sstatus = $dstatus = 
-      $req->span({-class=>"status unknown"}, "?");
-
-    my $log;
-    my $ret;
-
-    my $st1 = stat("$file.log");
-    if (!$st1) {
-	    return "Unknown Build";
-    }
-    my $st2 = stat("$cachefile");
-
-    if ($st1 && $st2 && $st1->ctime <= $st2->mtime) {
-		return util::FileLoad($cachefile);
-    }
-
-    $log = util::FileLoad("$file.log");
-
-    if ($log =~ /TEST STATUS:(.*)/) {
-	if ($1 == 0) {
-	    $tstatus = $req->span({-class=>"status passed"}, "ok");
-	} else {
-	    $tstatus = $req->span({-class=>"status failed"}, $1);
-	}
-    }
-    
-    if ($log =~ /INSTALL STATUS:(.*)/) {
-	if ($1 == 0) {
-	    $istatus = $req->span({-class => "status passed"}, "ok");
-	} else {
-	    $istatus = $req->span({-class=>"status failed"}, $1);
-	}
-    }
-    
-    if ($log =~ /BUILD STATUS:(.*)/) {
-	if ($1 == 0) {
-	    $bstatus = $req->span({-class => "status passed"}, "ok");
-	} else {
-	    $bstatus = $req->span({-class => "status failed"}, $1);
-	}
-    }
-
-    if ($log =~ /CONFIGURE STATUS:(.*)/) {
-	if ($1 == 0) {
-	    $cstatus = $req->span({-class => "status passed"}, "ok");
-	} else {
-	    $cstatus = $req->span({-class=> "status failed"}, $1);
-	}
-    }
-    
-    if ($log =~ /(PANIC|INTERNAL ERROR):.*/ ) {
-	$sstatus = "/".$req->span({-class=>"status panic"}, "PANIC");
-    } else {
-	$sstatus = "";
-    }
-
-    if ($log =~ /No space left on device.*/ ) {
-	$dstatus = "/".$req->span({-class=>"status failed"}, "disk full");
-    } else {
-	$dstatus = "";
-    }
-
-    if ($log =~ /CC_CHECKER STATUS: (.*)/ && $1 > 0) {
-	$sstatus .= "/".$req->span({-class=>"status checker"}, $1);
-    }
-
-    $ret = $req->a({-href=>"$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler" . ($rev?";revision=$rev":"")}, "$cstatus/$bstatus/$istatus/$tstatus$sstatus$dstatus");
-
-    util::FileSave("$CACHEDIR/$file.status", $ret);
-
-    return $ret;
-}
-
-##############################################
 # translate a status into a set of int representing status
 sub build_status_vals($) {
     my $status = util::strip_html(shift);
@@ -353,33 +192,6 @@ sub build_status_vals($) {
     $status =~ s/PANIC/1/g;
 
     return split m%/%, $status;
-}
-
-##############################################
-# get status of build
-sub err_count($$$$)
-{
-    my ($host, $tree, $compiler, $rev) = @_;
-    my $file = build_fname($tree, $host, $compiler, $rev);
-    my $err;
-
-    my $st1 = stat("$file.err");
-    if ($st1) {
-	    return 0;
-    }
-    my $st2 = stat("$CACHEDIR/$file.errcount");
-
-    if ($st1 && $st2 && $st1->ctime <= $st2->mtime) {
-	    return util::FileLoad("$CACHEDIR/$file.errcount");
-    }
-
-    $err = util::FileLoad("$file.err") or return 0;
-
-    my $ret = util::count_lines($err);
-
-    util::FileSave("$CACHEDIR/$file.errcount", "$ret");
-
-    return $ret;
 }
 
 ##############################################
@@ -574,9 +386,9 @@ sub view_recent_builds($$) {
 					  $req->a({-href=>"$sorturl;sortby=compiler",
 							        -title=>"Sort by compiler"}, "Compiler"),
 					  $req->a({-href=>"$sorturl;sortby=status",
-							        -title=>"Sort by build status"}, "Status")
+							        -title=>"Sort by build status"}, "Status")]
 					)
-				),
+				)),
 			$req->start_tbody;
 
     for my $build (@all_builds) {
