@@ -3,19 +3,42 @@
 # Copyright (C) 2007 Jelmer Vernooij <jelmer@samba.org>
 # Published under the GNU GPL
 
-use FindBin qw($RealBin);
+use FindBin qw($RealBin $Script);
 use lib "$RealBin/web";
 use DBI;
 use Digest::SHA1 qw(sha1_hex);
 use strict;
 use util;
 use File::stat;
+use Getopt::Long;
+
+my $opt_help = 0;
+my $opt_init = 0;
+
+my $result = GetOptions(
+	'help|h|?' => \$opt_help,
+	'init' => \$opt_init);
+
+exit(1) unless ($result);
+
+if ($opt_help) {
+	print "$Script [OPTIONS] <LOG-FILE>\n";
+	print "Options:\n";
+	print " --help         This help message\n";
+	print " --init         (Re-)Initialize the database\n";
+	exit;
+}
 
 my $dbh = DBI->connect( "dbi:SQLite:data.dbl" ) || die "Cannot connect: $DBI::errstr";
 
-$dbh->do("CREATE TABLE IF NOT EXISTS build ( id integer primary key autoincrement, tree text, revision text, host text, compiler text, checksum text, age int );");
-$dbh->do("CREATE TABLE IF NOT EXISTS test_run ( build int, test text, result text, output text);");
-$dbh->do("CREATE TABLE IF NOT EXISTS build_stage_run ( build int, action text, result text, output text, num int);");
+if ($opt_init) {
+	$dbh->do("DROP TABLE build");
+	$dbh->do("DROP TABLE test_run");
+	$dbh->do("DROP TABLE build_stage_run");
+	$dbh->do("CREATE TABLE build ( id integer primary key autoincrement, tree text, revision text, host text, compiler text, checksum text, age int );");
+	$dbh->do("CREATE TABLE test_run ( build int, test text, result text, output text);");
+	$dbh->do("CREATE TABLE build_stage_run ( build int, action text, result text, output text, num int);");
+}
 
 foreach my $logfn (@ARGV) {
 	if (not -f $logfn) {
