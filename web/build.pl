@@ -797,10 +797,10 @@ sub view_host {
 								"Tree", "Compiler", "Build Age", "Status", "Warnings";
                                     
 						} else {
-							print $req->start_div({-class=>"host summary"});
-							print $req->a({-id=>$host, -name=>$host});
-							print $req->h3("$host - $hosts{$host}");
-							print $req->start_table({-class=>"real"}),
+							print $req->start_div({-class=>"host summary"}),
+							      $req->a({-id=>$host, -name=>$host}), 
+								  $req->h3("$host - $hosts{$host}"),
+								  $req->start_table({-class=>"real"}),
 							      $req->thead($req->Tr(
 								  $req->th(["Target", "Build<br/>Revision", "Build<br />Age", "Status<br />config/build<br />install/test", "Warnings"]))),
 						  		  $req->start_tbody;
@@ -1032,6 +1032,9 @@ if ($fn_name eq 'text_diff') {
 		  get_param('tree'),
 		  get_param('revision'),
 		  "html");
+  } elsif (path_info() ne "") {
+	my $paths = split('/');
+	print $paths[0];
   } else {
     view_summary('html');
   }
