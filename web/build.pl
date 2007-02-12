@@ -239,7 +239,7 @@ sub view_summary($)
 	    print "Build counts:\n";
 	    printf "%-12s %-6s %-6s %-6s\n", "Tree", "Total", "Broken", "Panic";
     } else {
-	    print $req->start_div(-id=>"build-counts", -class=>"build-section");
+	    print $req->start_div({-id=>"build-counts", -class=>"build-section"});
 		print $req->h2('Build counts:');
 		print $req->start_table({-class => "real"}),
 			  $req->thead(
@@ -352,7 +352,7 @@ sub view_recent_builds($$) {
 
     my $sorturl = "$myself?tree=$tree;function=Recent+Builds";
 
-	print $req->start_div(-id=>"recent-builds", -class=>"build-section"),
+	print $req->start_div({-id=>"recent-builds", -class=>"build-section"}),
 		  $req->h2("Recent builds of $tree"),
 		  $req->start_table({-class => "real"}),
 	      $req->thead(
@@ -397,7 +397,7 @@ sub draw_dead_hosts {
     # don't include in text report
 	return if ($output_type eq 'text');
 
-	print $req->start_div(-class => "build-section", -id=>"dead-hosts"),
+	print $req->start_div({-class => "build-section", -id=>"dead-hosts"}),
 		  $req->h2('Dead Hosts:'),
 		  $req->start_table({-class => "real"}),
 		  $req->thead($req->Tr($req->th(["Host", "OS", "Min Age"]))),
@@ -507,7 +507,7 @@ sub view_build($$$$) {
     if (!$plain_logs) {
 	    print $req->p("Switch to the ".$req->a({-href => "$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler$rev_var;plain=true", -title=> "Switch to bland, non-javascript, unstyled view"}, "Plain View"));
 
-	    print $req->start_div(-id=>"actionList");
+	    print $req->start_div({-id=>"actionList"});
 	    # These can be pretty wide -- perhaps we need to 
 	    # allow them to wrap in some way?
 	    if ($err eq "") {
@@ -752,7 +752,7 @@ sub make_collapsible_html($$$$)
   $output =~ s/\s+$//s;
 
   # note that we may be inside a <pre>, so we don't put any extra whitespace in this html
-  return $req->div({-class=>"$type unit $status",
+  return $req->div({-class=>"$type unit \L$status\E",
 		                  -id=>"$type-$id"},
 					  $req->a({-href=>"javascript:handle('$id');"},
 						  $req->img({-id=>"img-$id", -name=>"img-$id",
@@ -760,7 +760,7 @@ sub make_collapsible_html($$$$)
 									-src=>$icon}),
 						  $req->div({-class => "$type title"}, $title),
 					  ) ." ". 
-					  $req->div({-class=> "$type status $status"}, $status) .
+					  $req->div({-class=> "$type status \L$status\E"}, $status) .
 					  $req->div({-class => "$type output", -id=>"output-$id"}, $req->pre($output)));
 }
 
