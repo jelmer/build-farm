@@ -424,8 +424,8 @@ sub show_oldrevs($$$)
 
     my $ret = $req->h2("Older builds:");
 
-    $ret .= $req->start_table({-class => "real"}),
-	      $req->thead($req->Tr($req->th(["Revision", "Status"]))),
+    $ret .= $req->start_table({-class => "real"}).
+	      $req->thead($req->Tr($req->th(["Revision", "Status"]))).
 	      $req->start_tbody;
 
     my $lastrev = "";
@@ -738,11 +738,12 @@ sub print_log_cc_checker($) {
 
 ##############################################
 # generate html for a collapsible section
-sub make_collapsible_html($$$$)
+sub make_collapsible_html
 {
-  my ($type, # the logical type of it. e.g. "test" or "action"
-      $title, # the title to be displayed 
-      $output, $id) = @_;
+  my $type = shift; # the logical type of it. e.g. "test" or "action"
+  my $title = shift; # the title to be displayed 
+  my $output = shift;
+  my $id = shift;
   my $status = (shift or "");
 
   my $icon = (defined $status && ($status =~ /failed/i)) ? 'icon_hide_16.png' : 'icon_unhide_16.png';

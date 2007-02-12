@@ -247,7 +247,7 @@ sub read_log($$$$)
 {
     my ($tree, $host, $compiler, $rev) = @_;
 
-	return util::LoadFile(build_fname($tree, $host, $compiler, $rev).".log");
+	return util::FileLoad(build_fname($tree, $host, $compiler, $rev).".log");
 }
 
 ##############################################
@@ -256,7 +256,7 @@ sub read_err($$$$)
 {
     my ($tree, $host, $compiler, $rev) = @_;
 
-	return util::LoadFile(build_fname($tree, $host, $compiler, $rev).".err");
+	return util::FileLoad(build_fname($tree, $host, $compiler, $rev).".err");
 }
 
 ###########################################
