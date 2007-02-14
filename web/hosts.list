@@ -22,8 +22,8 @@ berks: Fedora Core 1 i386
 yowiee: Fedora Core 2 i386
 tango-one-mars: Fedora Core 2 i386
 shelob: Fedora Core 3 i386 SMP
-node1: Fedora Core 4 (i686) SMP
-node2: Fedora Core 4 (i686) SMP
+node1: Fedora Core 6 (i686) SMP
+node2: Fedora Core 6 (i686) SMP
 piglett: Fedora Core 5 (i686)
 speener: Fedora Core 4 (i686)
 gc8: FreeBSD 3.3-RELEASE i386
@@ -65,7 +65,6 @@ homer: RedHat RHEL 4 (64-bit) (WS)
 deckchair: RedHat RHEL 3 (AS) ia64
 packetstorm: Slackware Linux 9.0 i386
 bnhtest: Slackware Linux 10.2 i386
-smoothwall: Smoothwall Express 2 i386
 shubnigurath: Solaris 10 UltraSparc
 sunX: Solaris 10 Sparc
 sun9: Solaris 9 Sparc
