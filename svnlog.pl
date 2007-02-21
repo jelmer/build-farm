@@ -115,7 +115,8 @@ sub svn_parse($$$$)
 					}
 				}
 
-				elsif ($line =~ /\s+R (.*)/) {
+				elsif ($line =~ /\s+R (.*)/ ||
+				       $line =~ /\s+D (.*)/) {
 					my $file = $1;
 					$file =~ s#^/$tree_dir/##o;
 					if ($entry->{REMOVED}) {
