@@ -311,7 +311,9 @@ sub view_recent_builds($$) {
     my $last_host = "";
     my @all_builds = ();
 
-    my $sort = { revision => sub { $$b[6] <=> $$a[6] },
+    my $sort = { revision => sub { 
+			util::strip_html($$b[6]) <=> util::strip_html($$a[6])
+		},
 		 age =>      sub { $$a[0] <=> $$b[0] },
 		 host =>     sub { $$a[2] cmp $$b[2] },
 		 platform => sub { $$a[1] cmp $$b[1] },

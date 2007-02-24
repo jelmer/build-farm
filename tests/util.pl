@@ -5,7 +5,7 @@ use FindBin qw($RealBin);
 use lib "$RealBin/..";
 use lib "$RealBin/../web";
 
-use Test::More tests => 21;
+use Test::More tests => 22;
 use CGI qw/:standard/;
 use strict;
 
@@ -39,5 +39,7 @@ is("", util::strip_html("<!--foo-->"));
 is("bar ", util::strip_html("<!--foo-->bar <!--bloe-->"));
 is("bar <bloe>", util::strip_html("<bar>bar <bloe></bar>"));
 is("", util::strip_html("<bar><bloe></bloe></bar>"));
+
+is("bla", util::strip_html("<a href=\"foo\">bla</a>"));
 
 1;
