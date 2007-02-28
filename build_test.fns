@@ -615,13 +615,13 @@ test_tree() {
 		if [ "$LCOV_REPORT" = "yes" ]; then
 		    case "$tree" in
 			lorikeet-heimdal*)
-			    lcov --directory $builddir --capture --output-file $builddir/$tree.info
+			    lcov --directory $builddir --capture --output-file $builddir/$tree.lcov.info
 			    ;;
 			*)
-			    lcov --base-directory $builddir --directory $builddir --capture --output-file $builddir/$tree.info
+			    lcov --base-directory $builddir --directory $builddir --capture --output-file $builddir/$tree.lcov.info
 			    ;;
 		    esac
-		    genhtml -o $builddir/coverage $builddir/$tree.info
+		    genhtml -o $builddir/coverage $builddir/$tree.lcov.info
 		fi
 
 		if [ "$noclean" = "yes" ]; then
