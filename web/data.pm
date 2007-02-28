@@ -40,7 +40,8 @@ use warnings;
 
 my $WEBDIR = "$RealBin";
 my $CACHEDIR = "$WEBDIR/../cache";
-
+my $LCOVDIR = "$WEBDIR/../../lcov";
+my $LCOVHOST = "piglett";
 our $OLDAGE = 60*60*4;
 our $DEADAGE = 60*60*24*4;
 
@@ -148,7 +149,7 @@ sub build_status($$$$)
 {
 	my ($host, $tree, $compiler, $rev) = @_;
     my $file = build_fname($tree, $host, $compiler, $rev);
-    my $cachefile="$CACHEDIR/$file.status";
+    my $cachefile="$LCOVDIR/$file.status";
     my ($cstatus, $bstatus, $istatus, $tstatus, $sstatus, $dstatus);
     $cstatus = $bstatus = $istatus = $tstatus = $sstatus = $dstatus = 
       span({-class=>"status unknown"}, "?");
@@ -220,10 +221,10 @@ sub lcov_status($)
 {
     my ($tree) = @_;
     my $cachefile="$CACHEDIR/$tree.lcov.status";
-
-    my $st1 = stat("$file.log");
+    my $file = "$LCOVDIR/$LCOVHOST/$tree/index.html";
+    my $st1 = stat($file);
     if (!$st1) {
-	    return "Unknown Build";
+	    return "";
     }
     my $st2 = stat($cachefile);
 
@@ -231,55 +232,15 @@ sub lcov_status($)
 		return util::FileLoad($cachefile);
     }
 
-    my $log = util::FileLoad("$file.log");
-
-	sub span_status($)
-	{
-		my $st = shift;
-		if ($st == 0) {
-	    	return span({-class=>"status passed"}, "ok");
-		} else {
-			return span({-class=>"status failed"}, $st);
-		}
-	}
-
-    if ($log =~ /TEST STATUS:(.*)/) {
-		$tstatus = span_status($1);
-    }
+    my $lcov_html = util::FileLoad("$file.log");
+    if ($lcov_html =~ /<td class="headerItem".*?>Code&nbsp;covered:<\/td>.*?<td class="headerValue".*?>([0-9.]+) %<\/td>/) {
     
-    if ($log =~ /INSTALL STATUS:(.*)/) {
-		$istatus = span_status($1);
+	my $ret = "<a href=\"/lcov/$LCOVHOST/$tree\">$1 %>";
+	util::FileSave("$CACHEDIR/$file.status", $ret);
+	
+	return $ret;
     }
-    
-    if ($log =~ /BUILD STATUS:(.*)/) {
-		$bstatus = span_status($1);
-    }
-
-    if ($log =~ /CONFIGURE STATUS:(.*)/) {
-		$cstatus = span_status($1);
-    }
-    
-    if ($log =~ /(PANIC|INTERNAL ERROR):.*/ ) {
-	$sstatus = "/".span({-class=>"status panic"}, "PANIC");
-    } else {
-	$sstatus = "";
-    }
-
-    if ($log =~ /No space left on device.*/ ) {
-	$dstatus = "/".span({-class=>"status failed"}, "disk full");
-    } else {
-	$dstatus = "";
-    }
-
-    if ($log =~ /CC_CHECKER STATUS: (.*)/ && $1 > 0) {
-	$sstatus .= "/".span({-class=>"status checker"}, $1);
-    }
-
-    my $ret = "$cstatus/$bstatus/$istatus/$tstatus$sstatus$dstatus";
-
-    util::FileSave("$CACHEDIR/$file.status", $ret);
-
-    return $ret;
+    return "";
 }
 
 ##############################################

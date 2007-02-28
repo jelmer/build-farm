@@ -244,7 +244,8 @@ sub view_summary($)
 		print $req->start_table({-class => "real"}),
 			  $req->thead(
 				  $req->Tr($req->th("Tree"), $req->th("Total"), 
-					       $req->th("Broken"), $req->th("Panic"))),
+					   $req->th("Broken"), $req->th("Panic"), 
+					   $req->th("Test Coverage"))),
 		      $req->start_tbody;
     }
 
@@ -263,6 +264,7 @@ sub view_summary($)
 				print $req->start_td;
 			}
 			print $panic_count{$tree} . $req->end_td;
+			print $req->td(lcov_status($tree));
 			print $req->end_Tr;
 	    }
     }
