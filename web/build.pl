@@ -184,7 +184,6 @@ sub build_status_vals($) {
 sub view_summary($) 
 {
     my $i = 0;
-    my $list = `ls *.log`;
     my $cols = 2;
     my $broken = 0;
 
@@ -564,15 +563,13 @@ sub view_host {
 		print $req->h2('Host summary:');
 	}
 
-	my $list = `ls *.log`;
-
 	foreach (@requested_hosts) {
 		util::InArray($_, [keys %hosts]) || fatal("unknown host");
 	}
 
 	for my $host (@requested_hosts) {
 		# make sure we have some data from it
-		if (! ($list =~ /$host/)) {
+		unless($db->has_host($host)) {
 			if ($output_type ne 'text') {
 				print $req->comment("skipping $host");
 			}

@@ -302,7 +302,7 @@ sub read_err($$$$$)
 sub get_old_revs($$$$)
 {
     my ($self, $tree, $host, $compiler) = @_;
-    my @list = split('\n', `ls oldrevs/build.$tree.$host.$compiler-*.log`);
+    my @list = split('\n', `ls $self->{path}/oldrevs/build.$tree.$host.$compiler-*.log`);
     my %ret;
     for my $l (@list) {
 	    if ($l =~ /-(\d+).log$/) {
@@ -312,6 +312,16 @@ sub get_old_revs($$$$)
     }
 
     return %ret;
+}
+
+sub has_host($$)
+{
+	my ($self, $host) = @_;
+
+	my $ls = `ls $self->{path}/*.log`;
+
+	return 1 if ($ls =~ /$host/);
+	return 0;
 }
 
 1;
