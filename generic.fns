@@ -40,7 +40,7 @@ done
 
 # only attempt pidl if we have perl
 if which perl > /dev/null; then
-  test_tree pidl source cc build install test
+  test_tree pidl . cc build test
 fi
 
 global_unlock

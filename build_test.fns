@@ -262,10 +262,6 @@ action_build() {
 	samba|samba_3_0)
 	    do_make proto everything torture
 	    ;;
-	pidl)
-		perl Makefile.PL
-		do_make all
-		;;
 	*)
 	    do_make all
 	    ;;
@@ -457,7 +453,7 @@ test_tree() {
 	    return
 	}
 
-        if [ ! -x $srcdir/configure ]; then
+        if [ ! -x $srcdir/configure ] && [ "$tree" != "pidl" ]; then
 		echo "skip: $tree.$compiler configure not present, try again next time!"
 		cd $test_root
 		unlock_file "$lck"
@@ -590,6 +586,13 @@ test_tree() {
 		  if [ -n "$rev" ]; then
 			echo "BUILD REVISION: $rev"
 		  fi
+		fi
+
+
+		if [ "$tree" = "pidl" ] 
+		then
+			cd $builddir
+			perl ./Makefile.PL "$prefix"
 		fi
 
 		for action in $actions; do
