@@ -149,7 +149,7 @@ sub build_status($$$$)
 {
 	my ($host, $tree, $compiler, $rev) = @_;
     my $file = build_fname($tree, $host, $compiler, $rev);
-    my $cachefile="$LCOVDIR/$file.status";
+    my $cachefile="$CACHEDIR/$file.status";
     my ($cstatus, $bstatus, $istatus, $tstatus, $sstatus, $dstatus);
     $cstatus = $bstatus = $istatus = $tstatus = $sstatus = $dstatus = 
       span({-class=>"status unknown"}, "?");
@@ -210,7 +210,7 @@ sub build_status($$$$)
 
     my $ret = "$cstatus/$bstatus/$istatus/$tstatus$sstatus$dstatus";
 
-    util::FileSave("$CACHEDIR/$file.status", $ret);
+    util::FileSave("$cachefile", $ret);
 
     return $ret;
 }
@@ -236,7 +236,7 @@ sub lcov_status($)
     if ($lcov_html =~ /<td class="headerItem".*?>Code&nbsp;covered:<\/td>.*?<td class="headerValue".*?>([0-9.]+) %<\/td>/) {
     
 	my $ret = "<a href=\"/lcov/$LCOVHOST/$tree\">$1 %>";
-	util::FileSave("$CACHEDIR/$file.status", $ret);
+	util::FileSave("$cachefile", $ret);
 	
 	return $ret;
     }
