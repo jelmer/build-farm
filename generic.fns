@@ -38,4 +38,9 @@ for compiler in gcc cc icc; do
   fi
 done
 
+# only attempt pidl if we have perl
+if which perl > /dev/null; then
+  test_tree pidl source cc build install test
+fi
+
 global_unlock

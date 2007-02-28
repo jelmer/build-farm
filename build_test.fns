@@ -262,6 +262,10 @@ action_build() {
 	samba|samba_3_0)
 	    do_make proto everything torture
 	    ;;
+	pidl)
+		perl Makefile.PL
+		do_make all
+		;;
 	*)
 	    do_make all
 	    ;;
@@ -352,7 +356,7 @@ action_test() {
 #        samba_3_0)
 #		echo "testing of samba_3_0 disabled until cause of runaway processes found (tridge - 7th sep 2006)"
 #		;;
-	samba*|smb-build)
+	samba*|smb-build|pidl)
 	    action_test_samba
 	    ;;
 	lorikeet-heimdal*)
@@ -420,6 +424,9 @@ test_tree() {
 	    ldb)
 		deptrees="libreplace talloc tdb";
 	    ;;
+		samba-gtk)
+		deptrees="samba4"
+		;;
 	esac
 
 	# pull the svn entries, if any
