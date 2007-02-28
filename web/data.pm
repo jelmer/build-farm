@@ -40,7 +40,7 @@ use warnings;
 
 my $WEBDIR = "$RealBin";
 my $CACHEDIR = "$WEBDIR/../cache";
-my $LCOVDIR = "$WEBDIR/../../lcov/data";
+my $LCOVDIR = "$WEBDIR/../lcov/data";
 my $LCOVHOST = "tridge";
 our $OLDAGE = 60*60*4;
 our $DEADAGE = 60*60*24*4;
