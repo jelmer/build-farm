@@ -19,6 +19,7 @@
 ./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_4_0/source/lib/talloc 60 talloc cache/history.talloc
 ./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_4_0/source/lib/tdb 60 tdb cache/history.tdb
 ./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_4_0/source/lib/ldb 60 ldb cache/history.ldb
+./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_4_0/source/pidl 60 pidl cache/history.pidl
 ./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_4_0/source/lib/replace 60 libreplace cache/history.libreplace
 ./svnlog.pl svn://svnanon.samba.org/samba branches/SOC 60 SOC cache/history.SOC
 ./svnlog.pl svn://svnanon.samba.org/build-farm trunk 60 build_farm cache/history.build_farm
@@ -29,5 +30,6 @@
 ./cvslog.pl /data/cvs/CVSROOT/ppp.updates 60 ppp "" cache/history.ppp
 
 ./bzrlog.pl /home/ftp/pub/unpacked/ctdb 60 cache/history.ctdb
+./bzrlog.pl http://people.samba.org/bzr/jelmer/samba-gtk/trunk 60 cache/history.samba-gtk
 
 ) > history.log 2>&1
