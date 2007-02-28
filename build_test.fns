@@ -411,23 +411,6 @@ test_tree() {
 		return
 	}
 
-	case "$tree" in
-	    tdb | talloc | ldb | libreplace)
-		builddir="$test_root/tmp.$tree.$compiler"
-		usingtmpbuild=1
-		if [ -d $builddir ]; then
-		    rm -rf $builddir
-		fi
-		mkdir -p $builddir
-		export builddir
-	    ;;
-	    *)
-		builddir=$srcdir
-		usingtmpbuild=0
-		export builddir
-	    ;;
-	esac
-	
 	# work out what other trees this package depends on
 	deptrees=""
 	case "$tree" in
@@ -476,6 +459,23 @@ test_tree() {
 
 	echo "Starting build of $tree.$compiler in process $$ at `date`"
 
+	case "$tree" in
+	    tdb | talloc | ldb | libreplace)
+		builddir="$test_root/tmp.$tree.$compiler"
+		usingtmpbuild=1
+		if [ -d $builddir ]; then
+		    rm -rf $builddir
+		fi
+		mkdir -p $builddir
+		export builddir
+	    ;;
+	    *)
+		builddir=$srcdir
+		usingtmpbuild=0
+		export builddir
+	    ;;
+	esac
+	
 	if [ ! $USER = "" ]; then
 	    whoami=$USER
 	else 
