@@ -229,18 +229,19 @@ sub lcov_status($)
     my $st2 = stat($cachefile);
 
     if ($st1 && $st2 && $st1->ctime <= $st2->mtime) {
-		return util::FileLoad($cachefile);
+	return util::FileLoad($cachefile);
     }
 
+    my $ret;
     my $lcov_html = util::FileLoad($file);
-    if ($lcov_html =~ /<td class="headerItem".*?>Code&nbsp;covered:<\/td>.*?<td class="headerValue".*?>([0-9.]+) %<\/td>/) {
+    if ($lcov_html =~ /\<td class="headerItem".*?\>Code\&nbsp\;covered\:\<\/td\>.*?\n.*?\<td class="headerValue".*?\>([0-9.]+) \%/) {
     
-	my $ret = '<a href="/lcov/'."$LCOVHOST/$tree".'">$1 %</a>';
-	util::FileSave("$cachefile", $ret);
-	
-	return $ret;
+	$ret = '<a href="/lcov/data'."$LCOVHOST/$tree\">$1 %</a>";
+    }  else {
+	$ret = "";
     }
-    return "";
+    util::FileSave("$cachefile", $ret);
+    return $ret;
 }
 
 ##############################################
