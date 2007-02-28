@@ -529,5 +529,4 @@ sub history($)
 #cvs_diff(get_param('author'), get_param('date'), get_param('tree'));
 #cvs_history("trinity");
 
-
 1;

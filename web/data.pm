@@ -56,15 +56,23 @@ our (%trees) = util::load_hash("$WEBDIR/trees.list");
 # (for recent checkins)
 our @pseudo_trees = util::load_list("$WEBDIR/pseudo.list");
 
+sub new($) {
+	my ($this, $path) = @_;
+	return undef if not (-d $path);
+	my $self = { path => $path };
+	bless $self;
+	return $self;
+}
+
 ################################
 # get the name of the build file
-sub build_fname($$$$)
+sub build_fname($$$$$)
 {
-    my ($tree, $host, $compiler, $rev) = @_;
+    my ($self, $tree, $host, $compiler, $rev) = @_;
     if ($rev) {
-	    return "oldrevs/build.$tree.$host.$compiler-$rev";
+	    return "$self->{path}/oldrevs/build.$tree.$host.$compiler-$rev";
     }
-    return "build.$tree.$host.$compiler";
+    return "$self->{path}/build.$tree.$host.$compiler";
 }
 
 ###################
@@ -74,10 +82,10 @@ sub build_fname($$$$)
 
 ##############################################
 # get the age of build from mtime
-sub build_age_mtime($$$$)
+sub build_age_mtime($$$$$)
 {
-	my ($host, $tree, $compiler, $rev) = @_;
-    my $file=build_fname($tree, $host, $compiler, $rev);
+	my ($self, $host, $tree, $compiler, $rev) = @_;
+    my $file=$self->build_fname($tree, $host, $compiler, $rev);
     my $age = -1;
     my $st;
 
@@ -91,10 +99,10 @@ sub build_age_mtime($$$$)
 
 ##############################################
 # get the age of build from ctime
-sub build_age_ctime($$$$)
+sub build_age_ctime($$$$$)
 {
-	my ($host, $tree, $compiler, $rev) = @_;
-    my $file = build_fname($tree, $host, $compiler, $rev);
+	my ($self, $host, $tree, $compiler, $rev) = @_;
+    my $file = $self->build_fname($tree, $host, $compiler, $rev);
     my $age = -1;
     my $st;
 
@@ -108,10 +116,10 @@ sub build_age_ctime($$$$)
 
 ##############################################
 # get the svn revision of build
-sub build_revision($$$$)
+sub build_revision($$$$$)
 {
-	my ($host, $tree, $compiler, $rev) = @_;
-    my $file = build_fname($tree, $host, $compiler, $rev);
+	my ($self, $host, $tree, $compiler, $rev) = @_;
+    my $file = $self->build_fname($tree, $host, $compiler, $rev);
     my $log;
     my $ret = 0;
 
@@ -145,10 +153,10 @@ sub build_revision($$$$)
 
 ##############################################
 # get status of build
-sub build_status($$$$)
+sub build_status($$$$$)
 {
-	my ($host, $tree, $compiler, $rev) = @_;
-    my $file = build_fname($tree, $host, $compiler, $rev);
+	my ($self, $host, $tree, $compiler, $rev) = @_;
+    my $file = $self->build_fname($tree, $host, $compiler, $rev);
     my $cachefile="$CACHEDIR/$file.status";
     my ($cstatus, $bstatus, $istatus, $tstatus, $sstatus, $dstatus);
     $cstatus = $bstatus = $istatus = $tstatus = $sstatus = $dstatus = 
@@ -217,9 +225,9 @@ sub build_status($$$$)
 
 ##############################################
 # get status of build
-sub lcov_status($)
+sub lcov_status($$)
 {
-    my ($tree) = @_;
+    my ($self, $tree) = @_;
     my $cachefile="$CACHEDIR/lcov.$LCOVHOST.$tree.status";
     my $file = "$LCOVDIR/$LCOVHOST/$tree/index.html";
     my $st1 = stat($file);
@@ -246,10 +254,10 @@ sub lcov_status($)
 
 ##############################################
 # get status of build
-sub err_count($$$$)
+sub err_count($$$$$)
 {
-    my ($host, $tree, $compiler, $rev) = @_;
-    my $file = build_fname($tree, $host, $compiler, $rev);
+    my ($self, $host, $tree, $compiler, $rev) = @_;
+    my $file = $self->build_fname($tree, $host, $compiler, $rev);
     my $err;
 
     my $st1 = stat("$file.err");
@@ -273,33 +281,33 @@ sub err_count($$$$)
 
 ##############################################
 # read full log file
-sub read_log($$$$)
+sub read_log($$$$$)
 {
-    my ($tree, $host, $compiler, $rev) = @_;
+    my ($self, $tree, $host, $compiler, $rev) = @_;
 
-	return util::FileLoad(build_fname($tree, $host, $compiler, $rev).".log");
+	return util::FileLoad($self->build_fname($tree, $host, $compiler, $rev).".log");
 }
 
 ##############################################
 # read full err file
-sub read_err($$$$)
+sub read_err($$$$$)
 {
-    my ($tree, $host, $compiler, $rev) = @_;
+    my ($self, $tree, $host, $compiler, $rev) = @_;
 
-	return util::FileLoad(build_fname($tree, $host, $compiler, $rev).".err");
+	return util::FileLoad($self->build_fname($tree, $host, $compiler, $rev).".err");
 }
 
 ###########################################
 # get a list of old builds and their status
-sub get_old_revs($$$)
+sub get_old_revs($$$$)
 {
-    my ($tree, $host, $compiler) = @_;
+    my ($self, $tree, $host, $compiler) = @_;
     my @list = split('\n', `ls oldrevs/build.$tree.$host.$compiler-*.log`);
     my %ret;
     for my $l (@list) {
 	    if ($l =~ /-(\d+).log$/) {
 		    my $rev = $1;
-		    $ret{$rev} = build_status($host, $tree, $compiler, $rev);
+		    $ret{$rev} = $self->build_status($host, $tree, $compiler, $rev);
 	    }
     }
 

@@ -30,9 +30,7 @@ use warnings;
 use FindBin qw($RealBin);
 
 use lib "$RealBin";
-use data qw(@compilers %hosts @hosts %trees @pseudo_trees $OLDAGE $DEADAGE
-            build_age_mtime build_age_ctime build_revision get_old_revs
-	    build_status err_count read_log read_err);
+use data qw(@compilers %hosts @hosts %trees @pseudo_trees $OLDAGE $DEADAGE);
 use util;
 use history;
 use POSIX;
@@ -42,6 +40,8 @@ use File::stat;
 
 my $WEBDIR = "$RealBin";
 my $BASEDIR = "$WEBDIR/..";
+
+my $db = new data("$BASEDIR/data");
 
 my $req = new CGI;
 
@@ -134,7 +134,7 @@ sub build_status($$$$)
 {
 	my ($host, $tree, $compiler, $rev) = @_;
 
-	return a({-href=>"$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler" . ($rev?";revision=$rev":"")}, data::build_status($host, $tree, $compiler, $rev));
+	return a({-href=>"$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler" . ($rev?";revision=$rev":"")}, $db->build_status($host, $tree, $compiler, $rev));
 }
 
 
@@ -146,7 +146,7 @@ sub host_age($)
 	my $ret = -1;
 	for my $compiler (@compilers) {
 		for my $tree (keys %trees) {
-			my $age = build_age_mtime($host, $tree, $compiler, "");
+			my $age = $db->build_age_mtime($host, $tree, $compiler, "");
 			if ($age != -1 && ($age < $ret || $ret == -1)) {
 				$ret = $age;
 			}
@@ -219,7 +219,7 @@ sub view_summary($)
 		    for my $tree (keys %trees) {
 			    my $status = build_status($host, $tree, $compiler, "");
 			    next if $status =~ /^Unknown Build/;
-			    my $age_mtime = build_age_mtime($host, $tree, $compiler, "");
+			    my $age_mtime = $db->build_age_mtime($host, $tree, $compiler, "");
 			    
 			    if ($age_mtime != -1 && $age_mtime < $DEADAGE) {
 				    $host_count{$tree}++;
@@ -264,7 +264,7 @@ sub view_summary($)
 				print $req->start_td;
 			}
 			print $panic_count{$tree} . $req->end_td;
-			print $req->td(data::lcov_status($tree));
+			print $req->td($db->lcov_status($tree));
 			print $req->end_Tr . "\n";
 	    }
     }
@@ -343,10 +343,10 @@ sub view_recent_builds($$) {
 
     for my $host (@hosts) {
       for my $compiler (@compilers) {
-	  my $status = build_status($host, $tree, $compiler, "");
-	  my $age_mtime = build_age_mtime($host, $tree, $compiler, "");
-	  my $age_ctime = build_age_ctime($host, $tree, $compiler, "");
-	  my $revision = build_revision($host, $tree, $compiler, "");
+	  my $status = $db->build_status($host, $tree, $compiler, "");
+	  my $age_mtime = $db->build_age_mtime($host, $tree, $compiler, "");
+	  my $age_ctime = $db->build_age_ctime($host, $tree, $compiler, "");
+	  my $revision = $db->build_revision($host, $tree, $compiler, "");
 	  push @all_builds, [$age_ctime, $hosts{$host}, $req->a({-href=>"$myself?function=View+Host;host=$host;tree=$tree;compiler=$compiler#$host"}, $host), $compiler, $tree, $status, revision_link($revision, $tree)]
 	  	unless $age_mtime == -1 or $age_mtime >= $DEADAGE;
       }
@@ -421,7 +421,7 @@ sub draw_dead_hosts {
 sub show_oldrevs($$$)
 {
     my ($tree, $host, $compiler) = @_;
-    my %revs = get_old_revs($tree, $host, $compiler);
+    my %revs = $db->get_old_revs($tree, $host, $compiler);
     my @revs = sort { $revs{$b} cmp $revs{$a} } keys %revs;
 
     return if ($#revs < 1);
@@ -459,14 +459,14 @@ sub view_build($$$$) {
     my $uname="";
     my $cflags="";
     my $config="";
-    my $age_mtime = build_age_mtime($host, $tree, $compiler, $rev);
-    my $revision = build_revision($host, $tree, $compiler, $rev);
-    my $status = build_status($host, $tree, $compiler, $rev);
+    my $age_mtime = $db->build_age_mtime($host, $tree, $compiler, $rev);
+    my $revision = $db->build_revision($host, $tree, $compiler, $rev);
+    my $status = $db->build_status($host, $tree, $compiler, $rev);
 
     $rev = int($rev) if $rev;
 
-    my $log = read_log($tree, $host, $compiler, $rev);
-    my $err = read_err($tree, $host, $compiler, $rev);
+    my $log = $db->read_log($tree, $host, $compiler, $rev);
+    my $err = $db->read_err($tree, $host, $compiler, $rev);
     
     if ($log) {
 		$log = escapeHTML($log);
@@ -583,12 +583,12 @@ sub view_host {
 
 		for my $compiler (@compilers) {
 			for my $tree (sort keys %trees) {
-				my $revision = build_revision($host, $tree, $compiler, "");
-				my $age_mtime = build_age_mtime($host, $tree, $compiler, "");
-				my $age_ctime = build_age_ctime($host, $tree, $compiler, "");
-				my $warnings = err_count($host, $tree, $compiler, "");
+				my $revision = $db->build_revision($host, $tree, $compiler, "");
+				my $age_mtime = $db->build_age_mtime($host, $tree, $compiler, "");
+				my $age_ctime = $db->build_age_ctime($host, $tree, $compiler, "");
+				my $warnings = $db->err_count($host, $tree, $compiler, "");
 				if ($age_ctime != -1 && $age_ctime < $DEADAGE) {
-					my $status = build_status($host, $tree, $compiler, "");
+					my $status = $db->build_status($host, $tree, $compiler, "");
 					if ($row == 0) {
 						if ($output_type eq 'text') {
 							printf "%-12s %-10s %-10s %-10s %-10s\n",
@@ -793,7 +793,6 @@ sub main_menu() {
 # display top of page
 sub page_top() {
     cgi_headers();
-    chdir("$BASEDIR/data") || fatal("can't change to data directory");
 }
 
 ###############################################
@@ -803,7 +802,6 @@ my $fn_name = get_param('function') || '';
 
 if ($fn_name eq 'text_diff') {
   print header('application/x-diff');
-  chdir("$BASEDIR/data") || fatal("can't change to data directory");
   history::diff(get_param('author'),
 		get_param('date'),
 		get_param('tree'),
@@ -811,7 +809,6 @@ if ($fn_name eq 'text_diff') {
 		"text");
 } elsif ($fn_name eq 'Text_Summary') {
 	print header('text/plain');
-	chdir("$BASEDIR/data") || fatal("can't change to data directory");
 	view_summary('text');
 } else {
   page_top();
