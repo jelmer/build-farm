@@ -232,7 +232,7 @@ sub lcov_status($)
 		return util::FileLoad($cachefile);
     }
 
-    my $lcov_html = util::FileLoad("$file.log");
+    my $lcov_html = util::FileLoad($file);
     if ($lcov_html =~ /<td class="headerItem".*?>Code&nbsp;covered:<\/td>.*?<td class="headerValue".*?>([0-9.]+) %<\/td>/) {
     
 	my $ret = "<a href=\"/lcov/$LCOVHOST/$tree\">$1 %>";
