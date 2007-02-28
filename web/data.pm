@@ -235,7 +235,7 @@ sub lcov_status($)
     my $lcov_html = util::FileLoad($file);
     if ($lcov_html =~ /<td class="headerItem".*?>Code&nbsp;covered:<\/td>.*?<td class="headerValue".*?>([0-9.]+) %<\/td>/) {
     
-	my $ret = "<a href=\"/lcov/$LCOVHOST/$tree\">$1 %>";
+	my $ret = '<a href="/lcov/'."$LCOVHOST/$tree".'">$1 %</a>';
 	util::FileSave("$cachefile", $ret);
 	
 	return $ret;

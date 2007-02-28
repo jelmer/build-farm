@@ -264,8 +264,8 @@ sub view_summary($)
 				print $req->start_td;
 			}
 			print $panic_count{$tree} . $req->end_td;
-			print $req->td(lcov_status($tree));
-			print $req->end_Tr;
+			print $req->td(data::lcov_status($tree));
+			print $req->end_Tr . "\n";
 	    }
     }
 
