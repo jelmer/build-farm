@@ -220,7 +220,7 @@ sub build_status($$$$)
 sub lcov_status($)
 {
     my ($tree) = @_;
-    my $cachefile="$CACHEDIR/$tree.lcov.status";
+    my $cachefile="$CACHEDIR/lcov.$LCOVHOST.$tree.status";
     my $file = "$LCOVDIR/$LCOVHOST/$tree/index.html";
     my $st1 = stat($file);
     if (!$st1) {
