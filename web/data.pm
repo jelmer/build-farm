@@ -216,6 +216,74 @@ sub build_status($$$$)
 
 ##############################################
 # get status of build
+sub lcov_status($)
+{
+    my ($tree) = @_;
+    my $cachefile="$CACHEDIR/$tree.lcov.status";
+
+    my $st1 = stat("$file.log");
+    if (!$st1) {
+	    return "Unknown Build";
+    }
+    my $st2 = stat($cachefile);
+
+    if ($st1 && $st2 && $st1->ctime <= $st2->mtime) {
+		return util::FileLoad($cachefile);
+    }
+
+    my $log = util::FileLoad("$file.log");
+
+	sub span_status($)
+	{
+		my $st = shift;
+		if ($st == 0) {
+	    	return span({-class=>"status passed"}, "ok");
+		} else {
+			return span({-class=>"status failed"}, $st);
+		}
+	}
+
+    if ($log =~ /TEST STATUS:(.*)/) {
+		$tstatus = span_status($1);
+    }
+    
+    if ($log =~ /INSTALL STATUS:(.*)/) {
+		$istatus = span_status($1);
+    }
+    
+    if ($log =~ /BUILD STATUS:(.*)/) {
+		$bstatus = span_status($1);
+    }
+
+    if ($log =~ /CONFIGURE STATUS:(.*)/) {
+		$cstatus = span_status($1);
+    }
+    
+    if ($log =~ /(PANIC|INTERNAL ERROR):.*/ ) {
+	$sstatus = "/".span({-class=>"status panic"}, "PANIC");
+    } else {
+	$sstatus = "";
+    }
+
+    if ($log =~ /No space left on device.*/ ) {
+	$dstatus = "/".span({-class=>"status failed"}, "disk full");
+    } else {
+	$dstatus = "";
+    }
+
+    if ($log =~ /CC_CHECKER STATUS: (.*)/ && $1 > 0) {
+	$sstatus .= "/".span({-class=>"status checker"}, $1);
+    }
+
+    my $ret = "$cstatus/$bstatus/$istatus/$tstatus$sstatus$dstatus";
+
+    util::FileSave("$CACHEDIR/$file.status", $ret);
+
+    return $ret;
+}
+
+##############################################
+# get status of build
 sub err_count($$$$)
 {
     my ($host, $tree, $compiler, $rev) = @_;

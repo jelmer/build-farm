@@ -1,5 +1,10 @@
 export CFLAGS="-O2 -g -Wall"
 
+# We need to disable ccache for the lcov love to work
+export CCACHE_DISABLE=yes
+export LCOV_REPORT=yes
+
+
 per_run_hook
 
 global_lock

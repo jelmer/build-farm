@@ -1,0 +1,5 @@
+# We need to disable ccache for the lcov love to work
+export CCACHE_DISABLE=yes
+export LCOV_REPORT=yes
+
+. generic.fns

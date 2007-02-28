@@ -517,6 +517,18 @@ test_tree() {
 	    ;;
 	esac
 
+	if [ "$LCOV_REPORT" = "yes" ]; then
+	    GCOV_FLAGS="-ftest-coverage -fprofile-arcs"
+	    GCOV_LIBS="-lgcov"
+	    HOSTCC_CFLAGS="$HOSTCC_CFLAGS $GCOV_FLAGS" 
+	    CFLAGS="$CFLAGS $GCOV_FLAGS" 
+	    LDFLAGS="$LDFLAGS $GCOV_FLAGS $GCOV_LIBS" 
+	    SHLD_FLAGS="$SHLD_FLAGS $GCOV_FLAGS $GCOV_LIBS"
+	    export HOSTCC_CFLAGS CFLAGS LDFLAGS SHLD_FLAGS
+
+	    find $builddir -print0 -name \*.{gcda,gcno} | xargs -0 rm
+	fi
+
 	config_and_prefix="$sw_config --prefix=$prefix"
 
 	# see if we need to rebuild
@@ -602,6 +614,18 @@ test_tree() {
 
 		done
 
+		if [ "$LCOV_REPORT" = "yes" ]; then
+		    case "$tree" in
+			lorikeet-heimdal*)
+			    lcov --directory $builddir --capture --output-file $builddir/$tree.info
+			    ;;
+			*)
+			    lcov --base-directory $builddir --directory $builddir --capture --output-file $builddir/$tree.info
+			    ;;
+		    esac
+		    genhtml -o $builddir/coverage $builddir/$tree.info
+		fi
+
 		if [ "$noclean" = "yes" ]; then
 		    echo cleanup skipped!
 		else
@@ -611,13 +635,22 @@ test_tree() {
 		date
 	) > "$log" 2> "$err"
 
+	if [ "$LCOV_REPORT" = "yes" ]; then
+	    chmod u=rwX,g=rX,o=rX -R $builddir/coverage
+	    rsync -rct -q --password-file=.password -z --timeout=200 \
+		$builddir/coverage/ $host@samba.org::lcov_data/$host/$tree/
+	fi
+
 	cd $test_root
 
         /bin/rm -rf $prefix
 	if [ "$usingtmpbuild" = "1" ]; then
+	    if [ "$noclean" = "yes" ]; then
+		echo builddir cleanup skipped!
+	    else
 		/bin/rm -rf $builddir
+	    fi
 	fi
-	
 	# send the logs to the master site
 	send_logs "$log" "$err"
 
