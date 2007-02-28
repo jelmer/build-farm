@@ -35,6 +35,7 @@ my (%svn_trees) = ('samba' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=samba\">%s
 		   'build_farm' => " <a href=\"$VIEWCVS_BASE/trunk?root=build-farm\">%s</a>",
 		   'tdb' => " <a href=\"$VIEWCVS_BASE/branches/SAMBA_4_0/source/lib/tdb/%s?root=samba\">%s</a>",
 		   'ldb' => " <a href=\"$VIEWCVS_BASE/branches/SAMBA_4_0/source/lib/ldb/%s?root=samba\">%s</a>",
+		   'pidl' => " <a href=\"$VIEWCVS_BASE/branches/SAMBA_4_0/source/pidl/%s?root=samba\">%s</a>",
 		   'samba-web' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=samba-web\">%s</a>",
 		   'lorikeet' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=lorikeet\">%s</a>",
 		   'SOC' => " <a href=\"$VIEWCVS_BASE/branches/SOC/%s?root=samba\">%s</a>");
@@ -46,7 +47,8 @@ my (%cvs_trees) = ('rsync' => " <a href=\"$CVSWEB_BASE/rsync/%s\">%s</a>",
 		   'ppp' => " <a href=\"$CVSWEB_BASE/ppp/%s\">%s</a>");
 
 # a map of names to bzr paths
-my (%bzr_trees) = ('ctdb' => " <a href=\"$UNPACKED_BASE/ctdb/%s\">%s</a>");
+my (%bzr_trees) = ('ctdb' => " <a href=\"$UNPACKED_BASE/ctdb/%s\">%s</a>",
+                   'samba-gtk' => " <a href=\"http://people.samba.org/bzr/jelmer/samba-gtk/trunk/%s\">%s</a>");
 
 my $unpacked_dir = "/home/ftp/pub/unpacked";
 
