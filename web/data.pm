@@ -40,7 +40,7 @@ use warnings;
 
 my $WEBDIR = "$RealBin";
 my $CACHEDIR = "$WEBDIR/../cache";
-my $LCOVDIR = "$WEBDIR/../../lcov";
+my $LCOVDIR = "$WEBDIR/../../lcov/data";
 my $LCOVHOST = "piglett";
 our $OLDAGE = 60*60*4;
 our $DEADAGE = 60*60*24*4;
@@ -236,7 +236,7 @@ sub lcov_status($)
     my $lcov_html = util::FileLoad($file);
     if ($lcov_html =~ /\<td class="headerItem".*?\>Code\&nbsp\;covered\:\<\/td\>.*?\n.*?\<td class="headerValue".*?\>([0-9.]+) \%/) {
     
-	$ret = '<a href="/lcov/data'."$LCOVHOST/$tree\">$1 %</a>";
+	$ret = '<a href="/lcov/data/'."$LCOVHOST/$tree\">$1 %</a>";
     }  else {
 	$ret = "";
     }
