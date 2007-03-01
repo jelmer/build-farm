@@ -64,6 +64,16 @@ sub new($) {
 	return $self;
 }
 
+sub cache_fname($$$$$)
+{
+    my ($self, $tree, $host, $compiler, $rev) = @_;
+    if ($rev) {
+	    return "$CACHEDIR/oldrevs/build.$tree.$host.$compiler-$rev";
+    }
+
+    return "$CACHEDIR/build.$tree.$host.$compiler";
+}
+
 ################################
 # get the name of the build file
 sub build_fname($$$$$)
@@ -120,6 +130,7 @@ sub build_revision($$$$$)
 {
 	my ($self, $host, $tree, $compiler, $rev) = @_;
     my $file = $self->build_fname($tree, $host, $compiler, $rev);
+	my $cachef = $self->cache_fname($tree, $host, $compiler, $rev);
     my $log;
     my $ret = 0;
 
@@ -132,12 +143,12 @@ sub build_revision($$$$$)
     if (!$st1) {
 	    return $ret;
     }
-    my $st2 = stat("$CACHEDIR/$file.revision");
+    my $st2 = stat("$cachef.revision");
 
     # the ctime/mtime asymmetry is needed so we don't get fooled by
     # the mtime update from rsync 
     if ($st1 && $st2 && $st1->ctime <= $st2->mtime) {
-	    return util::FileLoad("$CACHEDIR/$file.revision");
+	    return util::FileLoad("$cachef.revision");
     }
 
     $log = util::FileLoad("$file.log");
@@ -146,7 +157,7 @@ sub build_revision($$$$$)
 	$ret = $1;
     }
 
-    util::FileSave("$CACHEDIR/$file.revision", $ret);
+    util::FileSave("$cachef.revision", $ret);
 
     return $ret;
 }
@@ -157,7 +168,7 @@ sub build_status($$$$$)
 {
 	my ($self, $host, $tree, $compiler, $rev) = @_;
     my $file = $self->build_fname($tree, $host, $compiler, $rev);
-    my $cachefile="$CACHEDIR/$file.status";
+	my $cachefile = $self->cache_fname($tree, $host, $compiler, $rev).".status";
     my ($cstatus, $bstatus, $istatus, $tstatus, $sstatus, $dstatus);
     $cstatus = $bstatus = $istatus = $tstatus = $sstatus = $dstatus = 
       span({-class=>"status unknown"}, "?");
@@ -258,23 +269,24 @@ sub err_count($$$$$)
 {
     my ($self, $host, $tree, $compiler, $rev) = @_;
     my $file = $self->build_fname($tree, $host, $compiler, $rev);
+	my $cachef = $self->cache_fname($tree, $host, $compiler, $rev);
     my $err;
 
     my $st1 = stat("$file.err");
     if ($st1) {
 	    return 0;
     }
-    my $st2 = stat("$CACHEDIR/$file.errcount");
+    my $st2 = stat("$cachef.errcount");
 
     if ($st1 && $st2 && $st1->ctime <= $st2->mtime) {
-	    return util::FileLoad("$CACHEDIR/$file.errcount");
+	    return util::FileLoad("$cachef.errcount");
     }
 
     $err = util::FileLoad("$file.err") or return 0;
 
     my $ret = util::count_lines($err);
 
-    util::FileSave("$CACHEDIR/$file.errcount", "$ret");
+    util::FileSave("$cachef.errcount", "$ret");
 
     return $ret;
 }
