@@ -342,7 +342,7 @@ sub view_recent_builds($$) {
 
     for my $host (@hosts) {
       for my $compiler (@compilers) {
-	  my $status = $db->build_status($host, $tree, $compiler, "");
+	  my $status = build_status($host, $tree, $compiler, "");
 	  my $age_mtime = $db->build_age_mtime($host, $tree, $compiler, "");
 	  my $age_ctime = $db->build_age_ctime($host, $tree, $compiler, "");
 	  my $revision = $db->build_revision($host, $tree, $compiler, "");
@@ -460,7 +460,7 @@ sub view_build($$$$) {
     my $config="";
     my $age_mtime = $db->build_age_mtime($host, $tree, $compiler, $rev);
     my $revision = $db->build_revision($host, $tree, $compiler, $rev);
-    my $status = $db->build_status($host, $tree, $compiler, $rev);
+    my $status = build_status($host, $tree, $compiler, $rev);
 
     $rev = int($rev) if $rev;
 
@@ -585,7 +585,7 @@ sub view_host {
 				my $age_ctime = $db->build_age_ctime($host, $tree, $compiler, "");
 				my $warnings = $db->err_count($host, $tree, $compiler, "");
 				if ($age_ctime != -1 && $age_ctime < $DEADAGE) {
-					my $status = $db->build_status($host, $tree, $compiler, "");
+					my $status = build_status($host, $tree, $compiler, "");
 					if ($row == 0) {
 						if ($output_type eq 'text') {
 							printf "%-12s %-10s %-10s %-10s %-10s\n",
