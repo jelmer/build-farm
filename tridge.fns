@@ -2,6 +2,8 @@
 export CCACHE_DISABLE=yes
 export LCOV_REPORT=yes
 
+compiler=gcc
+
 test_tree samba4 source $compiler 
 test_tree samba_3_0 source $compiler
 test_tree rsync . $compiler
