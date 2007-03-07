@@ -86,7 +86,7 @@ sub cgi_gzip()
     my $fh = do {local(*FH);};
 
     if (stat($GZIPBIN) && open($fh, "|$GZIPBIN -1 -c")) {
-	print header(-type => "x-gzip", -vary => "Accept-Encoding"); #RFC 2068, 14.43
+    	print header(-content_type => "text/html", -content_encoding => "gzip", -vary => "Accept-Encoding");
 	$| = 1; $| = 0; # Flush header output
 	select ($fh);
     } else {
