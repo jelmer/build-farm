@@ -97,8 +97,7 @@ sub cgi_gzip()
 ################################################
 # start CGI headers
 sub cgi_headers() {
-	print header;
-#	cgi_gzip();
+	cgi_gzip();
 	print start_html(-title => 'samba.org build farm',
 		    -script => {-language=> 'JAVASCRIPT', -src=>"/build_farm.js" },
 			-meta => {
