@@ -49,8 +49,12 @@ send_logs() {
 		shift
 		shift
 		chmod 0644 "$log" "$err"
+		
+		find $log -size +20000k | xargs -i sh -c 'dd if={} bs=1024 count=20000 of={}.tmp && mv {}.tmp {} &&  echo "\n***LOG TRUNCATED***" >> {}'
+		find $err -size +20000k | xargs -i sh -c 'dd if={} bs=1024 count=20000 of={}.tmp && mv {}.tmp {} &&  echo "\n***LOG TRUNCATED***" >> {}'
+
 		rsync $* -ct -q --password-file=.password -z --timeout=200 \
-			"$log" "$err" $host@samba.org::build_farm_data/
+		    "$log" "$err" $host@samba.org::build_farm_data/
 	fi
 }
 
