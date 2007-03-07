@@ -513,6 +513,10 @@ test_tree() {
 		sw_config="$sw_config --with-smbtorture4-path=$smbtorture4.$tree"
 	    fi
 	    ;;
+	samba-gtk)
+		PKG_CONFIG_PATH="$test_root/prefix/samba4.$compiler/lib/pkgconfig"
+		export PKG_CONFIG_PATH
+		;;
 	ldb)
 	    fetch_tree popt
 	    ;;
