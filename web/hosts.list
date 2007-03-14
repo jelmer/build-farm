@@ -22,7 +22,7 @@ berks: Fedora Core 1 i386
 yowiee: Fedora Core 2 i386
 tango-one-mars: Fedora Core 2 i386
 shelob: Fedora Core 3 i386 SMP
-node1: Fedora Core 6 (i686) SMP
+node1: Fedora Core 6 (i686) SMP, OpenLDAP
 node2: Fedora Core 6 (i686) SMP
 piglett: Fedora Core 5 (i686)
 speener: Fedora Core 4 (i686)
