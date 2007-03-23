@@ -172,11 +172,19 @@ sub get_param($) {
     return wantarray ? @result : $result[0];
 }
 
+sub build_link($$$$$)
+{
+	my ($host, $tree, $compiler, $rev, $status) = @_;
+
+	return a({-href=>"$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler" . ($rev?";revision=$rev":"")}, $status);
+}
+
 sub build_status($$$$)
 {
 	my ($host, $tree, $compiler, $rev) = @_;
+	my $status = $db->build_status($host, $tree, $compiler, $rev);
 
-	return a({-href=>"$myself?function=View+Build;host=$host;tree=$tree;compiler=$compiler" . ($rev?";revision=$rev":"")}, $db->build_status($host, $tree, $compiler, $rev));
+	return build_link($host, $tree, $compiler, $rev, $status);
 }
 
 
@@ -480,7 +488,7 @@ sub show_oldrevs($$$)
 	    $s =~ s/$rev/0/;
 	    next if ($s eq $lastrev);
 	    $lastrev = $s;
-	    $ret.=$req->Tr($req->td([revision_link($rev, $tree), $revs{$rev}]));
+	    $ret.=$req->Tr($req->td([revision_link($rev, $tree), build_link($host, $tree, $compiler, $rev, $revs{$rev})]));
     }
     if ($lastrev ne "") {
 		# Only print table if there was any actual data
