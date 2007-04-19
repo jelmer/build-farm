@@ -263,25 +263,28 @@ action_build() {
 	samba4)
 		# the 2nd 'make everything' is to work around a bug
 		# in netbsd make. 
-		do_make proto showflags everything
-		do_make everything
-		do_make bin/smbtorture
+		do_make proto showflags everything || do_make everything
+		bstatus=$?
+
+		test -f bin/smbtorture || do_make bin/smbtorture
+		if [ -n "$smbtorture4" ] && [ -f bin/smbtorture ]; then
+			rm -f $smbtorture4
+			cp bin/smbtorture $smbtorture4
+		fi
+
 		;;
 	samba|samba_3_0)
-	    do_make proto everything torture
-	    ;;
+		do_make proto everything torture
+		bstatus=$?
+		;;
 	*)
-	    do_make all
-	    ;;
+		do_make all
+		bstatus=$?
+		;;
 	esac
 
-	bstatus=$?
 	echo "BUILD STATUS: $bstatus"
 
-	if [ "$tree" = "samba4" ] && [ -n "$smbtorture4" ] && [ -f bin/smbtorture ]; then
-	    rm -f $smbtorture4
-	    cp bin/smbtorture $smbtorture4
-	fi
 	return $bstatus
 }
 
