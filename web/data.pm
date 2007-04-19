@@ -222,12 +222,12 @@ sub build_status($$$$$)
 	$sstatus = "";
     }
 
-    $dstatus = "";
-    if ($log =~ /No space left on device.*/ ) {
-	$dstatus = "/".span({-class=>"status failed"}, "disk full");
-    }
     if ($err =~ /No space left on device.*/ ) {
 	$dstatus = "/".span({-class=>"status failed"}, "disk full");
+    } elsif ($log =~ /No space left on device.*/ ) {
+	$dstatus = "/".span({-class=>"status failed"}, "disk full");
+    } else {
+	$dstatus = "";
     }
 
     if ($log =~ /CC_CHECKER STATUS: (.*)/ && $1 > 0) {
