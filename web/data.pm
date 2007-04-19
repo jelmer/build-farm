@@ -184,6 +184,7 @@ sub build_status($$$$$)
     }
 
     my $log = util::FileLoad("$file.log");
+    my $err = util::FileLoad("$file.err");
 
 	sub span_status($)
 	{
@@ -221,10 +222,12 @@ sub build_status($$$$$)
 	$sstatus = "";
     }
 
-    if ($log =~ /.*No space left on device.*/ ) {
+    $dstatus = "";
+    if ($log =~ /No space left on device.*/ ) {
 	$dstatus = "/".span({-class=>"status failed"}, "disk full");
-    } else {
-	$dstatus = "";
+    }
+    if ($err =~ /No space left on device.*/ ) {
+	$dstatus = "/".span({-class=>"status failed"}, "disk full");
     }
 
     if ($log =~ /CC_CHECKER STATUS: (.*)/ && $1 > 0) {
