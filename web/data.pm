@@ -221,7 +221,7 @@ sub build_status($$$$$)
 	$sstatus = "";
     }
 
-    if ($log =~ /No space left on device.*/ ) {
+    if ($log =~ /.*No space left on device.*/ ) {
 	$dstatus = "/".span({-class=>"status failed"}, "disk full");
     } else {
 	$dstatus = "";
