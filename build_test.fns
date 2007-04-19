@@ -261,15 +261,23 @@ action_config_log() {
 action_build() {
 	case "$tree" in
 	samba4)
-		# the 2nd 'make everything' is to work around a bug
-		# in netbsd make. 
-		do_make proto showflags everything || do_make everything
+		rm -f bin/smbtorture
+		do_make everything
 		bstatus=$?
+		if test x"$bstatus" != x"0"; then
+			# the 2nd 'make everything' is to work around a bug
+			# in netbsd make. 
+			do_make everything
+			bstatus=$?
+		fi
 
-		test -f bin/smbtorture || do_make bin/smbtorture
-		if [ -n "$smbtorture4" ] && [ -f bin/smbtorture ]; then
-			rm -f $smbtorture4
-			cp bin/smbtorture $smbtorture4
+		if [ -n "$smbtorture4" ]; then
+			if [ ! -f bin/smbtorture ]; then
+				do_make bin/smbtorture
+			fi
+			if [ -f bin/smbtorture ]; then
+				cp bin/smbtorture $smbtorture4
+			fi
 		fi
 
 		;;
