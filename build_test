@@ -5,7 +5,12 @@
 # any errors get put in build.log
 
 # we used a fixed path that is a superset of the required paths.
-export PATH=~/bin:/usr/local/bin:/usr/bin:/bin:/opt/SUNWspro/bin:/usr/ccs/bin:/sbin:/usr/sbin:/usr/local/sbin:/usr/bsd
+PATH=~/bin:/usr/local/bin:/usr/bin:/bin:/opt/SUNWspro/bin:/usr/ccs/bin:/sbin:/usr/sbin:/usr/local/sbin:/usr/bsd
+export PATH
+
+# we all want to be able to read the output...
+LANG=C
+export LANG
 
 # go to our main directory
 cd ~/build_farm || exit 1
