@@ -48,6 +48,7 @@ my (%cvs_trees) = ('rsync' => " <a href=\"$CVSWEB_BASE/rsync/%s\">%s</a>",
 
 # a map of names to bzr paths
 my (%bzr_trees) = ('ctdb' => " <a href=\"$UNPACKED_BASE/ctdb/%s\">%s</a>",
+                   'python' => " <a href=\"$UNPACKED_BASE/python/%s\">%s</a>",
                    'samba-gtk' => " <a href=\"http://people.samba.org/bzr/jelmer/samba-gtk/trunk/%s\">%s</a>");
 
 my $unpacked_dir = "/home/ftp/pub/unpacked";

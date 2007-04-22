@@ -19,3 +19,4 @@ build_farm:
 ctdb:
 pidl:
 samba-gtk:
+python:
