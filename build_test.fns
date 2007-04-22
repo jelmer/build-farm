@@ -224,7 +224,10 @@ do_make() {
 action_configure() {
         if [ ! -x configure ]; then
 	    ls -l configure
-	    ./autogen.sh
+	    echo "configure is missing"
+	    cstatus=255
+	    echo "CONFIGURE STATUS: $cstatus"
+	    return $cstatus;
 	fi
 	echo "CFLAGS=$CFLAGS"
 	echo configure options: $config_and_prefix
