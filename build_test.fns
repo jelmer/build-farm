@@ -222,9 +222,9 @@ do_make() {
 ############################
 # configure the tree
 action_configure() {
-        if [ ! -x configure ]; then
-	    ls -l configure
-	    echo "configure is missing"
+        if [ ! -x $srcdir/configure ]; then
+	    ls -l $srcdir/configure
+	    echo "$srcdir/configure is missing"
 	    cstatus=255
 	    echo "CONFIGURE STATUS: $cstatus"
 	    return $cstatus;
