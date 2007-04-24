@@ -13,8 +13,7 @@ export RUN_FROM_BUILD_FARM
 
 deptrees="";
 
-# $Id$
-build_test_id="$Id$"
+build_test_id='$Id$'
 
 #############################
 # build a signature of a tree, used to see if we
@@ -485,6 +484,7 @@ test_tree() {
 		return
 	fi
 
+	echo $build_test_id
 	echo "Starting build of $tree.$compiler in process $$ at `date`"
 
 	case "$tree" in
