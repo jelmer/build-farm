@@ -13,6 +13,9 @@ export RUN_FROM_BUILD_FARM
 
 deptrees="";
 
+# $Id$
+build_test_id="$Id$"
+
 #############################
 # build a signature of a tree, used to see if we
 # need to rebuild 
