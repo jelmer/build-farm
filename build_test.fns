@@ -56,8 +56,8 @@ send_logs() {
 		if [ "`uname`" = "FreeBSD" ]; then
 			XARGS_I="xargs -I '{}' -R -1"
 		fi
-		find $log -size +20000k | $XARGS_I sh -c 'dd if={} bs=1024 count=20000 of={}.tmp && mv {}.tmp {} &&  echo "\n***LOG TRUNCATED***" >> {}'
-		find $err -size +20000k | $XARGS_I sh -c 'dd if={} bs=1024 count=20000 of={}.tmp && mv {}.tmp {} &&  echo "\n***LOG TRUNCATED***" >> {}'
+		find $log -size +40000 | $XARGS_I sh -c 'dd if={} bs=1024 count=20000 of={}.tmp && mv {}.tmp {} &&  echo "\n***LOG TRUNCATED***" >> {}'
+		find $err -size +40000 | $XARGS_I sh -c 'dd if={} bs=1024 count=20000 of={}.tmp && mv {}.tmp {} &&  echo "\n***LOG TRUNCATED***" >> {}'
 
 		rsync $* -ct -q --password-file=.password -z --timeout=200 \
 		    "$log" "$err" $host@samba.org::build_farm_data/
