@@ -8,9 +8,7 @@
 PATH=~/bin:/usr/local/bin:/usr/bin:/bin:/opt/SUNWspro/bin:/usr/ccs/bin:/sbin:/usr/sbin:/usr/local/sbin:/usr/bsd
 export PATH
 
-# we all want to be able to read the output...
-LANG=C
-export LANG
+build_test_id=`$Id$`
 
 # go to our main directory
 cd ~/build_farm || exit 1
@@ -34,9 +32,10 @@ cd ~/build_farm || exit 1
 
     if [ -f $host.fns ]; then
       # load host specific functions
-      . $host.fns
+      $build_test_used_fns_file = "$host.fns"
     else
-      . generic.fns
+      $build_test_used_fns_file = "generic.fns"
     fi
+    . $build_test_used_fns_file
 
 ) >> build.log 2>&1

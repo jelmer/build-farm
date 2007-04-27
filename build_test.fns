@@ -13,7 +13,7 @@ export RUN_FROM_BUILD_FARM
 
 deptrees="";
 
-build_test_id='$Id$'
+build_test_fns_id='$Id$'
 
 #############################
 # build a signature of a tree, used to see if we
@@ -484,7 +484,6 @@ test_tree() {
 		return
 	fi
 
-	echo $build_test_id
 	echo "Starting build of $tree.$compiler in process $$ at `date`"
 
 	case "$tree" in
@@ -586,6 +585,14 @@ test_tree() {
 
 	# start the build
 	(
+		# we all want to be able to read the output...
+		LANG=C
+		export LANG
+
+		echo $build_test_id
+		echo $build_test_fns_id
+		echo $build_test_used_fns_file
+
 		uname -a
 
                 # we need to be able to see if a build farm machine is accumulating
