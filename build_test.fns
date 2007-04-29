@@ -589,9 +589,11 @@ test_tree() {
 		LANG=C
 		export LANG
 
-		echo $build_test_id
-		echo $build_test_fns_id
-		echo $build_test_used_fns_file
+		echo "build_test          : $build_test_id"
+		echo "build_test.fns      : $build_test_fns_id"
+		echo "local settings file : $build_test_settings_local_file"
+		echo "local functions file: $build_test_fns_local_file"
+		echo "used .fns file      : $build_test_used_fns_file"
 
 		uname -a
 

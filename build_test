@@ -18,6 +18,15 @@ cd ~/build_farm || exit 1
     echo
     date
 
+    #
+    # allow admins to configure things like
+    # RSYNC_PROXY...
+    #
+    if [ -f build_test.settings.local ]; then
+        build_test_settings_local_file="build_test.settings.local"
+        . $build_test_settings_local_file
+    fi
+
     # we only want the short name of the host - use cut for portability
     host=`hostname | cut -d. -f1`
 
@@ -30,11 +39,22 @@ cd ~/build_farm || exit 1
     # load general functions
     . build_test.fns
 
+    #
+    # allow admins to overload things like send_logs()
+    # if it's required to have secret data in it,
+    # that can't be in a per host .fns file on
+    # the build-farm svn tree
+    #
+    if [ -f build_settings.local ]; then
+        build_test_fns_local_file="build_test.fns.local"
+        . $build_test_fns_local_file
+    fi
+
     if [ -f $host.fns ]; then
       # load host specific functions
-      $build_test_used_fns_file = "$host.fns"
+      build_test_used_fns_file="$host.fns"
     else
-      $build_test_used_fns_file = "generic.fns"
+      build_test_used_fns_file="generic.fns"
     fi
     . $build_test_used_fns_file
 
