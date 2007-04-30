@@ -591,11 +591,13 @@ test_tree() {
 
 		uname -a
 
+		echo ""
 		echo "build_test          : $build_test_id"
 		echo "build_test.fns      : $build_test_fns_id"
 		echo "local settings file : $build_test_settings_local_file"
 		echo "local functions file: $build_test_fns_local_file"
 		echo "used .fns file      : $build_test_used_fns_file"
+		echo ""
 
                 # we need to be able to see if a build farm machine is accumulating
                 # stuck processes. We do this in two ways, as we don't know what style
