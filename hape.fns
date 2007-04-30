@@ -1,0 +1,13 @@
+#export CFLAGS="-O2 -g -Wall"
+
+per_run_hook
+
+global_lock
+
+. common.fns
+
+export config="--with-acl-support --with-libiconv=/usr/local/"
+test_tree samba_3_0 source gcc
+
+
+global_unlock
