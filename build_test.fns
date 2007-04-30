@@ -60,7 +60,7 @@ send_logs() {
 		find $err -size +40000 | $XARGS_I sh -c 'dd if={} bs=1024 count=20000 of={}.tmp && mv {}.tmp {} &&  echo "\n***LOG TRUNCATED***" >> {}'
 
 		rsync $* -ct -q --password-file=.password -z --timeout=200 \
-		    "$log" "$err" $host@samba.org::build_farm_data/
+		    "$log" "$err" $host@build.samba.org::build_farm_data/
 	fi
 }
 
@@ -689,7 +689,7 @@ test_tree() {
 	if [ "$LCOV_REPORT" = "yes" ]; then
 	    chmod u=rwX,g=rX,o=rX -R $builddir/coverage
 	    rsync -rct -q --password-file=.password -z --timeout=200 \
-		$builddir/coverage/ $host@samba.org::lcov_data/$host/$tree/
+		$builddir/coverage/ $host@build.samba.org::lcov_data/$host/$tree/
 	fi
 
 	cd $test_root
@@ -759,7 +759,7 @@ per_run_hook() {
 
 ######################################################
 # main code that is run on each call to the build code
-rsync --timeout=200 -q -az samba.org::build_farm/*.c .
+rsync --timeout=200 -q -az build.samba.org::build_farm/*.c .
 
 
 # build.log can grow to an excessive size, trim it beyond 50M

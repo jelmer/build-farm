@@ -34,7 +34,7 @@ cd ~/build_farm || exit 1
     chmod 600 .password
 
     # grab the latest versions of the scripts
-    rsync --delete --include='*.fns' --exclude='*' --timeout=200 -q -az samba.org::build_farm/ .
+    rsync --delete --include='*.fns' --exclude='*' --timeout=200 -q -az build.samba.org::build_farm/ .
 
     # load general functions
     . build_test.fns
