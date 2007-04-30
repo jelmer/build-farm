@@ -166,11 +166,11 @@ sub build_revision($$$$$)
 # get status of build
 sub build_status($$$$$)
 {
-	my ($self, $host, $tree, $compiler, $rev) = @_;
+    my ($self, $host, $tree, $compiler, $rev) = @_;
     my $file = $self->build_fname($tree, $host, $compiler, $rev);
-	my $cachefile = $self->cache_fname($tree, $host, $compiler, $rev).".status";
-    my ($cstatus, $bstatus, $istatus, $tstatus, $sstatus, $dstatus);
-    $cstatus = $bstatus = $istatus = $tstatus = $sstatus = $dstatus = 
+    my $cachefile = $self->cache_fname($tree, $host, $compiler, $rev).".status";
+    my ($cstatus, $bstatus, $istatus, $tstatus, $sstatus, $dstatus, $tostatus);
+    $cstatus = $bstatus = $istatus = $tstatus = $sstatus = $dstatus = $tostatus =
       span({-class=>"status unknown"}, "?");
 
     my $st1 = stat("$file.log");
@@ -186,15 +186,15 @@ sub build_status($$$$$)
     my $log = util::FileLoad("$file.log");
     my $err = util::FileLoad("$file.err");
 
-	sub span_status($)
-	{
-		my $st = shift;
-		if ($st == 0) {
-	    	return span({-class=>"status passed"}, "ok");
-		} else {
-			return span({-class=>"status failed"}, $st);
-		}
+    sub span_status($)
+    {
+	my $st = shift;
+	if ($st == 0) {
+		return span({-class=>"status passed"}, "ok");
+	} else {
+		return span({-class=>"status failed"}, $st);
 	}
+    }
 
     if ($log =~ /ACTION FAILED: test/) {
 		$tstatus = span_status(255);
@@ -230,11 +230,17 @@ sub build_status($$$$$)
 	$dstatus = "";
     }
 
+    if ($log =~ /maximum runtime exceeded.*/ ) {
+	$tostatus = "/".span({-class=>"status failed"}, "timeout");    
+    } else {
+    	$tostatus = "";
+    }
+
     if ($log =~ /CC_CHECKER STATUS: (.*)/ && $1 > 0) {
 	$sstatus .= "/".span({-class=>"status checker"}, $1);
     }
 
-    my $ret = "$cstatus/$bstatus/$istatus/$tstatus$sstatus$dstatus";
+    my $ret = "$cstatus/$bstatus/$istatus/$tstatus$sstatus$dstatus$tostatus";
 
     util::FileSave("$cachefile", $ret);
 
