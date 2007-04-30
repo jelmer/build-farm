@@ -5,14 +5,14 @@
 # any errors get put in build.log
 
 # we used a fixed path that is a superset of the required paths.
-build_test_path=.:~/bin:/usr/local/bin:/usr/bin:/bin:/opt/SUNWspro/bin:/usr/ccs/bin:/sbin:/usr/sbin:/usr/local/sbin:/usr/bsd
+build_test_path=.:$HOME/bin:/usr/local/bin:/usr/bin:/bin:/opt/SUNWspro/bin:/usr/ccs/bin:/sbin:/usr/sbin:/usr/local/sbin:/usr/bsd
 PATH=$build_test_path
 export PATH
 
 build_test_id='$Id$'
 
 # go to our main directory
-cd ~/build_farm || exit 1
+cd $HOME/build_farm || exit 1
 
 (
 
