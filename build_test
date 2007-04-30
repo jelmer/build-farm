@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # this is the main build script for build.samba.org
 # it gets run on all the build boxes via cron
 
