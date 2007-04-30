@@ -8,7 +8,7 @@
 PATH=~/bin:/usr/local/bin:/usr/bin:/bin:/opt/SUNWspro/bin:/usr/ccs/bin:/sbin:/usr/sbin:/usr/local/sbin:/usr/bsd
 export PATH
 
-build_test_id=`$Id$`
+build_test_id='$Id$'
 
 # go to our main directory
 cd ~/build_farm || exit 1
