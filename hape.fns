@@ -4,9 +4,10 @@ per_run_hook
 
 global_lock
 
-. common.fns
+PATH=/data/gcc/3.4.3/pa20_64/bin:$PATH
+export PATH
 
-export PATH=/data/gcc/3.4.3/pa20_64/bin:$PATH
+. common.fns
 
 #export config="--with-acl-support --with-libiconv=/usr/local/"
 export config="--with-acl-support"
