@@ -8,6 +8,8 @@
 
 # default maximum runtime for any command
 MAXTIME=7200
+# default maximum memory size (100M) for any command
+MAXMEM=100000
 RUN_FROM_BUILD_FARM=yes
 export RUN_FROM_BUILD_FARM
 
@@ -406,9 +408,9 @@ test_tree() {
 
 	# limit our resource usage
 	ulimit -t $MAXTIME 2> /dev/null
-	
+
 	# max mem size 100M
-	ulimit -m 100000 2> /dev/null
+	ulimit -m $MAXMEM 2> /dev/null
 
 	# max file size 100M
 	# darn, this affects sparse files too! disable it
