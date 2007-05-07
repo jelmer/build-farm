@@ -10,7 +10,7 @@ global_lock
 . common.fns
 
 #export config="--with-acl-support --with-libiconv=/usr/local/"
-export config="--with-acl-support"
+export config="--with-acl-support --with-libiconv=/usr/local"
 test_tree samba_3_0 source gcc
 
 
