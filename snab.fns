@@ -3,6 +3,9 @@ per_run_hook
 export CC=checker
 export CHECK_FLAGS="-Wall --beam::source=/home/tridge/beam/config.tcl --beam::parser_file=ibm_checker_parse.out --beam::complaint_file=ibm_checker.out"
 
+# allow make cc_checker to take up to 7 hours
+export MAXTIME=25200
+
 for d in samba4 samba_3_0; do
     export CFLAGS="$CHECK_FLAGS --beam::data=/home/tridge/beam/$d"
     mkdir -p /home/tridge/beam/$d
