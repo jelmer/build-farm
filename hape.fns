@@ -4,8 +4,8 @@ per_run_hook
 
 global_lock
 
-PATH=/data/gcc/3.4.3/pa20_64/bin:$PATH
-export PATH
+#PATH=/data/gcc/3.4.3/pa20_64/bin:$PATH
+#export PATH
 
 . common.fns
 
