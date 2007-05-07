@@ -4,7 +4,11 @@ global_lock
 
 compiler=cc
 
-# ldap.h seems to be broken on this box??
+MAXTIME=9000
+export MAXTIME
+SMBD_MAXTIME=8500
+export SMBD_MAXTIME
+
 . common.fns
 test_tree lorikeet-heimdal . $compiler
 CFLAGS="-g1 ${CFLAGS}" test_tree samba4 source $compiler
