@@ -7,11 +7,13 @@ global_lock
 #PATH=/data/gcc/3.4.3/pa20_64/bin:$PATH
 #export PATH
 
+compiler=gcc
+
 . common.fns
 
 #export config="--with-acl-support --with-libiconv=/usr/local/"
 export config="--with-acl-support --with-libiconv=/usr/local"
-test_tree samba_3_0 source gcc
+test_tree samba_3_0 source $compiler
 
 
 global_unlock
