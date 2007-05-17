@@ -505,10 +505,10 @@ test_tree() {
 	    ;;
 	esac
 	
-	if [ ! $USER = "" ]; then
+	if [ ! x$USER = x"" ]; then
 	    whoami=$USER
 	else 
-	    if [ ! $LOGNAME = "" ]; then
+	    if [ ! x$LOGNAME = x"" ]; then
 		whoami=$LOGNAME
 	    else
 		whoami=build
