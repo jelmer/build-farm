@@ -1,0 +1,6 @@
+
+# gdb is in /opt/langtools/bin
+PATH="$PATH:/opt/langtools/bin"
+export PATH
+
+. generic.fns
