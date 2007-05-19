@@ -471,7 +471,7 @@ sub show_oldrevs($$$)
 {
     my ($tree, $host, $compiler) = @_;
     my %revs = $db->get_old_revs($tree, $host, $compiler);
-    my @revs = sort { $revs{$b} cmp $revs{$a} } keys %revs;
+    my @revs = sort { if ($b > $a) {return 1;} elsif ($b < $a) {return -1;} else {return 0;} } keys %revs;
 
     return if ($#revs < 1);
 
