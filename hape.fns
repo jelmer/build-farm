@@ -11,6 +11,8 @@ for compiler in gcc cc ; do
 
 	. common.fns
 	
+	test_tree samba4
+
 	#export config="--with-acl-support --with-libiconv=/usr/local/"
 	export config="--with-acl-support --with-libiconv=/usr/local"
 	test_tree samba_3_0 source $compiler
