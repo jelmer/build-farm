@@ -551,7 +551,7 @@ test_tree() {
 	esac
 
 	if [ "$LCOV_REPORT" = "yes" ]; then
-	    GCOV_FLAGS="-ftest-coverage -fprofile-arcs"
+	    GCOV_FLAGS="-ftest-coverage -fprofile-arcs -fprofile-generate"
 	    GCOV_LIBS="-lgcov"
 	    HOSTCC_CFLAGS="$HOSTCC_CFLAGS $GCOV_FLAGS" 
 	    CFLAGS="$CFLAGS $GCOV_FLAGS" 
