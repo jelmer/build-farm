@@ -8,6 +8,7 @@ compiler=gcc
 
 #lcov like shared libraries
 export config="--disable-shared"
+export PIDL_TESTS_SKIP=yes
 test_tree samba4 source $compiler 
 
 export config=""
