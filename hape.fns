@@ -7,7 +7,8 @@ global_lock
 #PATH=/data/gcc/3.4.3/pa20_64/bin:$PATH
 #export PATH
 
-for compiler in gcc cc ; do
+#for compiler in gcc cc ; do
+for compiler in gcc ; do
 
 	. common.fns
 	
