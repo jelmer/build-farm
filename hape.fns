@@ -10,11 +10,14 @@ global_lock
 #for compiler in gcc cc ; do
 for compiler in gcc ; do
 
+	export config=""
 	. common.fns
-	
+
+	# sun_path for unix sockets is char[92]
+	# so we need to use shorter pathes for make test
+	export config="--with-selftest-prefix=/data/home/build/st.samba4"
 	test_tree samba4 source $compiler
 
-	#export config="--with-acl-support --with-libiconv=/usr/local/"
 	export config="--with-acl-support --with-libiconv=/usr/local"
 	test_tree samba_3_0 source $compiler
 
