@@ -15,15 +15,15 @@ export MAXTIME TORTURE_MAXTIME SMBD_MAXTIME
 #for compiler in gcc cc ; do
 for compiler in gcc ; do
 
-	export config=""
+	export config="--with-included-popt"
 	. common.fns
 
 	# sun_path for unix sockets is char[92]
 	# so we need to use shorter pathes for make test
-	export config="--with-selftest-prefix=/data/home/build/st.samba4"
+	export config="--with-selftest-prefix=/data/home/build/st.samba4 --with-included-popt"
 	test_tree samba4 source $compiler
 
-	export config="--with-acl-support --with-libiconv=/usr/local"
+	export config="--with-acl-support --with-libiconv=/usr/local --with-included-popt"
 	test_tree samba_3_0 source $compiler
 
 done
