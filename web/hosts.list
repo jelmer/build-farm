@@ -106,3 +106,4 @@ smbj62x86: FreeBSD 6.2-RELEASE i386
 samba-klop: FreeBSD 6.2-RELEASE i386
 merlin:OpenSUSE 10.2 AMD64
 ovejas:Gimpel
+SerNet-aix: AIX 5.3
