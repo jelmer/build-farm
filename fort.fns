@@ -9,7 +9,7 @@ export TORTURE_MAXTIME=3600
 export SMBD_MAXTIME=18000
 
 test_tree samba4 source gcc
-test_tree samba_3_0 source gcc
+test_tree samba_3_2 source gcc
 
 export TESTS_ENVIRONMENT="$PWD/lorikeet-heimdal/libtool --mode=execute valgrind --trace-children=yes --quiet -q --num-callers=30 --gen-suppressions=all --suppressions=$PWD/lorikeet-heimdal/cf/valgrind-suppressions"
 test_tree lorikeet-heimdal . gcc

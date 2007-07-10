@@ -29,7 +29,7 @@ for compiler in gcc cc icc; do
         if which perl > /dev/null; then
           test_tree samba4 source $compiler
         fi
-        test_tree samba_3_0 source $compiler
+        test_tree samba_3_2 source $compiler
       fi
 
       # by default build ppp only on SunOS or Linux systems

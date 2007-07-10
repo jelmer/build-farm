@@ -16,7 +16,7 @@ compiler=gcc
 CFLAGS="-Wall"
 export CFLAGS
 
-      test_tree samba_3_0 source $compiler
+      test_tree samba_3_2 source $compiler
       test_tree rsync . $compiler
       test_tree distcc . $compiler
       test_tree ccache . $compiler
