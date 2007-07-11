@@ -7,8 +7,10 @@ To set it up on a new box you need to do this:
 1) create an account on the box (I'll assume its called "build")
 2) copy over build_test to ~build/build_farm/
 3) put the right password in ~build/build_farm/.password
-4) arrange for ~build/build_farm/build_test to be run regularly
+4) store host specific configuration (like PATH, hostname, ...)
+   in ~build/build_farm/build_test.settings.local
+5) arrange for ~build/build_farm/build_test to be run regularly
    from cron
-5) add the host to build.pl on dp.samba.org
-6) create a HOSTNAME.fns file that defines what gets built on
+6) add the host to svn://svn.samba.org/home/svn/build-farm/trunk/web/hosts.list
+7) if desired, create a HOSTNAME.fns file that defines what gets built on
    build.samba.org
