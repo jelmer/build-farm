@@ -94,7 +94,7 @@ burns: Debian Linux 2.6
 snab: Debian x86 IBM checker
 tridge: Debian Unstable PPC64
 aix53bf: AIX 5.3
-aico:Ubuntu Edgy 6.10 AMD64
+aico:Ubuntu Feisty 7.04 AMD64
 hape:HP-UX 11.00
 # removed until they do automatic update of the scripts
 # fsccbaix52pn: AIX 5.2 (32bit) PowerPC/native
