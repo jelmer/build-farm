@@ -21,7 +21,7 @@ cd $HOME/build_farm || exit 1
 
     #
     # allow admins to configure things like
-    # RSYNC_PROXY...
+    # PATH, RSYNC_PROXY, ...
     #
     if [ -f build_test.settings.local ]; then
         build_test_settings_local_file="build_test.settings.local"
