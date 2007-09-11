@@ -10,7 +10,7 @@
 ./svnlog.pl svn://svnanon.samba.org/samba trunk 60 samba cache/history.samba
 ./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_2_2 60 samba_2_2 cache/history.samba_2_2
 ./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_2_2_RELEASE 60 samba_2_2_release cache/history.samba_2_2_release
-./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_3_2 60 samba_3_0 cache/history.samba_3_2
+./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_3_2 60 samba_3_2 cache/history.samba_3_2
 ./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_3_0_RELEASE 60 samba_3_0_release cache/history.samba_3_0_release
 ./svnlog.pl svn://svnanon.samba.org/samba-docs trunk 60 samba-docs cache/history.samba-docs
 ./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_4_0 60 samba4 cache/history.samba4
