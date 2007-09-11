@@ -46,7 +46,7 @@ cd $HOME/build_farm || exit 1
     # that can't be in a per host .fns file on
     # the build-farm svn tree
     #
-    if [ -f build_settings.local ]; then
+    if [ -f build_test.fns.local ]; then
         build_test_fns_local_file="build_test.fns.local"
         . $build_test_fns_local_file
     fi
