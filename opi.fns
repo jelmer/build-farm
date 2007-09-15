@@ -3,6 +3,7 @@ per_run_hook
 global_lock
 
 compiler=gcc
+CFLAGS="-O3 -Wall"
 
 . common.fns
 #test_tree lorikeet-heimdal . $compiler
