@@ -1,0 +1,14 @@
+per_run_hook
+
+global_lock
+
+compiler=gcc
+
+. common.fns
+#test_tree lorikeet-heimdal . $compiler
+
+test_tree samba4 source $compiler
+test_tree samba_3_2 source $compiler
+test_tree pidl . $compiler build test
+
+global_unlock
