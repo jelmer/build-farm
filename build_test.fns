@@ -1,4 +1,4 @@
-# -*- mode: shell-script; sh-indentation: 8; indent-tabs-mode: t; -*-
+#!/bin/sh -*- mode: shell-script; sh-indentation: 8; indent-tabs-mode: t; -*-
 
 # build_farm -- distributed build/test architecture for samba, rsync, etc
 
@@ -266,6 +266,70 @@ action_config_log() {
 	return 0;
 }
 
+s4selftest_create() {
+	lock_file "$s4selftest.lck" || {
+		return 1;
+	}
+
+	rm -rf $s4selftest/
+	mkdir -p $s4selftest/source
+
+	cp -a $builddir/bin $s4selftest/source/bin || {
+		rm -rf $s4selftest/;
+		unlock_file "$s4selftest.lck";
+		return 1;
+	}
+
+	cp -a $srcdir/setup $s4selftest/source/setup || {
+		rm -rf $s4selftest/;
+		unlock_file "$s4selftest.lck";
+		return 1;
+	}
+
+	cp -a $srcdir/../testprogs $s4selftest/testprogs || {
+		rm -rf $s4selftest/;
+		unlock_file "$s4selftest.lck";
+		return 1;
+	}
+
+	cp -a $srcdir/selftest $s4selftest/source/selftest || {
+		rm -rf $s4selftest/;
+		unlock_file "$s4selftest.lck";
+		return 1;
+	}
+
+	mkdir -p $s4selftest/source/scripting || {
+		rm -rf $s4selftest/;
+		unlock_file "$s4selftest.lck";
+		return 1;
+	}
+
+	cp -a $srcdir/scripting/libjs $s4selftest/source/scripting/libjs || {
+		rm -rf $s4selftest/;
+		unlock_file "$s4selftest.lck";
+		return 1;
+	}
+	
+	unlock_file "$s4selftest.lck"
+}
+
+s4selftest_update() {
+	lock_file "$s4selftest.lck" || {
+		return 1;
+	}
+
+	cp -a $s4selftest $s4selftest.$tree.$compiler.$$ || {
+		rm -rf $s4selftest.$tree.$compiler.$$;
+		unlock_file "$s4selftest.lck";
+		return 1;
+	}
+
+	rm -rf $s4selftest.$tree.$compiler
+	mv $s4selftest.$tree.$compiler.$$ $s4selftest.$tree.$compiler
+
+	unlock_file "$s4selftest.lck"
+}
+
 ############################
 # build the tree
 action_build() {
@@ -281,13 +345,13 @@ action_build() {
 			bstatus=$?
 		fi
 
-		if [ -n "$smbtorture4" ]; then
-			if [ ! -f bin/smbtorture ]; then
-				do_make bin/smbtorture
-			fi
-			if [ -f bin/smbtorture ]; then
-				cp bin/smbtorture $smbtorture4
-			fi
+		if test x"$bstatus" != x"0"; then
+			do_make testsuite
+			bstatus=$?
+		fi
+
+		if test x"$bstatus" = x"0"; then
+			s4selftest_create
 		fi
 
 		;;
@@ -521,36 +585,35 @@ test_tree() {
 	prefix="$test_root/prefix/$tree.$compiler"
 	mkdir -p "$prefix"
 
-	smbtorture4=$test_root/smbtorture4
-	export smbtorture4
+	s4selftest=$test_root/s4selftest
+	export s4selftest
 
 	sw_config=$config
 
 	case "$tree" in
 	samba4|lorikeet-heimdal)
-	    sw_config="$config --enable-socket-wrapper"
-	    ;;
+		sw_config="$config --enable-socket-wrapper"
+		;;
 	samba|samba_3*)
-	    sw_config="$config --enable-socket-wrapper"
-	    if [ -f $smbtorture4 ]; then
-	        # we create a local copy to make sure the same binary is used for all tests
-	    	cp $smbtorture4 $smbtorture4.$tree 
-		sw_config="$sw_config --with-smbtorture4-path=$smbtorture4.$tree"
-	    fi
-	    ;;
+		sw_config="$config --enable-socket-wrapper"
+		s4selftest_update "$tree" "$compiler" && {
+			t="$s4selftest.$tree.$compiler/source/bin/smbtorture"
+			sw_config="$sw_config --with-smbtorture4-path=$t"
+		}
+		;;
 	samba-gtk)
 		PKG_CONFIG_PATH="$test_root/prefix/samba4.$compiler/lib/pkgconfig"
 		export PKG_CONFIG_PATH
 		;;
 	ldb)
-	    fetch_tree popt
-	    ;;
+		fetch_tree popt
+		;;
 	talloc)
-	    fetch_tree libreplace
-	    ;;
+		fetch_tree libreplace
+		;;
 	*)
-	    testsuite=testsuite
-	    ;;
+		testsuite=testsuite
+		;;
 	esac
 
 	if [ "$LCOV_REPORT" = "yes" ]; then
