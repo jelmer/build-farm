@@ -266,6 +266,12 @@ action_config_log() {
 	return 0;
 }
 
+copy_dir() {
+	Tsrc=$1
+	Tdst=$2
+	rsync -a --delete $Tsrc/ $Tdst
+}
+
 s4selftest_create() {
 	lock_file "$s4selftest.lck" || {
 		return 1;
@@ -274,25 +280,25 @@ s4selftest_create() {
 	rm -rf $s4selftest/
 	mkdir -p $s4selftest/source
 
-	cp -a $builddir/bin $s4selftest/source/bin || {
+	copy_dir $builddir/bin $s4selftest/source/bin || {
 		rm -rf $s4selftest/;
 		unlock_file "$s4selftest.lck";
 		return 1;
 	}
 
-	cp -a $srcdir/setup $s4selftest/source/setup || {
+	copy_dir $srcdir/setup $s4selftest/source/setup || {
 		rm -rf $s4selftest/;
 		unlock_file "$s4selftest.lck";
 		return 1;
 	}
 
-	cp -a $srcdir/../testprogs $s4selftest/testprogs || {
+	copy_dir $srcdir/../testprogs $s4selftest/testprogs || {
 		rm -rf $s4selftest/;
 		unlock_file "$s4selftest.lck";
 		return 1;
 	}
 
-	cp -a $srcdir/selftest $s4selftest/source/selftest || {
+	copy_dir $srcdir/selftest $s4selftest/source/selftest || {
 		rm -rf $s4selftest/;
 		unlock_file "$s4selftest.lck";
 		return 1;
@@ -304,7 +310,7 @@ s4selftest_create() {
 		return 1;
 	}
 
-	cp -a $srcdir/scripting/libjs $s4selftest/source/scripting/libjs || {
+	copy_dir $srcdir/scripting/libjs $s4selftest/source/scripting/libjs || {
 		rm -rf $s4selftest/;
 		unlock_file "$s4selftest.lck";
 		return 1;
@@ -318,7 +324,7 @@ s4selftest_update() {
 		return 1;
 	}
 
-	cp -a $s4selftest $s4selftest.$tree.$compiler.$$ || {
+	copy_dir $s4selftest $s4selftest.$tree.$compiler.$$ || {
 		rm -rf $s4selftest.$tree.$compiler.$$;
 		unlock_file "$s4selftest.lck";
 		return 1;
