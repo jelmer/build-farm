@@ -341,7 +341,6 @@ s4selftest_update() {
 action_build() {
 	case "$tree" in
 	samba4)
-		rm -f bin/smbtorture
 		do_make everything
 		bstatus=$?
 		if test x"$bstatus" != x"0"; then
@@ -603,8 +602,8 @@ test_tree() {
 	samba|samba_3*)
 		sw_config="$config --enable-socket-wrapper"
 		s4selftest_update "$tree" "$compiler" && {
-			t="$s4selftest.$tree.$compiler/source/bin/smbtorture"
-			sw_config="$sw_config --with-smbtorture4-path=$t"
+			t="$s4selftest.$tree.$compiler/source"
+			sw_config="$sw_config --with-samba4srcdir=$t"
 		}
 		;;
 	samba-gtk)
