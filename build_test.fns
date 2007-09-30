@@ -273,7 +273,7 @@ copy_dir() {
 }
 
 s4selftest_create() {
-	lock_file "$s4selftest.lck" || {
+	lock_file "s4selftest.lck" || {
 		return 1;
 	}
 
@@ -282,58 +282,58 @@ s4selftest_create() {
 
 	copy_dir $builddir/bin $s4selftest/source/bin || {
 		rm -rf $s4selftest/;
-		unlock_file "$s4selftest.lck";
+		unlock_file "s4selftest.lck";
 		return 1;
 	}
 
 	copy_dir $srcdir/setup $s4selftest/source/setup || {
 		rm -rf $s4selftest/;
-		unlock_file "$s4selftest.lck";
+		unlock_file "s4selftest.lck";
 		return 1;
 	}
 
 	copy_dir $srcdir/../testprogs $s4selftest/testprogs || {
 		rm -rf $s4selftest/;
-		unlock_file "$s4selftest.lck";
+		unlock_file "s4selftest.lck";
 		return 1;
 	}
 
 	copy_dir $srcdir/selftest $s4selftest/source/selftest || {
 		rm -rf $s4selftest/;
-		unlock_file "$s4selftest.lck";
+		unlock_file "s4selftest.lck";
 		return 1;
 	}
 
 	mkdir -p $s4selftest/source/scripting || {
 		rm -rf $s4selftest/;
-		unlock_file "$s4selftest.lck";
+		unlock_file "s4selftest.lck";
 		return 1;
 	}
 
 	copy_dir $srcdir/scripting/libjs $s4selftest/source/scripting/libjs || {
 		rm -rf $s4selftest/;
-		unlock_file "$s4selftest.lck";
+		unlock_file "s4selftest.lck";
 		return 1;
 	}
 	
-	unlock_file "$s4selftest.lck"
+	unlock_file "s4selftest.lck"
 }
 
 s4selftest_update() {
-	lock_file "$s4selftest.lck" || {
+	lock_file "s4selftest.lck" || {
 		return 1;
 	}
 
 	copy_dir $s4selftest $s4selftest.$tree.$compiler.$$ || {
 		rm -rf $s4selftest.$tree.$compiler.$$;
-		unlock_file "$s4selftest.lck";
+		unlock_file "s4selftest.lck";
 		return 1;
 	}
 
 	rm -rf $s4selftest.$tree.$compiler
 	mv $s4selftest.$tree.$compiler.$$ $s4selftest.$tree.$compiler
 
-	unlock_file "$s4selftest.lck"
+	unlock_file "s4selftest.lck"
 }
 
 ############################
