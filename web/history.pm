@@ -62,7 +62,7 @@ my $myself = $req->url();
 # print an error on fatal errors
 sub fatal($) {
     my $msg=shift;
-    print "ERROR: $msg<br>\n";
+    print "ERROR: $msg<br />\n";
     cgi_footers();
     exit(0);
 }
@@ -161,21 +161,21 @@ sub history_row($$)
     print "
 <div class=\"history_row\">
     <div class=\"datetime\">
-        <span class=\"date\">$t</span><br>
+        <span class=\"date\">$t</span><br />
         <span class=\"age\">$age ago</span>";
 
     my $revision_url = "";
     if ($entry->{REVISION}) {
-	    print " - <span class=\"revision\">r$entry->{REVISION}</span><br>";
+	    print " - <span class=\"revision\">r$entry->{REVISION}</span><br />";
 	    $revision_url = ";revision=$entry->{REVISION}";
     }
 
     print "    </div>
     <div class=\"diff\">
         <span class=\"html\"><a href=\"$myself?function=diff;tree=$tree;date=$entry->{DATE};author=$entry->{AUTHOR}$revision_url\">show diffs</a></span>
-    <br>
+    <br />
         <span class=\"text\"><a href=\"$myself?function=text_diff;tree=$tree;date=$entry->{DATE};author=$entry->{AUTHOR}$revision_url\">download diffs</a></span>
-        <br>
+        <br />
         <div class=\"history_log_message\">
             <pre>$msg</pre>
         </div>
@@ -353,10 +353,10 @@ sub cvs_diff($$$$)
 
 	    if (! ($entry->{TAG} eq "") && !$entry->{REVISIONS}) {
 		print '
-<br>
+<br />
 <b>sorry, cvs diff on branches not currently possible due to a limitation 
 in cvs</b>
-<br>';
+<br />';
 	    }
 
 	    $ENV{'CVS_PASSFILE'} = "$BASEDIR/.cvspass";
