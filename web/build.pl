@@ -77,7 +77,10 @@ sub cgi_gzip()
 		       && ($Browser !~ m/MSIE/)
 		       && !defined($ENV{'MOD_PERL'}));
     
-    if (!$maycompress) { print "\r\n"; return; }
+    if (!$maycompress) {
+	print header;
+	return;
+    }
 
     for my $p (@{$paths}) {
 	if (stat($p)) { $GZIPBIN = $p; }
@@ -86,12 +89,12 @@ sub cgi_gzip()
     my $fh = do {local(*FH);};
 
     if (stat($GZIPBIN) && open($fh, "|$GZIPBIN -1 -c")) {
-    	print header(-content_type => "text/html", -content_encoding => "gzip", -vary => "Accept-Encoding");
+    	print header(-content_encoding => "gzip", -vary => "Accept-Encoding");
 	$| = 1; $| = 0; # Flush header output
 	select ($fh);
     } else {
-		print header;
-	}
+	print header;
+    }
 }
 
 ################################################
