@@ -23,6 +23,8 @@ static void usage(void)
 	printf("             after 5s SIGKILL will be passed and exit(1)\n");
 	printf("   SIGTERM - passes SIGTERM to command's process group\n");
 	printf("             after 1s SIGKILL will be passed and exit(1)\n");
+	printf("   SIGINT  - handled like SIGTERM\n");
+	printf("   SIGQUIT - handled like SIGTERM\n");
 }
 
 static void sig_alrm_kill(int sig)
