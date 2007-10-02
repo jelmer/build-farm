@@ -62,19 +62,25 @@ sub cgi_gzip()
     my $GZIPBIN;
     my $Browser = $ENV{'HTTP_USER_AGENT'} || "";
 
-#  newer browsers accept gzip content encoding
+# newer browsers accept gzip content encoding
 # and state this in a header
 # (netscape did always but didn't state it)
-# It has been reported that these
-#  braindamaged MS-Internet Exploders claim that they
-# accept gzip .. but don't in fact and
-# display garbage then :-/
+#
+#    It has been reported that these
+#    braindamaged MS-Internet Exploders claim that they
+#    accept gzip .. but don't in fact and
+#    display garbage then :-/
+#
+#    && ($Browser !~ m/MSIE/) was used...
+#
+# How ever IE6 and IE7 work fine with gzip
+# compression
+#
 # Turn off gzip if running under mod_perl. piping does
 # not work as expected inside the server. One can probably
 # achieve the same result using Apache::GZIPFilter.
     my $maycompress = ((defined($ENV{'HTTP_ACCEPT_ENCODING'}) and $ENV{'HTTP_ACCEPT_ENCODING'} =~ m|gzip|
 			|| $Browser =~ m%^Mozilla/3%)
-		       && ($Browser !~ m/MSIE/)
 		       && !defined($ENV{'MOD_PERL'}));
     
     if (!$maycompress) {
