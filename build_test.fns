@@ -304,6 +304,12 @@ s4selftest_create() {
 		return 1;
 	}
 
+	copy_dir $srcdir/script $s4selftest/source/script || {
+		rm -rf $s4selftest/;
+		unlock_file "s4selftest.lck";
+		return 1;
+	}
+
 	mkdir -p $s4selftest/source/scripting || {
 		rm -rf $s4selftest/;
 		unlock_file "s4selftest.lck";
