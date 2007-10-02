@@ -304,7 +304,7 @@ sub svn_diff($$$)
     my $diff = `$cmd 2> /dev/null`;
 
     if ($text_html eq "html") {
-	print "<!-- $cmd --!>\n";
+	print "<!-- $cmd -->\n";
 	$diff = escapeHTML($diff);
 	$diff = diff_pretty($diff);
 	print "<pre>$diff</pre>\n";
@@ -385,7 +385,7 @@ in cvs</b>
 			}
 			
 			if ($text_html eq "html") { 
-			    print "<!-- $cmd --!>\n";
+			    print "<!-- $cmd -->\n";
 			    $diff = escapeHTML($diff);
 			    $diff = diff_pretty($diff);
 			    print "<pre>$diff</pre>\n";
@@ -404,7 +404,7 @@ in cvs</b>
 		    my $diff = `$cmd 2> /dev/null`;
 
 		    if ($text_html eq "html") { 
-			print "<!-- $cmd --!>\n";
+			print "<!-- $cmd -->\n";
 			$diff = escapeHTML($diff);
 			$diff = diff_pretty($diff);
 			print "<pre>$diff</pre>\n";
@@ -472,7 +472,7 @@ sub bzr_diff($$$)
     my $diff = `$cmd 2> /dev/null`;
 
     if ($text_html eq "html") {
-	print "<!-- $cmd --!>\n";
+	print "<!-- $cmd -->\n";
 	$diff = escapeHTML($diff);
 	$diff = diff_pretty($diff);
 	print "<pre>$diff</pre>\n";
