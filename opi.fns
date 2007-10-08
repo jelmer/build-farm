@@ -5,8 +5,6 @@ global_lock
 compiler=gcc
 CFLAGS="-O3 -Wall"
 export CFLAGS
-SMBD_OPTIONS="-d10"
-export SMBD_OPTIONS
 
 . common.fns
 #test_tree lorikeet-heimdal . $compiler
