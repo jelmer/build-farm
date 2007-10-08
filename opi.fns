@@ -4,6 +4,7 @@ global_lock
 
 compiler=gcc
 CFLAGS="-O3 -Wall"
+export CFLAGS
 
 . common.fns
 #test_tree lorikeet-heimdal . $compiler
