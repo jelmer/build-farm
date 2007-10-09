@@ -79,8 +79,7 @@ sub cgi_gzip()
 # Turn off gzip if running under mod_perl. piping does
 # not work as expected inside the server. One can probably
 # achieve the same result using Apache::GZIPFilter.
-    my $maycompress = ((defined($ENV{'HTTP_ACCEPT_ENCODING'}) and $ENV{'HTTP_ACCEPT_ENCODING'} =~ m|gzip|
-			|| $Browser =~ m%^Mozilla/3%)
+    my $maycompress = ((defined($ENV{'HTTP_ACCEPT_ENCODING'}) and $ENV{'HTTP_ACCEPT_ENCODING'} =~ m|gzip|)
 		       && !defined($ENV{'MOD_PERL'}));
     
     if (!$maycompress) {
