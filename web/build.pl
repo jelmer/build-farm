@@ -726,7 +726,7 @@ sub print_log_pretty() {
 	      ==========================================\s+
 	     }{make_collapsible_html('test', $1, $2, $id++, $3)}exgs;
 
-  print $req->p($req->tt($req->pre($log)))."\n";
+  print $req->pre($log)."\n";
 }
 
 ##############################################
