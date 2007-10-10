@@ -84,6 +84,10 @@
 .age .old { 
         color: rgb(210, 0, 0);
 }
+.preformated {
+	white-space: pre;
+	font-family: monospace;
+}
 
 div.host.summary {
         float: left;
