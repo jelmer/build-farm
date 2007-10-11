@@ -24,7 +24,8 @@ sum_tree() {
         sum_tree_test_root=$1
 	sum_tree_tree=$2
 	sum_tree_sum=$3
-	find $sum_tree_test_root/$sum_tree_tree -type f -print | grep -v '.svn' | grep -v version.h | sort | xargs sum > $sum_tree_sum
+	sum_tree_scm=$4
+	find $sum_tree_test_root/$sum_tree_tree -type f -print | grep -v version.h | sort | xargs sum > $sum_tree_sum
 	sum build_test build_test.fns >> $sum_tree_sum
 
 	if [ -f "$host.fns" ]; then
@@ -32,12 +33,15 @@ sum_tree() {
 	else
             sum generic.fns >> $sum_tree_sum
 	fi
-	if [ -f "$test_root/$tree.svn" ]; then
-	    sum "$test_root/$tree.svn" >> $sum_tree_sum
+
+	if [ -f "$test_root/$tree.$scm" ]; then
+	    sum "$test_root/$tree.$scm" >> $sum_tree_sum
 	fi
+
 	for d in $deptrees; do
-	    if [ -f "$test_root/$d.svn" ]; then
-		sum "$test_root/$d.svn" >> $sum_tree_sum
+	    dscm=`choose_scm "$d"`
+	    if [ -f "$test_root/$d.$dscm" ]; then
+		sum "$test_root/$d.$dscm" >> $sum_tree_sum
 	    fi
 	done
 }
@@ -98,34 +102,45 @@ fetch_tree() {
 }
 
 ############################
-# fetch the latest copy of the svn entries file
-fetch_svn() {
+# fetch the latest copy of the rev meta info
+fetch_revinfo() {
     tree=$1
-# skip products still in CVS.
-    case "$tree" in
-    ccache | distcc | rsync)
-        return 1
-        ;;
-    *)
-        ;;
-    esac
+    scm=$2
+
+    test -z "$scm" && return 1
+    test x"$scm" = x"unknown" && return 1
+    test x"$scm" = x"cvs" && return 1
+
     if [ "$norsync" = "yes" ]; then
-	echo "skipping svn transfer"
+	echo "skipping .revinfo.$scm transfer"
     else
-	if [ -r $test_root/$tree.svn ]; then
-		rm -f $test_root/$tree.svn.old
-	    mv $test_root/$tree.svn $test_root/$tree.svn.old
+	if [ -r $test_root/$tree.$scm ]; then
+		rm -f $test_root/$tree.$scm.old
+	    mv $test_root/$tree.$scm $test_root/$tree.$scm.old
 	fi
 	rsync -q --timeout=200 -clz --ignore-errors \
-	    samba.org::ftp/unpacked/$tree/.svn/entries $test_root/$tree.svn.tmp
-	chmod u+w $test_root/$tree.svn.tmp
-	sort -u < $test_root/$tree.svn.tmp > $test_root/$tree.svn
-	rm -f $test_root/$tree.svn.tmp
+	    samba.org::ftp/unpacked/$tree/.revinfo.$scm $test_root/$tree.$scm
     fi
-    if [ -r $test_root/$tree.svn ]; then
+    if [ -r $test_root/$tree.$scm ]; then
 	return 0;
     fi
     return 1
+}
+
+############################
+# choose the scm that is used for the given project
+choose_scm() {
+	tree=$1
+
+	case "$tree" in
+    		ccache | distcc | rsync)
+			echo "cvs"
+        		return 0
+        	;;
+	esac
+
+	echo "svn"
+	return 0
 }
 
 locknesting=0
@@ -529,20 +544,23 @@ test_tree() {
 		;;
 	esac
 
-	# pull the svn entries, if any
-	if fetch_svn "$tree"; then
+	scm=`choose_scm "$tree"`
+
+	# pull the entries, if any
+	if fetch_revinfo "$tree" "$scm"; then
 	    for d in $deptrees; do
-		if [ -f "$test_root/$d.svn" ]; then
+	    	dscm=`choose_scm "$d"`
+		if [ -f "$test_root/$d.$dscm" ]; then
 		    if [ "$d" != "$tree" ]; then
-			cat "$test_root/$d.svn" >> $test_root/$tree.svn
+			cat "$test_root/$d.$dscm" >> $test_root/$tree.$scm
 		    fi
 		fi
 	    done
-	    rm -f $test_root/$tree.$compiler.svn.old
-	    mv $test_root/$tree.$compiler.svn $test_root/$tree.$compiler.svn.old
-	    cp $test_root/$tree.svn $test_root/$tree.$compiler.svn
-	    if cmp $test_root/$tree.$compiler.svn $test_root/$tree.$compiler.svn.old > /dev/null; then
-		echo "skip: $tree.$compiler nothing changed in svn"
+	    rm -f $test_root/$tree.$compiler.$scm.old
+	    mv $test_root/$tree.$compiler.$scm $test_root/$tree.$compiler.$scm.old
+	    cp $test_root/$tree.$scm $test_root/$tree.$compiler.$scm
+	    if cmp $test_root/$tree.$compiler.$scm $test_root/$tree.$compiler.$scm.old > /dev/null; then
+		echo "skip: $tree.$compiler nothing changed in $scm"
 		cd $test_root
 		send_logs_skip "$log" "$err"
 		unlock_file "$lck"
@@ -640,7 +658,7 @@ test_tree() {
 	config_and_prefix="$sw_config --prefix=$prefix"
 
 	# see if we need to rebuild
-	sum_tree $test_root $tree $sum
+	sum_tree $test_root $tree $sum $scm
 	echo "CFLAGS=$CFLAGS $config_and_prefix" >> $sum
 
 	if cmp "$sum" "$sum.old" > /dev/null; then
@@ -696,12 +714,13 @@ test_tree() {
 		mkdir -p $builddir
 		$compiler $TIMELIMIT_FLAGS -o $builddir/timelimit $test_root/timelimit.c || exit 1
 
+		# the following is for non-samba builds only
 		if [ -r $test_root/$tree.svn ]; then
-		  h_rev=`grep revision= $test_root/$tree.svn | cut -d'"' -f2 | sort -n | tail -1`
+		  h_rev=`grep 'Revision: ' $test_root/$tree.svn | cut -d ':' -f2 | cut -d ' ' -f2 | sed 1q`
 		  if [ -n "$h_rev" ]; then
 			echo "HIGHEST SVN REVISION: $h_rev"
 		  fi
-		  rev=`grep committed-rev= $test_root/$tree.svn | cut -d'"' -f2 | sort -n | tail -1`
+		  rev=`grep 'Last Changed Rev: ' $test_root/$tree.svn | cut -d ':' -f2 | cut -d ' ' -f2 | sed 1q`
 		  if [ -n "$rev" ]; then
 			echo "BUILD REVISION: $rev"
 		  fi
