@@ -872,6 +872,8 @@ per_run_hook() {
     if [ "`wc -c < build.log`" -gt 2000000 ]; then
 	rm -f build.log
     fi
+
+    delete_old_svn_tree "samba_3_2"
 }
 
 
