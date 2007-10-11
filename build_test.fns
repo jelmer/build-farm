@@ -138,7 +138,7 @@ choose_scm() {
 			echo "cvs"
         		return 0
         	;;
-    		samba_3_2_test)
+    		samba_3*)
 			echo "git"
         		return 0
         	;;
@@ -386,7 +386,7 @@ action_build() {
 		fi
 
 		;;
-	samba_3_2*)
+	samba_3*)
 		do_make proto everything torture
 		bstatus=$?
 		;;
@@ -625,16 +625,11 @@ test_tree() {
 	samba4|lorikeet-heimdal)
 		sw_config="$config --enable-socket-wrapper"
 		;;
-	samba_3_2)
+	samba_3*)
 		sw_config="$config --enable-socket-wrapper"
 		s4selftest_update "$tree" "$compiler" && {
 			t="$s4selftest.$tree.$compiler/source"
-			sw_config="$sw_config --with-samba4srcdir=$t"
-		}
-	samba_3_2_test)
-		sw_config="$config --enable-socket-wrapper"
-		s4selftest_update "$tree" "$compiler" && {
-			t="$s4selftest.$tree.$compiler/source"
+			#sw_config="$sw_config --with-samba4srcdir=$t"
 			t="$t/bin/smbtorture"
 			sw_config="$sw_config --with-smbtorture4-path=$t"
 		}
