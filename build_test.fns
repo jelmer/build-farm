@@ -828,6 +828,17 @@ kill_old_processes() {
     (ps -fu $USER | grep /build | grep -v grep | egrep 'Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec' | awk '{print $2}' | xargs kill -9) 2> /dev/null
 }
 
+delete_old_svn_tree() {
+	otree=$1
+
+	test -z "$otree" && return 0;
+
+	rm -rf $otree
+	rm -rf $otree.svn
+	rm -rf $otree.*.svn
+	rm -rf s4selftest.$otree.*
+	rm -rf build.$otree.*
+}
 
 # this is a special fn that allows us to add a "special" hook to the build
 # farm that we want to do to the build farm. never leave it empty. instead,
