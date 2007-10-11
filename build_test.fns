@@ -381,7 +381,7 @@ action_build() {
 		fi
 
 		;;
-	samba|samba_3*)
+	samba_3_2*)
 		do_make proto everything torture
 		bstatus=$?
 		;;
@@ -468,9 +468,6 @@ action_test() {
 	# compatiblity.  I think a better way to do this in the future
 	# is to just call 'make installcheck'.
 	case "$tree" in
-#        samba_3*)
-#		echo "testing of samba_3* disabled until cause of runaway processes found (tridge - 7th sep 2006)"
-#		;;
 	samba*|smb-build|pidl)
 	    action_test_samba
 	    ;;
@@ -623,7 +620,7 @@ test_tree() {
 	samba4|lorikeet-heimdal)
 		sw_config="$config --enable-socket-wrapper"
 		;;
-	samba|samba_3*)
+	samba_3_2*)
 		sw_config="$config --enable-socket-wrapper"
 		s4selftest_update "$tree" "$compiler" && {
 			t="$s4selftest.$tree.$compiler/source"
