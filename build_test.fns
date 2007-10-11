@@ -90,7 +90,8 @@ fetch_tree() {
 		echo "skipping tree transfer"
 	else
 		fetchtree=$1
-		if rsync --exclude=autom4te.cache/ --exclude=.svn/ --delete-excluded -q --partial --timeout=200 -crlpz --delete --ignore-errors \
+		if rsync --exclude=autom4te.cache/ --exclude=.svn/ --exclude=.git/ \
+			--delete-excluded -q --partial --timeout=200 -crlpz --delete --ignore-errors \
 			samba.org::ftp/unpacked/$fetchtree/ $test_root/$fetchtree; then
 			echo "transferred $fetchtree OK"
 		else
@@ -135,6 +136,10 @@ choose_scm() {
 	case "$tree" in
     		ccache | distcc | rsync)
 			echo "cvs"
+        		return 0
+        	;;
+    		samba_3_2_test)
+			echo "git"
         		return 0
         	;;
 	esac
@@ -620,11 +625,18 @@ test_tree() {
 	samba4|lorikeet-heimdal)
 		sw_config="$config --enable-socket-wrapper"
 		;;
-	samba_3_2*)
+	samba_3_2)
 		sw_config="$config --enable-socket-wrapper"
 		s4selftest_update "$tree" "$compiler" && {
 			t="$s4selftest.$tree.$compiler/source"
 			sw_config="$sw_config --with-samba4srcdir=$t"
+		}
+	samba_3_2_test)
+		sw_config="$config --enable-socket-wrapper"
+		s4selftest_update "$tree" "$compiler" && {
+			t="$s4selftest.$tree.$compiler/source"
+			t="$t/bin/smbtorture"
+			sw_config="$sw_config --with-smbtorture4-path=$t"
 		}
 		;;
 	samba-gtk)
