@@ -17,6 +17,6 @@ test_tree samba4 source gcc
 
 export config="--with-quotas --with-smbmount --enable-krb5developer"
 
-test_tree samba_3_2 source gcc
+test_tree samba_3_2_test source gcc
 
 global_unlock

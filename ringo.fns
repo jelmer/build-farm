@@ -4,6 +4,6 @@ export CFLAGS="-O -Wall"
 
 test_tree samba4 source gcc
 export config="--with-utmp --with-pam"
-test_tree samba_3_2 source gcc
+test_tree samba_3_2_test source gcc
 
 per_run_hook

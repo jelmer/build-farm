@@ -35,9 +35,9 @@ for compiler in gcc cc icc; do
 
       # only attempt 'make test' in samba3 if we have perl
       if which perl > /dev/null; then
-        test_tree samba_3_2 source $compiler configure config_log build install test
+        test_tree samba_3_2_test source $compiler configure config_log build install test
       else
-        test_tree samba_3_2 source $compiler configure config_log build install
+        test_tree samba_3_2_test source $compiler configure config_log build install
       fi
 
       # by default build ppp only on SunOS or Linux systems

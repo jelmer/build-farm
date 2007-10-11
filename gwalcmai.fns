@@ -7,7 +7,7 @@ test_tree lorikeet-heimdal . gcc-4.0
 for compiler in gcc-3.3 gcc-3.4 gcc-4.0 gcc-4.1 gcc-cvs; do
 . common.fns
 config="--enable-dso" test_tree samba4 source $compiler
-test_tree samba_3_2 source $compiler
+test_tree samba_3_2_test source $compiler
 done
 
 test_tree ppp . gcc

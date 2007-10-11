@@ -10,7 +10,7 @@ export CFLAGS
 #test_tree lorikeet-heimdal . $compiler
 
 test_tree samba4 source $compiler
-test_tree samba_3_2 source $compiler
+test_tree samba_3_2_test source $compiler
 test_tree pidl . $compiler build test
 
 global_unlock
