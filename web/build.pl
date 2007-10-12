@@ -373,9 +373,8 @@ sub view_recent_builds($$) {
     my $last_host = "";
     my @all_builds = ();
 
-    my $sort = { revision => sub { 
-			util::strip_html($$b[6]) <=> util::strip_html($$a[6])
-		},
+    my $sort = { 
+		 revision => sub { $$b[7] <=> $$a[7] },
 		 age =>      sub { $$a[0] <=> $$b[0] },
 		 host =>     sub { $$a[2] cmp $$b[2] },
 		 platform => sub { $$a[1] cmp $$b[1] },
@@ -407,7 +406,8 @@ sub view_recent_builds($$) {
 	  my $age_mtime = $db->build_age_mtime($host, $tree, $compiler, "");
 	  my $age_ctime = $db->build_age_ctime($host, $tree, $compiler, "");
 	  my $revision = $db->build_revision($host, $tree, $compiler, "");
-	  push @all_builds, [$age_ctime, $hosts{$host}, $req->a({-href=>"$myself?function=View+Host;host=$host;tree=$tree;compiler=$compiler#$host"}, $host), $compiler, $tree, $status, revision_link($revision, $tree)]
+	  my $revision_time = $db->build_revision_time($host, $tree, $compiler, "");
+	  push @all_builds, [$age_ctime, $hosts{$host}, $req->a({-href=>"$myself?function=View+Host;host=$host;tree=$tree;compiler=$compiler#$host"}, $host), $compiler, $tree, $status, revision_link($revision, $tree), $revision_time]
 	  	unless $age_mtime == -1 or $age_mtime >= $DEADAGE;
       }
     }

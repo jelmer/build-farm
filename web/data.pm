@@ -124,7 +124,7 @@ sub build_age_ctime($$$$$)
 
 ##############################################
 # get the svn revision of build
-sub build_revision($$$$$)
+sub build_revision_details($$$$$)
 {
 	my ($self, $host, $tree, $compiler, $rev) = @_;
     my $file = $self->build_fname($tree, $host, $compiler, $rev);
@@ -151,15 +151,41 @@ sub build_revision($$$$$)
 
     $log = util::FileLoad("$file.log");
 
-    if ($log =~ /BUILD COMMIT REVISION:(.*)/) {
+    if ($log =~ /BUILD COMMIT REVISION: (.*)/) {
 	$ret = $1;
-    } elsif ($log =~ /BUILD REVISION:(.*)/) {
+    } elsif ($log =~ /BUILD REVISION: (.*)/) {
 	$ret = $1;
+    }
+
+    if ($log =~ /BUILD COMMIT TIME: (.*)/) {
+	$ret .= ":".$1;
     }
 
     util::FileSave("$cachef.revision", $ret);
 
     return $ret;
+}
+
+sub build_revision($$$$$)
+{
+	my ($self, $host, $tree, $compiler, $rev) = @_;
+
+	my $r = $self->build_revision_details($host, $tree, $compiler, $rev);
+
+	$r =~ s/:.*//;
+
+	return $r;
+}
+
+sub build_revision_time($$$$$)
+{
+	my ($self, $host, $tree, $compiler, $rev) = @_;
+
+	my $r = $self->build_revision_details($host, $tree, $compiler, $rev);
+
+	$r =~ s/^[^:]*://;
+
+	return $r;
 }
 
 ##############################################
