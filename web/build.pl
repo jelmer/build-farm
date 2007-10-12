@@ -343,10 +343,13 @@ sub revision_link($$)
 	$revision =~ s/^\s+//g;
 	return "0" if ($revision eq "0");
 
+	my $rev_short = $revision;
+	$rev_short =~ s/(^.{7}).*/$1(git)/ if (length($revision) == 40);
+
 	return $req->a({
 			-href=>"$myself?function=diff;tree=$tree;revision=$revision",
 			-title=>"View Diff for $revision"
-		}, $revision);
+		}, $rev_short);
 }
 
 ###############################################

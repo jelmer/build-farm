@@ -151,7 +151,9 @@ sub build_revision($$$$$)
 
     $log = util::FileLoad("$file.log");
 
-    if ($log =~ /BUILD REVISION:(.*)/) {
+    if ($log =~ /BUILD COMMIT REVISION:(.*)/) {
+	$ret = $1;
+    } elsif ($log =~ /BUILD REVISION:(.*)/) {
 	$ret = $1;
     }
 
