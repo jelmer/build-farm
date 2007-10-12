@@ -31,9 +31,7 @@ use FindBin qw($RealBin);
 
 require Exporter;
 @ISA = qw(Exporter);
-@EXPORT_OK = qw(@hosts %hosts @compilers @pseudo_trees %trees $OLDAGE $DEADAGE
-                build_age_mtime build_age_ctime build_revision
-				build_status err_count read_log read_err get_old_revs);
+@EXPORT_OK = qw(@hosts %hosts @compilers @pseudo_trees %trees $OLDAGE $DEADAGE);
 
 use strict;
 use warnings;
