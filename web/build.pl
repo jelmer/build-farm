@@ -808,7 +808,7 @@ sub make_collapsible_html
   my $id = shift;
   my $status = (shift or "");
 
-  my $icon = (defined $status && ($status =~ /failed/i)) ? 'icon_hide_16.png' : 'icon_unhide_16.png';
+  my $icon = ( ($status eq "" || $status =~ /failed/i)) ? 'icon_hide_16.png' : 'icon_unhide_16.png';
 
   # trim leading and trailing whitespace
   $output =~ s/^\s+//s;
