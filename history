@@ -32,4 +32,6 @@
 ./bzrlog.pl /home/ftp/pub/unpacked/ctdb 60 cache/history.ctdb
 ./bzrlog.pl http://people.samba.org/bzr/jelmer/samba-gtk/trunk 60 cache/history.samba-gtk
 
+./gitlog.pl /data/git/samba.git/ 60 v3-2-test cache/history.samba_3_2_test
+
 ) > history.log 2>&1
