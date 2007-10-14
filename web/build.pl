@@ -496,10 +496,11 @@ sub show_oldrevs($$$)
 
     for my $rev (@revs) {
 	    my $s = $revs{$rev};
+	    my $revision = $db->build_revision($host, $tree, $compiler, $rev);
 	    $s =~ s/$rev/0/;
 	    next if ($s eq $lastrev);
 	    $lastrev = $s;
-	    $ret.=$req->Tr($req->td([revision_link($rev, $tree), build_link($host, $tree, $compiler, $rev, $revs{$rev})]));
+	    $ret.=$req->Tr($req->td([revision_link($revision, $tree), build_link($host, $tree, $compiler, $rev, $revs{$rev})]));
     }
     if ($lastrev ne "") {
 		# Only print table if there was any actual data

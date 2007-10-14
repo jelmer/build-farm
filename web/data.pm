@@ -132,7 +132,9 @@ sub build_revision_details($$$$$)
     my $log;
     my $ret = 0;
 
-    if ($rev) {
+    # don't fast-path for trees with git repository:
+    # we get the timestamp as rev and want the details
+    if ($rev && ($tree != "samba_3_2_test")) {
 	    return $rev;
     }
 
