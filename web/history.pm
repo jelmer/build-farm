@@ -250,8 +250,8 @@ sub diff($$$$$)
 		bzr_diff($revision, $tree, $text_html);
     } elsif (grep {/$tree/} keys %svn_trees) {
 		svn_diff($revision, $tree, $text_html);
-#    } elsif (grep {/$tree/} keys %git_trees) {
-#		git_diff($revision, $tree, $text_html);
+    } elsif (grep {/$tree/} keys %git_trees) {
+		git_diff($revision, $tree, $text_html);
     }
 }
 
@@ -493,7 +493,7 @@ sub bzr_diff($$$)
 
 ###############################################
 # show recent git entries
-sub git_diff_error($$$)
+sub git_diff($$$)
 {
     my ($revision, $tree, $text_html) = @_;
 
@@ -561,8 +561,8 @@ sub history($)
     my $author;
 
     # ensure that the tree is a valid tree
-##    util::InArray($tree, [keys %svn_trees, keys %cvs_trees, keys %bzr_trees, keys %git_trees]) ||
-    util::InArray($tree, [keys %svn_trees, keys %cvs_trees, keys %bzr_trees]) ||
+##    util::InArray($tree, [keys %svn_trees, keys %cvs_trees, keys %bzr_trees]) ||
+    util::InArray($tree, [keys %svn_trees, keys %cvs_trees, keys %bzr_trees, keys %git_trees]) ||
 	      fatal("unknown tree");
 
     my $log = util::LoadStructure("$HISTORYDIR/history.$tree");
