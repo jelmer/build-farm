@@ -21,6 +21,7 @@ my $req = new CGI;
 my $CVSWEB_BASE = "http://pserver.samba.org/cgi-bin/cvsweb";
 my $VIEWCVS_BASE = "http://websvn.samba.org/cgi-bin/viewcvs.cgi";
 my $UNPACKED_BASE = "http://svn.samba.org/ftp/unpacked";
+my $GITWEB_BASE = "http://gitweb.samba.org/";
 
 # a map of names to web svn log locations
 my (%svn_trees) = ('samba' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=samba\">%s</a>",
@@ -51,6 +52,9 @@ my (%cvs_trees) = ('rsync' => " <a href=\"$CVSWEB_BASE/rsync/%s\">%s</a>",
 my (%bzr_trees) = ('ctdb' => " <a href=\"$UNPACKED_BASE/ctdb/%s\">%s</a>",
                    'python' => " <a href=\"$UNPACKED_BASE/python/%s\">%s</a>",
                    'samba-gtk' => " <a href=\"http://people.samba.org/bzr/jelmer/samba-gtk/trunk/%s\">%s</a>");
+
+my (%git_trees) = ('samba_3_2_test' =>" <a
+	href=\"$GITWEB_BASE/?p=samba.git;a=commitdiff;h=%s\">%s</a>");
 
 my $unpacked_dir = "/home/ftp/pub/unpacked";
 
@@ -140,6 +144,11 @@ sub web_paths($$)
     } elsif (grep {/$tree/} keys %bzr_trees) {
 	    while ($paths =~ /\s*([^\s]+)(.*)/) {
 		    $ret .= sprintf($bzr_trees{$tree}, $1, $1);
+		    $paths = $2;
+	    }
+    } elsif(grep {/$tree/} keys %git_trees) {
+	    while ($paths = ~ /\s*([^\s]+)(.*)/) {
+		    $ret .= sprintf($git_trees{tree}, $1, $1);
 		    $paths = $2;
 	    }
     }
@@ -238,10 +247,12 @@ sub diff($$$$$)
 
     if (grep {/$tree/} keys %cvs_trees) {
 		cvs_diff($author, $date, $tree, $text_html);
-    } if (grep {/$tree/} keys %bzr_trees) {
+    } elsif (grep {/$tree/} keys %bzr_trees) {
 		bzr_diff($revision, $tree, $text_html);
-    } else {
+    } elsif (grep {/$tree/} keys %svn_trees) {
 		svn_diff($revision, $tree, $text_html);
+    } elsif (grep {/$tree/} keys %git_trees) {
+		git_diff($revision, $tree, $text_html);
     }
 }
 
@@ -482,6 +493,68 @@ sub bzr_diff($$$)
 }
 
 ###############################################
+# show recent git entries
+sub git_diff($$$)
+{
+    my ($revision, $tree, $text_html) = @_;
+
+    # ensure the user-specified tree is a valid tree
+    util::InArray($tree, [keys %git_trees]) || fatal("unknown git tree");
+
+    chdir("$unpacked_dir/$tree") || fatal("no tree $unpacked_dir/$tree available");
+
+    my $checkrev = `git log -1 --pretty=format:%H $revision`;
+    fatal("unknown revision") if ($revision ne $checkrev);
+
+    my $log = util::LoadStructure("$HISTORYDIR/history.$tree");
+    my $entry;
+
+    # backwards? why? well, usually our users are looking for the newest
+    # stuff, so it's most likely to be found sooner
+    my $i = $#{$log};
+    for (; $i >= 0; $i--) {
+	    if ($log->[$i]->{REVISION} eq $revision) {
+		    $entry = $log->[$i];
+	    }
+    }
+
+    # get information about the current diff
+    if ($text_html eq "html") {
+	print "<h2>GIT Diff in $tree for revision $revision</h2>\n";
+	print "<div class=\"history row\">\n";
+
+	if (!defined($entry->{REVISION})) {
+	    print "Unable to locate commit information.\n";
+	} else {
+	    history_row($entry, $tree);
+	}
+
+	print "</div>\n";
+    }
+    else {
+	if (!defined($entry->{REVISION})) {
+	    print "Unable to locate commit information.\n";
+	} else {
+	    history_row_text($entry, $tree);
+	}
+    }
+
+    my $cmd = "git diff $revision^ $revision";
+
+    my $diff = `$cmd 2> /dev/null`;
+
+    if ($text_html eq "html") {
+	print "<!-- $cmd -->\n";
+	$diff = escapeHTML($diff);
+	$diff = diff_pretty($diff);
+	print "<pre>$diff</pre>\n";
+    }
+    else {
+	print "$diff\n";
+    }
+}
+
+###############################################
 # get commit history for the given tree
 sub history($)
 {
@@ -490,7 +563,8 @@ sub history($)
     my $author;
 
     # ensure that the tree is a valid tree
-    util::InArray($tree, [keys %svn_trees, keys %cvs_trees, keys %bzr_trees]) ||
+    util::InArray($tree, [keys %svn_trees, keys %cvs_trees, keys %bzr_trees,
+	    keys %git_trees]) ||
 	      fatal("unknown tree");
 
     my $log = util::LoadStructure("$HISTORYDIR/history.$tree");
