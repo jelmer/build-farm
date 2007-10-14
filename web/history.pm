@@ -503,8 +503,8 @@ sub git_diff($$$)
 
     chdir("$unpacked_dir/$tree") || fatal("no tree $unpacked_dir/$tree available");
 
-    my $checkrev = `git log -1 --pretty=format:%H $revision`;
-    fatal("unknown revision") if ($revision ne $checkrev);
+#    my $checkrev = `git log -1 --pretty=format:%H $revision`;
+#    fatal("unknown revision") if ($revision ne $checkrev);
 
     my $log = util::LoadStructure("$HISTORYDIR/history.$tree");
     my $entry;
