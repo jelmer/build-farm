@@ -145,11 +145,13 @@ sub web_paths($$)
 		    $ret .= sprintf($bzr_trees{$tree}, $1, $1);
 		    $paths = $2;
 	    }
-    } elsif(grep {/$tree/} keys %git_trees) {
-	    while ($paths = ~ /\s*([^\s]+)(.*)/) {
-		    $ret .= sprintf($git_trees{tree}, $1, $1);
-		    $paths = $2;
-	    }
+#    } elsif(grep {/$tree/} keys %git_trees) {
+#	    while ($paths = ~ /\s*([^\s]+)(.*)/) {
+#		    $ret .= sprintf($git_trees{tree}, $1, $1);
+#		    $paths = $2;
+#	    }
+    } else {
+	    $ret .= $paths;
     }
 
     return $ret;
