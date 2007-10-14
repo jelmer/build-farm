@@ -511,8 +511,7 @@ sub git_diff($$$)
 
     # backwards? why? well, usually our users are looking for the newest
     # stuff, so it's most likely to be found sooner
-    my $i = $#{$log};
-    for (; $i >= 0; $i--) {
+    for (my $i = $#{$log}; $i >= 0; $i--) {
 	    if ($log->[$i]->{REVISION} eq $revision) {
 		    $entry = $log->[$i];
 	    }
