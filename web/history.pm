@@ -53,8 +53,8 @@ my (%bzr_trees) = ('ctdb' => " <a href=\"$UNPACKED_BASE/ctdb/%s\">%s</a>",
                    'python' => " <a href=\"$UNPACKED_BASE/python/%s\">%s</a>",
                    'samba-gtk' => " <a href=\"http://people.samba.org/bzr/jelmer/samba-gtk/trunk/%s\">%s</a>");
 
-my (%git_trees) = ('samba_3_2_test' =>" <a
-	href=\"$GITWEB_BASE/?p=samba.git;a=commitdiff;h=%s\">%s</a>");
+##my (%git_trees) = ('samba_3_2_test' =>" <a
+#	href=\"$GITWEB_BASE/?p=samba.git;a=commitdiff;h=%s\">%s</a>");
 
 my $unpacked_dir = "/home/ftp/pub/unpacked";
 
@@ -146,11 +146,11 @@ sub web_paths($$)
 		    $ret .= sprintf($bzr_trees{$tree}, $1, $1);
 		    $paths = $2;
 	    }
-    } elsif(grep {/$tree/} keys %git_trees) {
-	    while ($paths = ~ /\s*([^\s]+)(.*)/) {
-		    $ret .= sprintf($git_trees{tree}, $1, $1);
-		    $paths = $2;
-	    }
+#    } elsif(grep {/$tree/} keys %git_trees) {
+#	    while ($paths = ~ /\s*([^\s]+)(.*)/) {
+#		    $ret .= sprintf($git_trees{tree}, $1, $1);
+#		    $paths = $2;
+#	    }
     }
 
     return $ret;
@@ -251,8 +251,8 @@ sub diff($$$$$)
 		bzr_diff($revision, $tree, $text_html);
     } elsif (grep {/$tree/} keys %svn_trees) {
 		svn_diff($revision, $tree, $text_html);
-    } elsif (grep {/$tree/} keys %git_trees) {
-		git_diff($revision, $tree, $text_html);
+#    } elsif (grep {/$tree/} keys %git_trees) {
+#		git_diff($revision, $tree, $text_html);
     }
 }
 
@@ -494,7 +494,7 @@ sub bzr_diff($$$)
 
 ###############################################
 # show recent git entries
-sub git_diff($$$)
+sub git_diff_error($$$)
 {
     my ($revision, $tree, $text_html) = @_;
 
