@@ -242,7 +242,7 @@ sub diff($$$$$)
     my ($author, $date, $tree, $revision, $text_html) = @_;
 
     # validate the tree
-    util::InArray($tree, [keys %cvs_trees, keys %svn_trees, keys %bzr_trees]);
+    util::InArray($tree, [keys %cvs_trees, keys %svn_trees, keys %bzr_trees, keys %git_trees]) || fatal("unknown tree");
 
     chdir("$unpacked_dir/$tree") || fatal("no tree $unpacked_dir/$tree available");
 
