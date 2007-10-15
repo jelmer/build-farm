@@ -53,7 +53,7 @@ my (%bzr_trees) = ('ctdb' => " <a href=\"$UNPACKED_BASE/ctdb/%s\">%s</a>",
                    'python' => " <a href=\"$UNPACKED_BASE/python/%s\">%s</a>",
                    'samba-gtk' => " <a href=\"http://people.samba.org/bzr/jelmer/samba-gtk/trunk/%s\">%s</a>");
 
-my (%git_trees) = ('samba_3_2_test' =>" <a href=\"$GITWEB_BASE/?p=samba.git;a=commitdiff;h=%s\">%s</a>");
+my (%git_trees) = ('samba_3_2_test' =>" <a href=\"$GITWEB_BASE/?p=samba.git;a=history;f=%s;h=HEAD;hb=HEAD\">%s</a>");
 
 my $unpacked_dir = "/home/ftp/pub/unpacked";
 
@@ -147,7 +147,7 @@ sub web_paths($$)
 	    }
     } elsif(grep {/$tree/} keys %git_trees) {
 	    while ($paths =~ /\s*([^\s]+)(.*)/) {
-		    $ret .= sprintf($git_trees{tree}, $1, $1);
+		    $ret .= sprintf($git_trees{$tree}, $1, $1);
 		    $paths = $2;
 	    }
     } else {
