@@ -176,7 +176,7 @@ sub history_row($$)
 
     my $revision_url = "";
     if ($entry->{REVISION}) {
-	    print " - <span class=\"revision\">r$entry->{REVISION}</span><br />";
+	    print " - <span class=\"revision\">$entry->{REVISION}</span><br />";
 	    $revision_url = ";revision=$entry->{REVISION}";
     }
 
@@ -227,7 +227,7 @@ sub history_row_text($$)
 
     print "Author: $entry->{AUTHOR}\n";
     if ($entry->{REVISION}) {
-	    print "Revision: r$entry->{REVISION}\n";
+	    print "Revision: $entry->{REVISION}\n";
     }
     print "Modified: $entry->{FILES}\n";
     print "Added: $entry->{ADDED}\n";
