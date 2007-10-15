@@ -105,6 +105,7 @@ sub diff_pretty($)
 		    '^diff.*' => 'diff_diff',
 		    '^=.*' => 'diff_separator',
 		    '^Index:.*' => 'diff_index',
+		    '^index.*' => 'diff_index',
 		    '^\-.*' => 'diff_removed',
 		    '^\+.*' => 'diff_added',
 		    '^@@.*' => 'diff_fragment_header'
