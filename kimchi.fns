@@ -1,9 +1,0 @@
-per_run_hook
-
-export CFLAGS="-O -Wall"
-
-. common.fns
-test_tree samba4 source gcc
-
-export config="--with-utmp"
-test_tree samba_3_2_test source gcc

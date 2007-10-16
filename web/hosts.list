@@ -44,7 +44,7 @@ au2: IRIX 6.4 MIPS
 us4: IRIX 6.5 MIPS
 coreserverbuild: Mac OS X 10.4.4 (PPC)
 delta: Mac OS X 10.4.5 (PPC)
-trip: Mandriva 2006.0 i586
+trip: Mandriva 2008.0 i586
 kimchi: NetBSD 1.5 i386
 poseidon: NetBSD 1.6.2 Sparc32
 ares: NetBSD 1.6.2 Sparc64
