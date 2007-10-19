@@ -83,7 +83,7 @@ sub cgi_gzip()
 		       && !defined($ENV{'MOD_PERL'}));
     
     if (!$maycompress) {
-	print header;
+	print header(-charset=>'utf-8');
 	return;
     }
 
@@ -94,7 +94,9 @@ sub cgi_gzip()
     my $fh = do {local(*FH);};
 
     if (stat($GZIPBIN) && open($fh, "|$GZIPBIN -c")) {
-    	print header(-content_encoding => "gzip", -vary => "Accept-Encoding");
+    	print header(-content_encoding => "gzip",
+		-charset=>'utf-8',
+		-vary => "Accept-Encoding");
 	$| = 1; $| = 0; # Flush header output
 	select ($fh);
     } else {
