@@ -62,7 +62,15 @@ sub new($;$) {
 
 	my $self = {
 		path => $path,
-		readonly => $readonly
+		readonly => $readonly,
+
+		compilers	=> \@compilers,
+		hosts_hash	=> \%hosts,
+		hosts_list	=> \@hosts,
+		trees		=> \%trees,
+		pseudo_trees	=> \@pseudo_trees,
+		OLDAGE		=> \$OLDAGE,
+		DEADAGE 	=> \$DEADAGE
 	};
 
 	bless $self;
