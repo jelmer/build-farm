@@ -75,10 +75,10 @@ sub build_revision($)
 my $dry_run = 0;
 
 if ($#ARGV >= 0 && $ARGV[0] eq "-n") {
-  $dry_run = 1;
-  shift @ARGV;
+	$dry_run = 1;
+	shift @ARGV;
 } if ($#ARGV < 0 || $ARGV[0] eq "-h" || $ARGV[0] eq "--help") {
-  print <<EOU;
+	print <<EOU;
 Usage: analyse.pl [-n] <LOGFILE>
 
 Script to parse a build farm log file, \$LOGFILE, and send some mail
@@ -87,7 +87,7 @@ chastising the possible culprits based on recent commits.
 -n  Will cause the script to send output to stdout instead of
     to sendmail.
 EOU
-  exit(1);
+	exit(1);
 }
 
 my $fname = $ARGV[0];
@@ -106,7 +106,7 @@ my $rev = build_revision($fname);
 my $status = build_status($fname);
 
 if ($dry_run) {
-    printf("rev=$rev status=$status\n");
+	printf("rev=$rev status=$status\n");
 }
 
 if ($rev == 0) {
@@ -131,7 +131,7 @@ if ($rev2 == 0) {
 my $status2 = build_status($fname);
 
 if ($dry_run) {
-    printf("status=$status status2=$status2\n");
+	printf("status=$status status2=$status2\n");
 }
 
 if ($status2 <= $status && !$dry_run) {
@@ -151,8 +151,8 @@ my $log2 = $log;
 my %culprits;
 
 while ($log2 =~ /\nr\d+ \| (\w+) \|.*?line(s?)\n(.*)$/s) {
-    $culprits{$1} = 1; 
-    $log2 = $3;
+	$culprits{$1} = 1; 
+	$log2 = $3;
 }
 
 # Add a URL to the diffs for each change
@@ -164,10 +164,10 @@ my $subject = "BUILD of $tree BROKEN on $host with $compiler AT REVISION $rev";
 
 # send the nastygram
 if ($dry_run) {
-  print "$subject\n";
-  open(MAIL,"|cat");
+	print "$subject\n";
+	open(MAIL,"|cat");
 } else {
-  open(MAIL,"|Mail -s \"$subject\" $recipients");
+	open(MAIL,"|Mail -s \"$subject\" $recipients");
 }
 
 my $body = << "__EOF__";
@@ -192,41 +192,40 @@ $cnx->Connect(hostname => "jabber.org");
 
 sub read_config_file ($) {
 	# This function was copied from the sendxmpp source, (C) DJCBB
-    my $cfg_file = shift;
+	my $cfg_file = shift;
     
-    open (CFG,"<$cfg_file") || die("cannot open $cfg_file for reading: $!");
+	open (CFG,"<$cfg_file") || die("cannot open $cfg_file for reading: $!");
 
 	my $line = 0;
-    my %config;
-    while (<CFG>) {
+	my %config;
+	while (<CFG>) {
 		++$line;
-	next if (/^\s*$/);     # ignore empty lines
-	next if (/^\s*\#.*/);  # ignore comment lines
+		next if (/^\s*$/);     # ignore empty lines
+		next if (/^\s*\#.*/);  # ignore comment lines
 	
-	s/\#.*$//; # ignore comments in lines
-	
-	if (/([-\.\w]+)@([-\.\w:]+)\s+(\S+)\s*$/) {
-	    %config = ('username' => $1,
-		       'jserver'  => $2, 
-		       'port'     => 0,
-		       'password' => $3);
+		s/\#.*$//; # ignore comments in lines
 
-	    if ($config{'jserver'} =~ /(.*):(\d+)/) {
-		$config{'jserver'} = $1;
-		$config{'port'}    = $2;
-	    }
-	} else {
-	    close CFG;
-	    die("syntax error in line $line of $cfg_file");
+		if (/([-\.\w]+)@([-\.\w:]+)\s+(\S+)\s*$/) {
+			%config = ('username' => $1,
+				   'jserver'  => $2,
+				   'port'     => 0,
+				   'password' => $3);
+
+			if ($config{'jserver'} =~ /(.*):(\d+)/) {
+				$config{'jserver'} = $1;
+				$config{'port'}    = $2;
+			}
+		} else {
+			close CFG;
+			die("syntax error in line $line of $cfg_file");
+		}
 	}
-    }
-    
-    close CFG;
-    
-    die ("no correct config found in $cfg_file") 
-      unless (scalar(%config));       
 
-    return \%config;	           
+	close CFG;
+
+	die ("no correct config found in $cfg_file") unless (scalar(%config));
+
+	return \%config;
 }
 
 my $jabber_config = read_config_file("$ENV{HOME}/.sendxmpprc");
@@ -242,7 +241,9 @@ my $users = {
 foreach (keys %culprits) {
 	next unless(defined($users->{$_}));
 
-	$cnx->MessageSend('to' => $users->{$_}, 'subject' => $subject, 'body' => "You might have broken the build!\n\n" . $body);
+	$cnx->MessageSend('to' => $users->{$_},
+			  'subject' => $subject,
+			  'body' => "You might have broken the build!\n\n" . $body);
 }
 
 # set the presence
@@ -252,11 +253,14 @@ my $res = $pres->SetTo("samba-build-breakage\@conference.jabber.org/analyse");
 $cnx->Send($pres); 
 
 my $groupmsg = new Net::XMPP::Message;
-$groupmsg->SetMessage(to => "samba-build-breakage\@conference.jabber.org", body => $body, type => 'groupchat');
+$groupmsg->SetMessage('to' => "samba-build-breakage\@conference.jabber.org",
+		      'body' => $body,
+		      'type' => 'groupchat');
 
 $cnx->Send($groupmsg);
 
 # leave the group
-$pres->SetPresence (Type=>'unavailable',To=>"samba-build-breakage\@conference.jabber.org");
+$pres->SetPresence('Type' => 'unavailable',
+		   'To' => "samba-build-breakage\@conference.jabber.org");
 
 $cnx->Disconnect();
