@@ -143,7 +143,7 @@ sub get_log_svn($$$$$)
 	my $log2 = $log->{change_log};
 
 	while ($log2 =~ /\nr\d+ \| (\w+) \|.*?line(s?)\n(.*)$/s) {
-		$log->{authors}->{$1} = 1;
+		$log->{committers}->{"$1\@samba.org"} = 1;
 		$log2 = $3;
 	}
 
@@ -231,7 +231,7 @@ if (not defined($log)) {
 	exit(0);
 }
 
-my $recipients = join(",", keys %{$log->{authors}});
+my $recipients = join(",", keys %{$log->{committers}});
 
 my $subject = "BUILD of $tree BROKEN on $host with $compiler AT REVISION $cur->{rev}";
 
@@ -313,11 +313,11 @@ $cnx->AuthSend(%$jabber_config);
 
 # set the presence
 my $users = {
-	jelmer => "ctrlsoft\@jabber.org"
+	'jelmer\@samba.org' => "ctrlsoft\@jabber.org"
 };
 
 # Send messages to individual users where the Jabber adress is known
-foreach (keys %{$log->{authors}}) {
+foreach (keys %{$log->{committers}}) {
 	next unless(defined($users->{$_}));
 
 	$cnx->MessageSend('to' => $users->{$_},
