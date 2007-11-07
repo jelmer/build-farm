@@ -30,7 +30,7 @@ use warnings;
 use FindBin qw($RealBin);
 
 use lib "$RealBin";
-use data qw(@compilers %hosts @hosts %trees @pseudo_trees $OLDAGE $DEADAGE);
+use data;
 use util;
 use history;
 use POSIX;
@@ -42,6 +42,14 @@ my $WEBDIR = "$RealBin";
 my $BASEDIR = "$WEBDIR/..";
 
 my $db = new data("$BASEDIR/data");
+
+my @compilers = @{$db->{compilers}};
+my %hosts = %{$db->{hosts_hash}};
+my @hosts = @{$db->{hosts_list}};
+my %trees = %{$db->{trees}};
+my @pseudo_trees = @{$db->{pseudo_trees}};
+my $OLDAGE = $db->{OLDAGE};
+my $DEADAGE = $db->{DEADAGE};
 
 my $req = new CGI;
 
