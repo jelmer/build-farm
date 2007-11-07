@@ -10,7 +10,9 @@
 # $ ../analyse.pl -n build.$PRODUCT.$HOST.$COMPILER.log
 #
 
-#use strict qw{vars};
+use strict;
+use warnings;
+
 use FindBin qw($RealBin);
 
 use lib "$RealBin";
@@ -23,7 +25,6 @@ use File::stat;
 use Carp;
 use Net::XMPP;
 use Getopt::Long;
-use strict;
 
 my $WEBDIR = "$RealBin/web";
 my $BASEDIR = "$WEBDIR/..";
@@ -184,6 +185,11 @@ __EOF__
 print MAIL $body;
 
 close(MAIL);
+
+if ($dry_run) {
+	print "skip jabber messages\n";
+	exit(0);
+}
 
 # Send message to jabber group
 my $cnx = new Net::XMPP::Client();
