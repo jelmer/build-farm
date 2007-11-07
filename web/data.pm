@@ -36,9 +36,7 @@ use strict;
 use warnings;
 
 sub new($;$) {
-	my ($this, $path, $readonly) = @_;
-
-	my $basedir = "$path/../";
+	my ($this, $basedir, $readonly) = @_;
 
 	return undef if not (-d $basedir);
 	$readonly = 0 unless defined($readonly);

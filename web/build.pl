@@ -41,7 +41,7 @@ use File::stat;
 my $WEBDIR = "$RealBin";
 my $BASEDIR = "$WEBDIR/..";
 
-my $db = new data("$BASEDIR/data");
+my $db = new data($BASEDIR);
 
 my @compilers = @{$db->{compilers}};
 my %hosts = %{$db->{hosts_hash}};
