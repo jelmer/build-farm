@@ -54,10 +54,17 @@ our (%trees) = util::load_hash("$WEBDIR/trees.list");
 # (for recent checkins)
 our @pseudo_trees = util::load_list("$WEBDIR/pseudo.list");
 
-sub new($) {
-	my ($this, $path) = @_;
+sub new($;$) {
+	my ($this, $path, $readonly) = @_;
+
 	return undef if not (-d $path);
-	my $self = { path => $path };
+	$readonly = 0 unless defined($readonly);
+
+	my $self = {
+		path => $path,
+		readonly => $readonly
+	};
+
 	bless $self;
 	return $self;
 }
@@ -162,7 +169,7 @@ sub build_revision_details($$$$$)
 		$ret .= ":".$1;
 	}
 
-	util::FileSave("$cachef.revision", $ret);
+	util::FileSave("$cachef.revision", $ret) unless $self->{readonly};
 
 	return $ret;
 }
@@ -269,7 +276,7 @@ sub build_status($$$$$)
 
 	my $ret = "$cstatus/$bstatus/$istatus/$tstatus$sstatus$dstatus$tostatus";
 
-	util::FileSave("$cachefile", $ret);
+	util::FileSave("$cachefile", $ret) unless $self->{readonly};
 
 	return $ret;
 }
@@ -298,7 +305,7 @@ sub lcov_status($$)
 	} else {
 		$ret = "";
 	}
-	util::FileSave("$cachefile", $ret);
+	util::FileSave("$cachefile", $ret) unless $self->{readonly};
 	return $ret;
 }
 
@@ -325,7 +332,7 @@ sub err_count($$$$$)
 
 	my $ret = util::count_lines($err);
 
-	util::FileSave("$cachef.errcount", "$ret");
+	util::FileSave("$cachef.errcount", "$ret") unless $self->{readonly};
 
 	return $ret;
 }
