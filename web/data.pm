@@ -27,50 +27,59 @@ use util;
 use POSIX;
 use File::stat;
 use CGI qw/:standard/;
-use FindBin qw($RealBin);
 
 require Exporter;
 @ISA = qw(Exporter);
-@EXPORT_OK = qw(@hosts %hosts @compilers @pseudo_trees %trees $OLDAGE $DEADAGE);
+@EXPORT_OK = qw();
 
 use strict;
 use warnings;
 
-my $WEBDIR = "$RealBin";
-my $CACHEDIR = "$WEBDIR/../cache";
-my $LCOVDIR = "$WEBDIR/../lcov/data";
-my $LCOVHOST = "tridge";
-our $OLDAGE = 60*60*4;
-our $DEADAGE = 60*60*24*4;
-
-##############################################
-# this defines what it is possible to build 
-# and what boxes. Should be in a config file
-our @compilers = util::load_list("$WEBDIR/compilers.list");
-our (%hosts) = util::load_hash("$WEBDIR/hosts.list");
-our @hosts = sort { $hosts{$a} cmp $hosts{$b} } keys %hosts;
-our (%trees) = util::load_hash("$WEBDIR/trees.list");
-# these aren't really trees... they're just things we want in the menu.
-# (for recent checkins)
-our @pseudo_trees = util::load_list("$WEBDIR/pseudo.list");
-
 sub new($;$) {
 	my ($this, $path, $readonly) = @_;
 
-	return undef if not (-d $path);
+	my $basedir = "$path/../";
+
+	return undef if not (-d $basedir);
 	$readonly = 0 unless defined($readonly);
 
+	my $webdir = "$basedir/web";
+	return undef if not (-d $webdir);
+
+	my $datadir = "$basedir/data";
+	return undef if not (-d $datadir);
+
+	my $cachedir = "$basedir/cache";
+	return undef if not (-d $cachedir);
+
+	my $lcovdir = "$basedir/lcov/data";
+	return undef if not (-d $lcovdir);
+
+	my $lcovhost = "tridge";
+
+	my @compilers = util::load_list("$webdir/compilers.list");
+	my (%hosts) = util::load_hash("$webdir/hosts.list");
+	my @hosts = sort { $hosts{$a} cmp $hosts{$b} } keys %hosts;
+	my (%trees) = util::load_hash("$webdir/trees.list");
+	my @pseudo_trees = util::load_list("$webdir/pseudo.list");
+
 	my $self = {
-		path => $path,
-		readonly => $readonly,
+		basedir		=> $basedir,
+		webdir		=> $webdir,
+		datadir		=> $datadir,
+		cachedir	=> $cachedir,
+		lcovdir		=> $lcovdir,
+		lcovhost	=> $lcovhost,
+
+		readonly	=> $readonly,
 
 		compilers	=> \@compilers,
 		hosts_hash	=> \%hosts,
 		hosts_list	=> \@hosts,
 		trees		=> \%trees,
 		pseudo_trees	=> \@pseudo_trees,
-		OLDAGE		=> \$OLDAGE,
-		DEADAGE 	=> \$DEADAGE
+		OLDAGE		=> 60*60*4,
+		DEADAGE 	=> 60*60*24*4
 	};
 
 	bless $self;
@@ -81,9 +90,9 @@ sub cache_fname($$$$$)
 {
 	my ($self, $tree, $host, $compiler, $rev) = @_;
 	if ($rev) {
-		return "$CACHEDIR/oldrevs/build.$tree.$host.$compiler-$rev";
+		return "$self->{cachedir}/oldrevs/build.$tree.$host.$compiler-$rev";
 	}
-	return "$CACHEDIR/build.$tree.$host.$compiler";
+	return "$self->{cachedir}/build.$tree.$host.$compiler";
 }
 
 ################################
@@ -92,9 +101,9 @@ sub build_fname($$$$$)
 {
 	my ($self, $tree, $host, $compiler, $rev) = @_;
 	if ($rev) {
-		return "$self->{path}/oldrevs/build.$tree.$host.$compiler-$rev";
+		return "$self->{datadir}/oldrevs/build.$tree.$host.$compiler-$rev";
 	}
-	return "$self->{path}/build.$tree.$host.$compiler";
+	return "$self->{datadir}/build.$tree.$host.$compiler";
 }
 
 ###################
@@ -294,8 +303,8 @@ sub build_status($$$$$)
 sub lcov_status($$)
 {
 	my ($self, $tree) = @_;
-	my $cachefile="$CACHEDIR/lcov.$LCOVHOST.$tree.status";
-	my $file = "$LCOVDIR/$LCOVHOST/$tree/index.html";
+	my $cachefile="$self->{cachedir}/lcov.$self->{lcovhost}.$tree.status";
+	my $file = "$self->{lcovdir}/$self->{lcovhost}/$tree/index.html";
 	my $st1 = stat($file);
 	if (!$st1) {
 		return "";
@@ -309,7 +318,7 @@ sub lcov_status($$)
 	my $ret;
 	my $lcov_html = util::FileLoad($file);
 	if ($lcov_html =~ /\<td class="headerItem".*?\>Code\&nbsp\;covered\:\<\/td\>.*?\n.*?\<td class="headerValue".*?\>([0-9.]+) \%/) {
-		$ret = '<a href="/lcov/data/'."$LCOVHOST/$tree\">$1 %</a>";
+		$ret = '<a href="/lcov/data/'."$self->{lcovhost}/$tree\">$1 %</a>";
 	} else {
 		$ret = "";
 	}
@@ -368,7 +377,7 @@ sub read_err($$$$$)
 sub get_old_revs($$$$)
 {
 	my ($self, $tree, $host, $compiler) = @_;
-	my @list = split('\n', `ls $self->{path}/oldrevs/build.$tree.$host.$compiler-*.log`);
+	my @list = split('\n', `ls $self->{datadir}/oldrevs/build.$tree.$host.$compiler-*.log`);
 	my %ret;
 	for my $l (@list) {
 		if ($l =~ /-(\d+).log$/) {
@@ -384,7 +393,7 @@ sub has_host($$)
 {
 	my ($self, $host) = @_;
 
-	my $ls = `ls $self->{path}/*.log`;
+	my $ls = `ls $self->{datadir}/*.log`;
 
 	return 1 if ($ls =~ /$host/);
 	return 0;
