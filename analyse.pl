@@ -150,6 +150,9 @@ sub get_log_svn($$$$$)
 	# Add a URL to the diffs for each change
 	$log->{change_log} =~ s/\n(r(\d+).*)/\n$1\nhttp:\/\/build.samba.org\/?function=diff;tree=${tree};revision=$2/g;
 
+	$log->{recipients} = join(",", keys %{$log->{committers}});
+	$log->{recipients} = undef if ($log->{recipients} eq "");
+
 	return $log;
 }
 
@@ -231,17 +234,19 @@ if (not defined($log)) {
 	exit(0);
 }
 
-my $recipients = join(",", keys %{$log->{committers}});
-
 my $subject = "BUILD of $tree BROKEN on $host with $compiler AT REVISION $cur->{rev}";
 
 # send the nastygram
 if ($dry_run) {
-	print "To: $recipients\n";
+	print "To: $log->{recipients}\n" if defined($log->{recipients});
 	print "Subject: $subject\n";
 	open(MAIL,"|cat");
 } else {
-	open(MAIL,"|Mail -s \"$subject\" $recipients");
+	if (defined($log->{recipients})) {
+		open(MAIL,"|Mail -s \"$subject\" $log->{recipients}");
+	} else {
+		open(MAIL,"|cat >/dev/null");
+	}
 }
 
 my $body = << "__EOF__";
