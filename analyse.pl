@@ -150,8 +150,7 @@ sub get_log_svn($$$$$)
 	# Add a URL to the diffs for each change
 	$log->{change_log} =~ s/\n(r(\d+).*)/\n$1\nhttp:\/\/build.samba.org\/?function=diff;tree=${tree};revision=$2/g;
 
-	$log->{recipients} = join(",", keys %{$log->{committers}});
-	$log->{recipients} = undef if ($log->{recipients} eq "");
+	$log->{recipients} = $log->{committers};
 
 	return $log;
 }
@@ -194,7 +193,7 @@ sub get_log_git($$$$$)
 	foreach my $k (@all) {
 		$all->{$k} = 1;
 	}
-	$log->{recipients} = join(",", keys %{$all}) if defined($all);
+	$log->{recipients} = $all;
 
 	return $log;
 }
@@ -279,16 +278,19 @@ if (not defined($log)) {
 	exit(0);
 }
 
+my $recipients = undef;
+$recipients = join(",", keys %{$log->{recipients}}) if defined($log->{recipients});
+
 my $subject = "BUILD of $tree BROKEN on $host with $compiler AT REVISION $cur->{rev}";
 
 # send the nastygram
 if ($dry_run) {
-	print "To: $log->{recipients}\n" if defined($log->{recipients});
+	print "To: $recipients\n" if defined($recipients);
 	print "Subject: $subject\n";
 	open(MAIL,"|cat");
 } else {
-	if (defined($log->{recipients})) {
-		open(MAIL,"|Mail -s \"$subject\" $log->{recipients}");
+	if (defined($recipients)) {
+		open(MAIL,"|Mail -s \"$subject\" $recipients");
 	} else {
 		open(MAIL,"|cat >/dev/null");
 	}
@@ -367,7 +369,7 @@ my $users = {
 };
 
 # Send messages to individual users where the Jabber adress is known
-foreach (keys %{$log->{committers}}) {
+foreach (keys %{$log->{recipients}}) {
 	next unless(defined($users->{$_}));
 
 	$cnx->MessageSend('to' => $users->{$_},
