@@ -41,9 +41,12 @@ action_configure() {
 	echo " "
 	echo "Please contact Paul dot Green at stratus.com for further information."
 	echo " "
-        if [ ! -x configure ]; then
-	    ls -l configure
-	    ./autogen.sh
+        if [ ! -x $srcdir/configure ]; then
+	    ls -l $srcdir/configure
+	    echo "$srcdir/configure is missing"
+	    cstatus=255
+	    echo "CONFIGURE STATUS: $cstatus"
+	    return $cstatus;
 	fi
 	echo "CPPFLAGS=$CPPFLAGS"
 	echo "CFLAGS=$CFLAGS"
@@ -92,7 +95,7 @@ fetch_tree() {
 		echo "skipping tree transfer"
 	else
 		fetchtree=$1
-		if rsync --exclude=autom4te.cache/ --exclude=.svn/ --delete-excluded -q --partial --timeout=200 -crlpz --delete --ignore-errors --exclude=granig* --exclude=lisa--* --exclude=distccmon-gnome* \
+		if rsync --exclude=autom4te.cache/ --exclude=.svn/ --exclude=.git/ --delete-excluded -q --partial --timeout=200 -crlpz --delete --ignore-errors \
 			samba.org::ftp/unpacked/$fetchtree/ $test_root/$fetchtree; then
 			echo "transferred $fetchtree OK"
 		else
