@@ -143,6 +143,10 @@ sub build_age_ctime($$$$$)
 	return $age;
 }
 
+#TODO: merge this with the stuff from history.pm
+#      and trees.list
+my @git_trees = ("rsync", "samba_3_2_test");
+
 ##############################################
 # get the svn revision of build
 sub build_revision_details($$$$$)
@@ -155,7 +159,7 @@ sub build_revision_details($$$$$)
 
 	# don't fast-path for trees with git repository:
 	# we get the timestamp as rev and want the details
-	if ($rev && ($tree ne "samba_3_2_test")) {
+	if ($rev and not util::InArray($tree, \@git_trees)) {
 		return $rev;
 	}
 
