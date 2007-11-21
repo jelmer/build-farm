@@ -134,11 +134,11 @@ choose_scm() {
 	tree=$1
 
 	case "$tree" in
-    		ccache | distcc | rsync)
+    		ccache | distcc)
 			echo "cvs"
         		return 0
         	;;
-    		samba_3*)
+    		samba_3* | rsync)
 			echo "git"
         		return 0
         	;;
@@ -733,8 +733,20 @@ test_tree() {
 		  if [ -n "$rev" ]; then
 			echo "BUILD REVISION: $rev"
 		  fi
+		elif [ -r $test_root/$tree.git ]; then
+		  csha1=`cat $test_root/$tree.git |head -3 | tail -1`
+		  if [ -n "$csha1" ]; then
+		    echo "BUILD COMMIT REVISION: $csha1"
+		  fi
+		  cdate=`cat $test_root/$tree.git |head -4 | tail -1`
+		  if [ -n "$cdate" ]; then
+		    echo "BUILD COMMIT DATE: $cdate"
+		  fi
+		  ctime=`cat $test_root/$tree.git |head -2 | tail -1`
+		  if [ -n "$ctime" ]; then
+		    echo "BUILD COMMIT TIME: $ctime"
+		  fi
 		fi
-
 
 		if [ "$tree" = "pidl" ] 
 		then

@@ -43,8 +43,7 @@ my (%svn_trees) = ('samba' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=samba\">%s
 		   'SOC' => " <a href=\"$VIEWCVS_BASE/branches/SOC/%s?root=samba\">%s</a>");
 
 # a map of names to cvs modules
-my (%cvs_trees) = ('rsync' => " <a href=\"$CVSWEB_BASE/rsync/%s\">%s</a>",
-		   'distcc' => " <a href=\"$CVSWEB_BASE/distcc/%s\">%s</a>",
+my (%cvs_trees) = ('distcc' => " <a href=\"$CVSWEB_BASE/distcc/%s\">%s</a>",
 		   'ccache' => " <a href=\"$CVSWEB_BASE/ccache/%s\">%s</a>",
 		   'ppp' => " <a href=\"$CVSWEB_BASE/ppp/%s\">%s</a>");
 
@@ -53,7 +52,8 @@ my (%bzr_trees) = ('ctdb' => " <a href=\"$UNPACKED_BASE/ctdb/%s\">%s</a>",
                    'python' => " <a href=\"$UNPACKED_BASE/python/%s\">%s</a>",
                    'samba-gtk' => " <a href=\"http://people.samba.org/bzr/jelmer/samba-gtk/trunk/%s\">%s</a>");
 
-my (%git_trees) = ('samba_3_2_test' =>" <a href=\"$GITWEB_BASE/?p=samba.git;a=history;f=%s;h=HEAD;hb=HEAD\">%s</a>");
+my (%git_trees) = ('samba_3_2_test' =>" <a href=\"$GITWEB_BASE/?p=samba.git;a=history;f=%s;h=HEAD;hb=HEAD\">%s</a>",
+		   'rsync' =>" <a href=\"$GITWEB_BASE/?p=rsync.git;a=history;f=%s;h=HEAD;hb=HEAD\">%s</a>");
 
 my $unpacked_dir = "/home/ftp/pub/unpacked";
 
