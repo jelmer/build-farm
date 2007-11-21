@@ -24,6 +24,8 @@ tango-one-mars: Fedora Core 2 i386
 shelob: Fedora Core 3 i386 SMP
 node1: Fedora Core 6 (i686) SMP, OpenLDAP
 node2: Fedora Core 6 (i686) SMP
+core-01: Fedora Core 8 (x86_64)
+core-02: Fedora Core 8 (x86_64) OpenLDAP
 piglett: Fedora Core 5 (i686)
 speener: Fedora Core 4 (i686)
 gc8: FreeBSD 3.3-RELEASE i386
