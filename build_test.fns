@@ -59,6 +59,9 @@ send_logs() {
 		chmod 0644 "$log" "$err"
 
 		XARGS_I="xargs -I '{}'"
+		if [ "`uname`" = "VOS" ]; then
+		    XARGS_I="xargs -i"
+		fi
 		find $log -size +40000 | $XARGS_I sh -c 'dd if={} bs=1024 count=20000 of={}.tmp && mv {}.tmp {} &&  echo "\n***LOG TRUNCATED***" >> {}'
 		find $err -size +40000 | $XARGS_I sh -c 'dd if={} bs=1024 count=20000 of={}.tmp && mv {}.tmp {} &&  echo "\n***LOG TRUNCATED***" >> {}'
 
