@@ -3,7 +3,7 @@
 
 export CC="gcc"
 export CFLAGS=""
-export CPPFLAGS="-D_POSIX_C_SOURCE=200112L -D_SYSV"
+export CPPFLAGS="-D_POSIX_C_SOURCE=200112L -D_SYSV -D_VOS_EXTENDED_NAMES"
 export MAXTIME=14400
 export TIMELIMIT_FLAGS="-D_POSIX_C_SOURCE=200112L"
 export noclean="yes"
@@ -35,8 +35,7 @@ action_configure() {
 	echo "The following differences from standard POSIX systems are"
 	echo "essentially unfixable:"
 	echo "      5. VOS has symbolic links not hard links. link() is a dummy."
-	echo "      6. VOS has a 32-character limit on file names, and a 256-char"
-	echo "         limit on pathnames."
+	echo "      6. VOS has a 256-character limit on pathnames."
 	echo "      7. VOS does not implement shared libraries (no gcc -shared)."
 	echo " "
 	echo "Please contact Paul dot Green at stratus.com for further information."
