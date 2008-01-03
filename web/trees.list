@@ -1,6 +1,7 @@
 # list of build trees in farm
 # format is treename:branch
 samba4:
+samba_4_0_test:
 samba-docs:
 smb-build:
 samba_3_2:SAMBA_3_2

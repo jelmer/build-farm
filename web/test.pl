@@ -104,7 +104,7 @@ if (defined($cgi->param('test')) and defined($cgi->param('build'))) {
 } elsif (defined($cgi->param('test'))) {
 	show_test($cgi->param('test'));
 } else {
-	show_summary("samba4");
+	show_summary("samba_4_0_test");
 }
 
 1;
