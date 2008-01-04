@@ -58,10 +58,20 @@ send_logs() {
 		shift
 		chmod 0644 "$log" "$err"
 
-		XARGS_I="xargs -I '{}'"
-		if [ "`uname`" = "VOS" ]; then
-		    XARGS_I="xargs -i"
+		# xargs -i is implemented differently or not at all.
+		# GNU xargs did not implement "-I" until 4.2.9:
+		xargs --version 2>&1 | grep "^GNU xargs" > /dev/null
+		status=$?
+		if [ $status == 0 ]; then
+			XARGS_IS_GNU=yes
 		fi
+
+		if [ x"$XARGS_IS_GNU" = x"yes" ]; then
+			XARGS_I="xargs -i"
+		else
+			XARGS_I="xargs -I '{}'"
+		fi
+
 		find $log -size +40000 | $XARGS_I sh -c 'dd if={} bs=1024 count=20000 of={}.tmp && mv {}.tmp {} &&  echo "\n***LOG TRUNCATED***" >> {}'
 		find $err -size +40000 | $XARGS_I sh -c 'dd if={} bs=1024 count=20000 of={}.tmp && mv {}.tmp {} &&  echo "\n***LOG TRUNCATED***" >> {}'
 
