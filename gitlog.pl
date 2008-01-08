@@ -31,11 +31,12 @@ sub push_entry($$$$)
 ####################################
 # return an array of logfile entries given a git log file. 
 # Only return entries newer than $days old
-sub git_parse($$$)
+sub git_parse($$$$)
 {
 	my $git_path = shift;
 	my $days = shift;
 	my $tree = shift;
+	my $subdir = shift;
 	my $log;
 	my $entry = {};
 	my $addto = "";
@@ -51,7 +52,7 @@ sub git_parse($$$)
 	# checked in 11 years of samba development 1 days ago :-)
 
 	# git log --pretty=format:---GIT-COMMIT-MAGIC-START---%n%H%n%ct%n%an%n---GIT-COMMIT-MAGIC-MESSAGE---%n%s%b%n---GIT-COMMIT-MAGIC-DIFF--- --numstat --since='1 days'
-	open(FILE, "cd $git_path; git log --pretty=format:$format --numstat $sincedays -500 $tree |");
+	open(FILE, "cd $git_path; git log --pretty=format:$format --numstat $sincedays -500 $tree -- $subdir |");
 	my $line_count;
 	while (defined (my $line = <FILE>)) {
 #		printf("line=$line");
@@ -137,7 +138,7 @@ sub git_parse($$$)
 # main program
 if ($#ARGV < 2 || $ARGV[0] eq '--help' || $ARGV[0] eq '-h') {
 	print "
-Usage: gitlog.pl <PATH> <DAYS> <DEST>
+Usage: gitlog.pl <PATH> <DAYS> <DEST> [<subdir>]
 
 Extract all commits git tree <PATH> in the last DAYS days. Store the
 results in DEST in a format easily readable by the build farm web
@@ -147,8 +148,8 @@ my $git_path_arg = $ARGV[0];
 my $days_arg = $ARGV[1];
 my $tree_arg = $ARGV[2];
 my $dest_arg = $ARGV[3];
+my $subdir_arg = $ARGV[4];
 
-
-my $log_data = git_parse($git_path_arg, $days_arg, $tree_arg);
+my $log_data = git_parse($git_path_arg, $days_arg, $tree_arg, $subdir_arg);
 
 util::SaveStructure($dest_arg, $log_data);
