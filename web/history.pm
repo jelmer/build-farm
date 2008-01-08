@@ -541,7 +541,7 @@ sub git_diff($$$)
 	}
     }
 
-    my $cmd = "git diff $revision^ $revision";
+    my $cmd = "git diff $revision^ $revision ./";
 
     my $diff = `$cmd 2> /dev/null`;
 
