@@ -158,7 +158,7 @@ sub get_log_svn($$$$$)
 sub get_log_git($$$$$)
 {
 	my ($host, $tree, $compiler, $cur, $old) = @_;
-	my $cmd = "cd $unpacked_dir/$tree && git log --pretty=full $old->{rev}..$cur->{rev}";
+	my $cmd = "cd $unpacked_dir/$tree && git log --pretty=full $old->{rev}..$cur->{rev} ./";
 	my $log = undef;
 
 	$log->{change_log} = `$cmd` || confess "$cmd: failed";
