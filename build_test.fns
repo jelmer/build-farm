@@ -145,7 +145,7 @@ choose_scm() {
 			echo "cvs"
         		return 0
         	;;
-    		samba_3* | rsync)
+    		samba_3* | rsync | talloc)
 			echo "git"
         		return 0
         	;;

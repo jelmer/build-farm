@@ -32,7 +32,6 @@ my (%svn_trees) = ('samba' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=samba\">%s
 		   'samba_2_2_release' =>" <a href=\"$VIEWCVS_BASE/branches/SAMBA_2_2_RELEASE/%s?root=samba\">%s</a>",
 		   'samba-docs' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=samba-docs\">%s</a>",
 		   'samba4' => " <a href=\"$VIEWCVS_BASE/branches/SAMBA_4_0/%s?root=samba\">%s</a>",
-		   'talloc' => " <a href=\"$VIEWCVS_BASE/branches/SAMBA_4_0/source/lib/talloc/%s?root=samba\">%s</a>",
 		   'libreplace' => " <a href=\"$VIEWCVS_BASE/branches/SAMBA_4_0/source/lib/replace/%s?root=samba\">%s</a>",
 		   'build_farm' => " <a href=\"$VIEWCVS_BASE/trunk?root=build-farm\">%s</a>",
 		   'tdb' => " <a href=\"$VIEWCVS_BASE/branches/SAMBA_4_0/source/lib/tdb/%s?root=samba\">%s</a>",
@@ -54,6 +53,7 @@ my (%bzr_trees) = ('ctdb' => " <a href=\"$UNPACKED_BASE/ctdb/%s\">%s</a>",
 
 my (%git_trees) = ('samba_3_2_test' =>" <a href=\"$GITWEB_BASE/?p=samba.git;a=history;f=%s;h=v3-2-test;hb=v3-2-test\">%s</a>",
 		   'samba_4_0_test' =>" <a href=\"$GITWEB_BASE/?p=samba.git;a=history;f=%s;h=v4-0-test;hb=v4-0-test\">%s</a>",
+		   'talloc' =>" <a href=\"$GITWEB_BASE/?p=samba.git;a=history;f=source/lib/talloc/%s;h=v4-0-test;hb=v4-0-test\">%s</a>",
 		   'rsync' =>" <a href=\"$GITWEB_BASE/?p=rsync.git;a=history;f=%s;h=HEAD;hb=HEAD\">%s</a>");
 
 my $unpacked_dir = "/home/ftp/pub/unpacked";
