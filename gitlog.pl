@@ -41,6 +41,8 @@ sub git_parse($$$$)
 	my $entry = {};
 	my $addto = "";
 
+	$subdir = "" unless defined($subdir);
+
 	my $magicstart = "---GIT-COMMIT-MAGIC-START---";
 	my $magicmsg = "---GIT-COMMIT-MAGIC-MESSAGE---";
 	my $magicdiff = "---GIT-COMMIT-MAGIC-DIFF---";
@@ -105,6 +107,7 @@ sub git_parse($$$$)
 			my $a = $1;
 			my $b = $2;
 			my $f = $3;
+			$f =~ s/^$subdir\///;
 			if (($b eq "0") and ($a ne "0")) {
 				$entry->{ADDED} .= "$f ";
 			} elsif (($a eq "0") and ($b ne "0")) {
