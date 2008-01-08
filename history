@@ -11,10 +11,6 @@
 ./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_4_0 60 samba4 cache/history.samba4
 ./svnlog.pl svn://svnanon.samba.org/samba-web trunk 60 samba-web cache/history.samba-web
 ./svnlog.pl svn://svnanon.samba.org/lorikeet trunk 60 lorikeet cache/history.lorikeet
-./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_4_0/source/lib/tdb 60 tdb cache/history.tdb
-./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_4_0/source/lib/ldb 60 ldb cache/history.ldb
-./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_4_0/source/pidl 60 pidl cache/history.pidl
-./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_4_0/source/lib/replace 60 libreplace cache/history.libreplace
 ./svnlog.pl svn://svnanon.samba.org/build-farm trunk 60 build_farm cache/history.build_farm
 
 ./cvslog.pl /data/cvs/CVSROOT/rsync.updates 60 rsync "" cache/history.rsync
@@ -27,6 +23,10 @@
 
 ./gitlog.pl /data/git/samba.git/ 60 v3-2-test cache/history.samba_3_2_test
 ./gitlog.pl /data/git/samba.git/ 60 v4-0-test cache/history.samba_4_0_test
+./gitlog.pl /data/git/samba.git/ 60 v4-0-test cache/history.libreplace source/lib/replace
 ./gitlog.pl /data/git/samba.git/ 60 v4-0-test cache/history.talloc source/lib/talloc
+./gitlog.pl /data/git/samba.git/ 60 v4-0-test cache/history.tdb source/lib/tdb
+./gitlog.pl /data/git/samba.git/ 60 v4-0-test cache/history.ldb source/lib/ldb
+./gitlog.pl /data/git/samba.git/ 60 v4-0-test cache/history.ldb source/pidl
 
 ) > history.log 2>&1
