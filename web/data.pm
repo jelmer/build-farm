@@ -145,7 +145,10 @@ sub build_age_ctime($$$$$)
 
 #TODO: merge this with the stuff from history.pm
 #      and trees.list
-my @git_trees = ("rsync", "samba_3_2_test");
+my @git_trees = ("rsync",
+		 "talloc",
+		 "samba_3_2_test",
+		 "samba_4_0_test");
 
 ##############################################
 # get the svn revision of build
