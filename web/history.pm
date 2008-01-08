@@ -24,13 +24,7 @@ my $UNPACKED_BASE = "http://svn.samba.org/ftp/unpacked";
 my $GITWEB_BASE = "http://gitweb.samba.org/";
 
 # a map of names to web svn log locations
-my (%svn_trees) = ('samba' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=samba\">%s</a>",
-		   'samba_3_0' =>" <a href=\"$VIEWCVS_BASE/branches/SAMBA_3_0/%s?root=samba\">%s</a>",
-		   'samba_3_2' =>" <a href=\"$VIEWCVS_BASE/branches/SAMBA_3_2/%s?root=samba\">%s</a>",
-		   'samba_3_0_release' =>" <a href=\"$VIEWCVS_BASE/branches/SAMBA_3_0_RELEASE/%s?root=samba\">%s</a>",
-		   'samba_2_2' =>" <a href=\"$VIEWCVS_BASE/branches/SAMBA_2_2/%s?root=samba\">%s</a>",
-		   'samba_2_2_release' =>" <a href=\"$VIEWCVS_BASE/branches/SAMBA_2_2_RELEASE/%s?root=samba\">%s</a>",
-		   'samba-docs' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=samba-docs\">%s</a>",
+my (%svn_trees) = ('samba-docs' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=samba-docs\">%s</a>",
 		   'samba4' => " <a href=\"$VIEWCVS_BASE/branches/SAMBA_4_0/%s?root=samba\">%s</a>",
 		   'libreplace' => " <a href=\"$VIEWCVS_BASE/branches/SAMBA_4_0/source/lib/replace/%s?root=samba\">%s</a>",
 		   'build_farm' => " <a href=\"$VIEWCVS_BASE/trunk?root=build-farm\">%s</a>",
@@ -38,8 +32,7 @@ my (%svn_trees) = ('samba' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=samba\">%s
 		   'ldb' => " <a href=\"$VIEWCVS_BASE/branches/SAMBA_4_0/source/lib/ldb/%s?root=samba\">%s</a>",
 		   'pidl' => " <a href=\"$VIEWCVS_BASE/branches/SAMBA_4_0/source/pidl/%s?root=samba\">%s</a>",
 		   'samba-web' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=samba-web\">%s</a>",
-		   'lorikeet' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=lorikeet\">%s</a>",
-		   'SOC' => " <a href=\"$VIEWCVS_BASE/branches/SOC/%s?root=samba\">%s</a>");
+		   'lorikeet' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=lorikeet\">%s</a>");
 
 # a map of names to cvs modules
 my (%cvs_trees) = ('distcc' => " <a href=\"$CVSWEB_BASE/distcc/%s\">%s</a>",

@@ -4,7 +4,6 @@ samba4:
 samba_4_0_test:
 samba-docs:
 smb-build:
-samba_3_2:SAMBA_3_2
 samba_3_2_test:
 rsync:
 distcc:
@@ -15,9 +14,7 @@ ldb:
 libreplace:
 ccache:
 lorikeet-heimdal:
-SOC:
 build_farm:
 ctdb:
 pidl:
 samba-gtk:
-python:
