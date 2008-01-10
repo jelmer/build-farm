@@ -19,11 +19,11 @@ for compiler in gcc cc icc; do
       . common.fns
       test_tree lorikeet-heimdal . $compiler
 
-      # only attempt samba4 if we have perl
+      # only attempt samba_4_0_test if we have perl
       if which perl > /dev/null; then
         # C99 structure initialisation not supported with vendor cc
         if [ $compiler -ne "cc" ]; then
-          test_tree samba4 source $compiler
+          test_tree samba_4_0_test source $compiler
         fi
       fi
       test_tree samba_3_2_test source $compiler

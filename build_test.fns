@@ -373,7 +373,7 @@ s4selftest_update() {
 # build the tree
 action_build() {
 	case "$tree" in
-	samba4)
+	samba_4*)
 		do_make everything
 		bstatus=$?
 		if test x"$bstatus" != x"0"; then
@@ -549,7 +549,7 @@ test_tree() {
 		deptrees="libreplace talloc tdb";
 	    ;;
 		samba-gtk)
-		deptrees="samba4"
+		deptrees="samba_4_0_test"
 		;;
 	esac
 
@@ -632,7 +632,7 @@ test_tree() {
 	lorikeet-heimdal)
 		sw_config="$config --enable-socket-wrapper"
 		;;
-	samba4)
+	samba_4*)
 		sw_config="$config --enable-socket-wrapper"
 		sw_config="$sw_config --enable-nss-wrapper"
 		;;
@@ -647,7 +647,7 @@ test_tree() {
 		}
 		;;
 	samba-gtk)
-		PKG_CONFIG_PATH="$test_root/prefix/samba4.$compiler/lib/pkgconfig"
+		PKG_CONFIG_PATH="$test_root/prefix/samba_4_0_test.$compiler/lib/pkgconfig"
 		export PKG_CONFIG_PATH
 		;;
 	ldb)
@@ -896,6 +896,7 @@ per_run_hook() {
     fi
 
     delete_old_svn_tree "samba_3_2"
+    delete_old_svn_tree "samba4"
 }
 
 

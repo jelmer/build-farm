@@ -12,8 +12,8 @@ compiler=cc
 compiler=gcc
 . common.fns
 
-test_tree samba4 source gcc
-test_tree samba4 source cc
+test_tree samba_4_0_test source gcc
+test_tree samba_4_0_test source cc
 
 export config="--with-utmp --with-acl-support"
 test_tree samba_3_2_test source cc

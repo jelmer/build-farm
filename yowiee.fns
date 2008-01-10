@@ -7,7 +7,7 @@ global_lock
 . common.fns
 
 test_tree lorikeet-heimdal . gcc
-test_tree samba4 source gcc
+test_tree samba_4_0_test source gcc
 
 export config="--with-quotas --with-smbmount --enable-krb5developer"
 

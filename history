@@ -8,7 +8,6 @@
 (
 
 ./svnlog.pl svn://svnanon.samba.org/samba-docs trunk 60 samba-docs cache/history.samba-docs
-./svnlog.pl svn://svnanon.samba.org/samba branches/SAMBA_4_0 60 samba4 cache/history.samba4
 ./svnlog.pl svn://svnanon.samba.org/samba-web trunk 60 samba-web cache/history.samba-web
 ./svnlog.pl svn://svnanon.samba.org/lorikeet trunk 60 lorikeet cache/history.lorikeet
 ./svnlog.pl svn://svnanon.samba.org/build-farm trunk 60 build_farm cache/history.build_farm
