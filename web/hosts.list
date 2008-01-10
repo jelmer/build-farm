@@ -2,7 +2,7 @@ aix1: AIX 5.1 PPC
 oehmesrs6k: AIX 5.2
 mungera: AIX 5.2 IBM POWER4+
 altcat: ALT Linux Sisyphus i586
-lithium: CentOS 3.4
+lithium: CentOS 3.9
 woko: Cray SV1 UNICOS 10.0.0.8
 cyberone: Cygwin i686 (MS WinXP Pro)
 sparc-woody: Debian Linux 3.0 (woody) Sparc64
