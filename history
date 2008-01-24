@@ -17,7 +17,6 @@
 ./cvslog.pl /data/cvs/CVSROOT/ccache.updates 60 ccache "" cache/history.ccache
 ./cvslog.pl /data/cvs/CVSROOT/ppp.updates 60 ppp "" cache/history.ppp
 
-./bzrlog.pl /home/ftp/pub/unpacked/ctdb 60 cache/history.ctdb
 ./bzrlog.pl http://people.samba.org/bzr/jelmer/samba-gtk/trunk 60 cache/history.samba-gtk
 
 ./gitlog.pl /data/git/samba.git/ 60 v3-2-test cache/history.samba_3_2_test
@@ -27,5 +26,7 @@
 ./gitlog.pl /data/git/samba.git/ 60 v4-0-test cache/history.tdb source/lib/tdb
 ./gitlog.pl /data/git/samba.git/ 60 v4-0-test cache/history.ldb source/lib/ldb
 ./gitlog.pl /data/git/samba.git/ 60 v4-0-test cache/history.ldb source/pidl
+
+./gitlog.pl /data/git/ctdb.git/ 60 master cache/history.ctdb
 
 ) > history.log 2>&1
