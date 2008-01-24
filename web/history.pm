@@ -25,7 +25,6 @@ my $GITWEB_BASE = "http://gitweb.samba.org/";
 
 # a map of names to web svn log locations
 my (%svn_trees) = ('samba-docs' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=samba-docs\">%s</a>",
-		   'samba4' => " <a href=\"$VIEWCVS_BASE/branches/SAMBA_4_0/%s?root=samba\">%s</a>",
 		   'build_farm' => " <a href=\"$VIEWCVS_BASE/trunk?root=build-farm\">%s</a>",
 		   'samba-web' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=samba-web\">%s</a>",
 		   'lorikeet' => " <a href=\"$VIEWCVS_BASE/trunk/%s?root=lorikeet\">%s</a>");
