@@ -4,22 +4,14 @@ mungera: AIX 5.2 IBM POWER4+
 altcat: ALT Linux Sisyphus i586
 lithium: CentOS 3.9
 woko: Cray SV1 UNICOS 10.0.0.8
-cyberone: Cygwin i686 (MS WinXP Pro)
-sparc-woody: Debian Linux 3.0 (woody) Sparc64
 fusberta: Debian Linux 3.0 Alpha
-yurok: Debian Linux 3.0 stable i386
 sasoe_smb: Debian Linux 3.0 stable i386
 samba-s390: Debian Linux 3.0 stable s390
-sparc-sarge: Debian Linux sarge/testing Sparc64
-sparc-sid: Debian Linux sid/unstable Sparc64
-boiccu: Debian Linux testing/unstable IA64
-gwalcmai: Debian Linux unstable i686
 quango: Debian PPC/32 (Power3)
 superego: Debian PPC/64 (Power3)
 cl012: Debian Testing/Unstable i386
 dev4-003: Debian Unstable x86
 berks: Fedora Core 1 i386
-yowiee: Fedora Core 2 i386
 tango-one-mars: Fedora Core 2 i386
 shelob: Fedora Core 3 i386 SMP
 node1: Fedora Core 6 (i686) SMP, OpenLDAP
@@ -30,12 +22,8 @@ piglett: Fedora Core 5 (i686)
 speener: Fedora Core 4 (i686)
 gc8: FreeBSD 3.3-RELEASE i386
 gc4: FreeBSD 4.3-STABLE i386
-manhattan: FreeBSD 4.8-RELEASE i386
 ragnarok: FreeBSD 5.3-STABLE amd64
 sambajail: FreeBSD 5.4-RELEASE i686
-sparkey: FreeBSD 7-CURRENT spacr64 (SMP)
-smartserv1: FreeBSD 5.4-STABLE i386
-smartserv2: FreeBSD 6.0-CURRENT i386
 wetlizard: Gentoo UltraSparc
 tardis: Gentoo i686
 ruphy: Gentoo amd64
@@ -73,15 +61,10 @@ sun9: Solaris 9 Sparc
 gc20: Solaris 2.6 Sparc
 sun1: Solaris 8 UltraSparc
 SerNet-solaris8: Solaris 8 UltraSparc
-previn: Solaris 8 UltraSparc
-mundroo: Solaris 8 i386
 Isis: Solaris 8 i386
 fire1: Solaris 9 Sparc
-cat: Solaris 9 i386
 m12: Stratus VOS HP PA-RISC
 m104: Stratus VOS i786
-metze02: SuSE 7.3 i386 (PIII)
-metze01: SuSE 8.2 i386 (athlon)
 PCS1: OpenSUSE Linux 10.2 (i686)
 opi: OpenSUSE Linux 10.2 (x86_64)
 PeeWee: SuSE 9.3 (i686)
