@@ -1,0 +1,21 @@
+per_run_hook
+
+global_lock
+
+MAXTIME=18000
+TORTURE_MAXTIME=3600
+SMBD_MAXTIME=18000
+export MAXTIME TORTURE_MAXTIME SMBD_MAXTIME
+
+for compiler in cc ; do
+
+	#export config="--with-included-popt"
+	. common.fns
+
+	test_tree samba_4_0_test source $compiler
+
+	test_tree samba_3_2_test source $compiler
+
+done
+
+global_unlock
