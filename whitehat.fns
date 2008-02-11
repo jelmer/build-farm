@@ -1,0 +1,3 @@
+per_run_hook
+
+test_tree tdb . gcc
