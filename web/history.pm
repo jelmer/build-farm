@@ -168,17 +168,18 @@ sub history_row($$)
         <span class=\"date\">$t</span><br />
         <span class=\"age\">$age ago</span>";
 
-    my $revision_url = "";
+    my $revision_url;
     if ($entry->{REVISION}) {
 	    print " - <span class=\"revision\">$entry->{REVISION}</span><br />";
-	    $revision_url = ";revision=$entry->{REVISION}";
+	    $revision_url = "revision=$entry->{REVISION}";
+    } else {
+	    $revision_url = "author=$entry->{AUTHOR}"
     }
-
     print "    </div>
     <div class=\"diff\">
-        <span class=\"html\"><a href=\"$myself?function=diff;tree=$tree;date=$entry->{DATE};author=$entry->{AUTHOR}$revision_url\">show diffs</a></span>
+        <span class=\"html\"><a href=\"$myself?function=diff;tree=$tree;date=$entry->{DATE};$revision_url\">show diffs</a></span>
     <br />
-        <span class=\"text\"><a href=\"$myself?function=text_diff;tree=$tree;date=$entry->{DATE};author=$entry->{AUTHOR}$revision_url\">download diffs</a></span>
+        <span class=\"text\"><a href=\"$myself?function=text_diff;tree=$tree;date=$entry->{DATE};$revision_url\">download diffs</a></span>
         <br />
         <div class=\"history_log_message\">
             <pre>$msg</pre>
