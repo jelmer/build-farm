@@ -25,5 +25,4 @@ export CFLAGS
       test_tree ldb . $compiler
       test_tree lorikeet-heimdal . $compiler
 
-test_tree samba_4_0_test source $compiler configure build install test_windows test
-
+test_tree samba_4_0_test source $compiler configure config_log config_header build install test_windows test

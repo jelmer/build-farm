@@ -9,11 +9,11 @@ export MAXTIME=25200
 for d in samba_4_0_test samba_3_2_test; do
     export CFLAGS="$CHECK_FLAGS --beam::data=/home/tridge/beam/$d"
     mkdir -p /home/tridge/beam/$d
-    test_tree $d source checker configure build cc_checker install test
+    test_tree $d source checker configure config_log config_header build cc_checker install test
 done
 
 for d in ldb tdb talloc libreplace lorikeet-heimdal ccache rsync; do
     export CFLAGS="$CHECK_FLAGS --beam::data=/home/tridge/beam/$d"
     mkdir -p /home/tridge/beam/$d
-    test_tree $d . checker configure build cc_checker install test
+    test_tree $d . checker configure config_log config_header build cc_checker install test
 done
