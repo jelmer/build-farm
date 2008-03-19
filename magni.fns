@@ -1,0 +1,4 @@
+# We want to test with python 2.5 on this host
+export PYTHON_VERSION=2.5
+
+. generic.fns
