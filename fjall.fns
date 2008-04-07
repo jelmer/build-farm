@@ -1,0 +1,22 @@
+per_run_hook
+
+export CFLAGS="-Wall -g"
+
+compiler=gcc
+
+# do most packages
+. common.fns
+
+# now the valgrind ones
+export SMBD_VALGRIND="valgrind -q --num-callers=30 --log-file=st/valgrind.log --gen-suppressions=all --suppressions=.valgrind_suppressions"
+export VALGRIND="valgrind -q --num-callers=30 --log-file=st/valgrind.log --gen-suppressions=all --suppressions=.valgrind_suppressions"
+
+export MAXTIME=18000
+export TORTURE_MAXTIME=3600
+export SMBD_MAXTIME=18000
+
+test_tree samba_4_0_test source gcc
+test_tree samba_3_2_test source gcc
+
+export TESTS_ENVIRONMENT="$PWD/lorikeet-heimdal/libtool --mode=execute valgrind --trace-children=yes --quiet -q --num-callers=30 --gen-suppressions=all --suppressions=$PWD/lorikeet-heimdal/cf/valgrind-suppressions"
+test_tree lorikeet-heimdal . gcc
