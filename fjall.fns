@@ -8,8 +8,8 @@ compiler=gcc
 . common.fns
 
 # now the valgrind ones
-export SMBD_VALGRIND="valgrind -q --num-callers=30 --log-file=st/valgrind.log --gen-suppressions=all --suppressions=.valgrind_suppressions"
-export VALGRIND="valgrind -q --num-callers=30 --log-file=st/valgrind.log --gen-suppressions=all --suppressions=.valgrind_suppressions"
+export SMBD_VALGRIND="valgrind -q --num-callers=30 --log-file=st/valgrind.log_%p --gen-suppressions=all --suppressions=.valgrind_suppressions"
+export VALGRIND="valgrind -q --num-callers=30 --log-file=st/valgrind.log_%p --gen-suppressions=all --suppressions=.valgrind_suppressions"
 
 export MAXTIME=18000
 export TORTURE_MAXTIME=3600
