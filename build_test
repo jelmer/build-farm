@@ -8,6 +8,8 @@
 build_test_path=.:$HOME/bin:/usr/local/bin:/usr/bin:/bin:/opt/SUNWspro/bin:/usr/ccs/bin:/sbin:/usr/sbin:/usr/local/sbin:/usr/bsd
 PATH=$build_test_path
 export PATH
+CFLAGS=""
+export CFLAGS
 
 build_test_id='$Id$'
 
