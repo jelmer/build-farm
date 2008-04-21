@@ -29,12 +29,9 @@ if ($opt_help) {
 	exit;
 }
 
-my $dbh = DBI->connect( "dbi:SQLite:data.dbl" ) || die "Cannot connect: $DBI::errstr";
+my $dbh = DBI->connect( "dbi:SQLite:hostdb.sqlite" ) || die "Cannot connect: $DBI::errstr";
 
 if ($opt_init) {
-	$dbh->do("DROP TABLE build");
-	$dbh->do("DROP TABLE test_run");
-	$dbh->do("DROP TABLE build_stage_run");
 	$dbh->do("CREATE TABLE build ( id integer primary key autoincrement, tree text, revision text, host text, compiler text, checksum text, age int );");
 	$dbh->do("CREATE TABLE test_run ( build int, test text, result text, output text);");
 	$dbh->do("CREATE TABLE build_stage_run ( build int, action text, result text, output text, num int);");
