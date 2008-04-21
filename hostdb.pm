@@ -21,6 +21,8 @@
 package hostdb;
 
 use DBI;
+use warnings;
+use strict;
 
 sub new($)
  {

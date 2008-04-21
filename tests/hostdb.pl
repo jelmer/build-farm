@@ -26,6 +26,8 @@ use lib "$RealBin/../web";
 use Test::More tests => 15;
 use strict;
 use hostdb;
+use warnings;
+use strict;
 
 # make sure that provisioning adds the right table.
 my $db = new hostdb("dbname=:memory:");

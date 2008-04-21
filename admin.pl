@@ -21,9 +21,13 @@ use FindBin qw($RealBin);
 
 use hostdb;
 use Mail::Send;
+use warnings;
+use strict;
+
+my $hostname;
 
 my $db = new hostdb("$RealBin/hostdb.sqlite") or die("Unable to connect to host database: $!");
-my $dry_run = false;
+my $dry_run = 0;
 
 print "Samba Build farm management tool\n";
 print "================================\n";
@@ -50,12 +54,12 @@ if ($#ARGV > -1) {
 
 if ($op eq "remove") {
 	print "Please enter hostname to delete: ";
-	my $hostname = <>;
+	$hostname = <>;
 	chomp($hostname);
 	$db->deletehost($hostname) or die("Unable to delete host $hostname");
 } elsif ($op eq "modify") {
 	print "Please enter hostname to modify: ";
-	my $hostname = <>;
+	$hostname = <>;
 	chomp($hostname);
 	my $host = $db->host($hostname);
 	print "Owner: $host->{owner} <$host->{owner_email}>\n";
@@ -111,14 +115,17 @@ if ($op eq "remove") {
 	}
 	
 	$db->createhost($hostname, $platform, $owner, $owner_email, $password, $permission) or die("Unable to create host $hostname");
+
+	my ($fh, $msg);
 	
 	# send the password in an e-mail to that address
+	my $subject = "Your new build farm host $hostname";
 	if ($dry_run) {
-		print "To: $recipients\n" if defined($recipients);
+		print "To: $owner <$owner_email>\n";
 		print "Subject: $subject\n";
 		open(MAIL,"|cat");
 	} else {
-		$msg = new Mail::Send(Subject=>"Your new build farm host $hostname", To=>"$owner \<$owner_email\>", Bcc=>"build\@samba.org");
+		$msg = new Mail::Send(Subject=>$subject, To=>"$owner \<$owner_email\>", Bcc=>"build\@samba.org");
 		$fh = $msg->open; 
 	}
 
@@ -148,7 +155,7 @@ __EOF__
 
 		close(MAIL);
 	} else {
-		print $fh $body;
+		print $fh "$body";
 		$fh->close;
 
 		$msg = new Mail::Send(Subject=>'Subscribe to build-farmers mailing list', To=>'build-farmers-join@lists.samba.org', From=>"\"$owner\" \<$owner_email\>");
@@ -164,7 +171,7 @@ __EOF__
 	print "Host database initialized successfully.\n";
 } elsif ($op eq "info") {
 	print "Hostname: ";
-	my $hostname = <>;
+	$hostname = <>;
 	chomp($hostname);
 	my $host = $db->host($hostname);
 	die ("No such host $host") unless ($host);

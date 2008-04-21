@@ -18,9 +18,11 @@
 #
 
 
-use FindBind($RealBin);
+use FindBin qw($RealBin);
 
 use hostdb;
+use warnings;
+use strict;
 
 my $db = new hostdb("$RealBin/hostdb.sqlite") or die("Unable to connect to host database: $!");
 
