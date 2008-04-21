@@ -142,8 +142,8 @@ http://build.samba.org/instructions.html
 The password for your rsync .password file is $password
 
 An e-mail asking you to subscribe to the build-farmers mailing
-list will arrive shortly.  Please ensure you maintain your subscription to this
-list while you have hosts in the build farm.
+list will arrive shortly.  Please ensure you maintain your 
+subscription to this list while you have hosts in the build farm.
 
 Thank you for your contribution to ensuring portability and quality
 of Samba.org projects.
@@ -158,7 +158,8 @@ __EOF__
 		print $fh "$body";
 		$fh->close;
 
-		$msg = new Mail::Send(Subject=>'Subscribe to build-farmers mailing list', To=>'build-farmers-join@lists.samba.org', From=>"\"$owner\" \<$owner_email\>");
+		$msg = new Mail::Send(Subject=>'Subscribe to build-farmers mailing list', To=>'build-farmers-join@lists.samba.org');
+		$msg->set("From", "\"$owner\" \<$owner_email\>")
 		$fh = $msg->open; 
 		print $fh "Please subscribe $owner to the build-farmers mailing list";
 		$fh->close;
