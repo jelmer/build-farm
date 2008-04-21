@@ -36,7 +36,7 @@ if ($#ARGV > -1) {
 	print "Add Machine to build farm:      add\n";
 	print "Remove Machine from build farm: remove\n";
 	print "Modify build farm account:      modify\n";
-	print "Select Operation: [add]";
+	print "Select Operation: [add] ";
 
 	$op = lc(<STDIN>);
 	chomp($op);
@@ -59,7 +59,7 @@ if ($op eq "remove") {
 	print "Owner: $host->{owner} <$host->{owner_email}>\n";
 	print "Platform: $host->{platform}\n";
 	print "\n";
-	print "Modify owner or platform: [platform]:";
+	print "Modify owner or platform: [platform] ";
 	my $mod_op = <>;
 	chomp($mod_op);
 	if ($mod_op eq "") {
@@ -93,7 +93,7 @@ if ($op eq "remove") {
 	print "Machine Owner E-mail: ";
 	my $owner_email = <>;
 	chomp($owner_email);
-	print "Enter password (press enter for random)";
+	print "Enter password: [generate random]";
 	my $password = <>;
 	chomp($password);
 	if ($password eq "") {
@@ -101,7 +101,7 @@ if ($op eq "remove") {
 		chomp($password);
 		print "Password will be: $password\n";
 	}
-	print "Enter permission e-mail, finish with a .";
+	print "Enter permission e-mail, finish with a .\n";
 	my $permission;
 	while (<>) {
 		last if $_ eq ".\n";
