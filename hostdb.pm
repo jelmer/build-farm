@@ -64,6 +64,43 @@ sub hosts($)
 	return $self->{dbh}->selectall_arrayref("SELECT * FROM host", { Slice => {} });
 }
 
+sub host($$)
+{
+	my ($self, $name) = @_;
+	
+	my $hosts = $self->hosts();
+	
+	foreach (@$hosts) {
+		return $_ if ($_->{name} eq $name);
+	}
+	
+	return undef;
+}
+
+sub update_platform($$$)
+{
+	my ($self, $name, $new_platform) = @_;
+	
+	my $changed = $self->{dbh}->do("UPDATE host SET platform = ? WHERE name = ?", undef, 
+		($new_platform, $name));
+
+	die("Inconsistent database: More than one entry with name $name") if ($changed > 1);
+	
+	return ($changed == 1);
+}
+
+sub update_owner($$$$)
+{
+	my ($self, $name, $new_owner, $new_owner_email) = @_;
+	
+	my $changed = $self->{dbh}->do("UPDATE host SET owner = ?, owner_email = ? WHERE name = ?", 
+				       undef, ($new_owner, $new_owner_email, $name));
+				       
+	die("Inconsistent database: More than one entry with name $name") if ($changed > 1);
+	
+	return ($changed == 1);
+}
+
 # Write out the rsyncd.secrets
 sub create_rsync_secrets($)
 {
@@ -78,7 +115,7 @@ sub create_rsync_secrets($)
 	
 	foreach (@$hosts) {
 		$res .= "# $_->{name}, owner: $_->{owner} <$_->{owner_email}>\n";
-		$res .= "$_->{name} $_->{password}\n\n";
+		$res .= "$_->{name}:$_->{password}\n\n";
 	}
 	
 	return $res;

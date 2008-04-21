@@ -17,7 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-
 use FindBind($RealBin);
 
 use hostdb;
@@ -29,15 +28,20 @@ print "===============================\n";
 
 print "Add Machine to build farm:      add\n";
 print "Remove Machine from build farm: remove\n";
-print "Modify build farm account:       modify\n";
+print "Modify build farm account:      modify\n";
 print "Select Operation: [add]";
 my lc($op) = chomp(<>);
 
-if ($op == "") {
+if ($op eq "") {
 	$op = "add";
 }
 
-if ($op == "add") {
+if ($op eq "remove") {
+	print "Please enter hostname to delete: \n";
+	my $hostname = chomp(<>);
+	$ok = $db->deletehost($hostname);
+	assert($ok);
+} elif ($op eq "add") {
 	print "Machine hostname: ";
 	my $hostname = chomp(<>);
 	print "Machine platform (eg Fedora 9 x86_64): "
@@ -52,14 +56,14 @@ if ($op == "add") {
 	}
 	print "Enter password (press enter for random)";
 	my $password = chomp(<>);
-	if ($password == "") {
+	if ($password eq "") {
 		$password = chomp(`pwgen 16 1`);
 		print "Password will be: $password\n"
 	}
 	print "Enter permission e-mail, finish with a ."
 	my $permission;
 	while (<>) {
-		last if $_ = ".\n";
+		last if $_ eq ".\n";
 		$permission = $_;
 	}
 	
@@ -71,7 +75,7 @@ if ($op == "add") {
 		print "Subject: $subject\n";
 		open(MAIL,"|cat");
 	} else {
-		open(MAIL,"|Mail -s \"Your new build farm host $hostname\" \"$owner\" \<$owner_email\>");
+		open(MAIL,"|Mail -s \"Your new build farm host $hostname\" \"$owner <$owner_email\>");
 	}
 
 	my $body = << "__EOF__";
@@ -91,8 +95,9 @@ and quality of Samba.org projects.
 
 
 __EOF__
-print MAIL $body;
+	print MAIL $body;
 
-close(MAIL);
+	close(MAIL);
+} else {
+	die("Unknown command $op");
 }
-
