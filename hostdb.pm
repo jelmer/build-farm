@@ -42,6 +42,11 @@ sub provision($)
 	$self->{dbh}->do("CREATE TABLE host ( name text, owner text, owner_email text, password text, ssh_access int, fqdn text, platform text, permission text );");
 	
 	$self->{dbh}->do("CREATE UNIQUE INDEX unique_hostname ON host (name);");
+
+	$self->{dbh}->do("CREATE TABLE build ( id integer primary key autoincrement, tree text, revision text, host text, compiler text, checksum text, age int );");
+	$self->{dbh}->do("CREATE TABLE test_run ( build int, test text, result text, output text);");
+	$self->{dbh}->do("CREATE TABLE build_stage_run ( build int, action text, result text, output text, num int);");
+
 }
 
 sub createhost($$$$$$)

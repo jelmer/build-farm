@@ -11,13 +11,11 @@ use strict;
 use util;
 use File::stat;
 use Getopt::Long;
+use hostdb;
 
 my $opt_help = 0;
-my $opt_init = 0;
 
-my $result = GetOptions(
-	'help|h|?' => \$opt_help,
-	'init' => \$opt_init);
+my $result = GetOptions('help|h|?' => \$opt_help);
 
 exit(1) unless ($result);
 
@@ -25,17 +23,12 @@ if ($opt_help) {
 	print "$Script [OPTIONS] <LOG-FILE>\n";
 	print "Options:\n";
 	print " --help         This help message\n";
-	print " --init         (Re-)Initialize the database\n";
 	exit;
 }
 
-my $dbh = DBI->connect( "dbi:SQLite:hostdb.sqlite" ) || die "Cannot connect: $DBI::errstr";
+my $hostdb = new hostdb("hostdb.sqlite");
 
-if ($opt_init) {
-	$dbh->do("CREATE TABLE build ( id integer primary key autoincrement, tree text, revision text, host text, compiler text, checksum text, age int );");
-	$dbh->do("CREATE TABLE test_run ( build int, test text, result text, output text);");
-	$dbh->do("CREATE TABLE build_stage_run ( build int, action text, result text, output text, num int);");
-}
+my $dbh = $hostdb->{dbh};
 
 foreach my $logfn (@ARGV) {
 	if (not -f $logfn) {
@@ -71,14 +64,16 @@ foreach my $logfn (@ARGV) {
 	TEST\ (FAILED|PASSED|SKIPPED):.*?
 	==========================================\s+
 	/sxg) {
-		$st->execute($1, $3, $2);
+		# Note: output is discarded ($2)
+		$st->execute($1, $3, undef);
 	}
 
 	$st = $dbh->prepare("INSERT INTO build_stage_run (output, build, action, result, num) VALUES (?, $build, ?, ?, ?);");
 
 	my $order = 0;
 	while ($data =~ /(.*?)?ACTION (FAILED|PASSED): ([^\n]+)/sg) {
-		$st->execute($1, $3, $2, $order);
+		# Note: output is discarded ($1)
+		$st->execute(undef, $3, $2, $order);
 		$order++;
 	}
 	$st->finish();
