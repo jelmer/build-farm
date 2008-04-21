@@ -25,8 +25,8 @@ use Mail::Send;
 my $db = new hostdb("$RealBin/hostdb.sqlite") or die("Unable to connect to host database: $!");
 my $dry_run = true;
 
-print "Samba Build farm managment tool\n";
-print "===============================\n";
+print "Samba Build farm management tool\n";
+print "================================\n";
 
 my $op;
 
@@ -52,7 +52,7 @@ if ($op eq "remove") {
 	print "Please enter hostname to delete: ";
 	my $hostname = <>;
 	chomp($hostname);
-	$db->deletehost($hostname) or die("Unable to create host $hostname");
+	$db->deletehost($hostname) or die("Unable to delete host $hostname");
 } elsif ($op eq "modify") {
 	print "Please enter hostname to modify: ";
 	my $hostname = <>;
@@ -167,6 +167,7 @@ __EOF__
 	my $hostname = <>;
 	chomp($hostname);
 	my $host = $db->host($hostname);
+	die ("No such host $host") unless ($host);
 	print "Host: $host->{name}";
 	if ($host->{fqdn}) { print " ($host->{fqdn})"; }
 	print "\n";

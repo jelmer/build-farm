@@ -38,6 +38,8 @@ sub provision($)
 	my ($self) = @_;
 	
 	$self->{dbh}->do("CREATE TABLE host ( name text, owner text, owner_email text, password text, ssh_access int, fqdn text, platform text, permission text );");
+	
+	$self->{dbh}->do("CREATE UNIQUE INDEX unique_hostname ON host (name);");
 }
 
 sub createhost($$$$$$)
@@ -46,8 +48,6 @@ sub createhost($$$$$$)
 	my $sth = $self->{dbh}->prepare("INSERT INTO host (name, platform, owner, owner_email, password, permission) VALUES (?,?,?,?,?,?)");
 	
 	$sth->execute($name, $platform, $owner, $owner_email, $password, $permission);
-	
-	$self->{dbh}->do("CREATE UNIQUE INDEX unique_hostname ON host (name);");
 }
 
 sub deletehost($$)
