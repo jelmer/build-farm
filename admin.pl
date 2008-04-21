@@ -159,9 +159,10 @@ __EOF__
 		$fh->close;
 
 		$msg = new Mail::Send(Subject=>'Subscribe to build-farmers mailing list', To=>'build-farmers-join@lists.samba.org');
-		$msg->set("From", "\"$owner\" \<$owner_email\>")
+		$msg->set("From", "\"$owner\" \<$owner_email\>");
 		$fh = $msg->open; 
-		print $fh "Please subscribe $owner to the build-farmers mailing list";
+		print $fh "Please subscribe $owner to the build-farmers mailing list\n\n";
+		print $fh "Thanks, your friendly Samba build farm administrator <build\@samba.org>";
 		$fh->close;
 	}
 	
