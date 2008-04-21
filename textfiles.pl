@@ -32,10 +32,10 @@ close(RSYNC_SECRETS);
 
 rename("../rsyncd.secrets.new", "../rsyncd.secrets");
 
-open(HOSTS, ">web/host.list.new") or die("Unable to open hosts file: $!");
+open(HOSTS, ">web/hosts.list.new") or die("Unable to open hosts file: $!");
 print HOSTS $db->create_hosts_list();
 close(HOSTS);
 
-rename("web/host.list.new", "web/host.list");
+rename("web/hosts.list.new", "web/hosts.list");
 
 1;
