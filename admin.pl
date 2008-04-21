@@ -23,7 +23,7 @@ use hostdb;
 use Mail::Send;
 
 my $db = new hostdb("$RealBin/hostdb.sqlite") or die("Unable to connect to host database: $!");
-my $dry_run = true;
+my $dry_run = false;
 
 print "Samba Build farm management tool\n";
 print "================================\n";
@@ -95,7 +95,7 @@ if ($op eq "remove") {
 	print "Machine Owner E-mail: ";
 	my $owner_email = <>;
 	chomp($owner_email);
-	print "Enter password: [generate random]";
+	print "Enter password: [generate random] ";
 	my $password = <>;
 	chomp($password);
 	if ($password eq "") {
