@@ -17,50 +17,92 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-use FindBind($RealBin);
+use FindBin qw($RealBin);
 
 use hostdb;
 
 my $db = new hostdb("$RealBin/hostdb.sqlite") or die("Unable to connect to host database: $!");
+my $dry_run = true;
 
 print "Samba Build farm managment tool\n";
 print "===============================\n";
 
-print "Add Machine to build farm:      add\n";
-print "Remove Machine from build farm: remove\n";
-print "Modify build farm account:      modify\n";
-print "Select Operation: [add]";
-my lc($op) = chomp(<>);
+my $op;
 
-if ($op eq "") {
-	$op = "add";
+if ($#ARGV > -1) {
+	$op = shift(@ARGV);
+} else {
+	print "Initialize host database:       init\n";
+	print "Add Machine to build farm:      add\n";
+	print "Remove Machine from build farm: remove\n";
+	print "Modify build farm account:      modify\n";
+	print "Select Operation: [add]";
+
+	$op = lc(<STDIN>);
+	chomp($op);
+
+	if ($op eq "") {
+		$op = "add";
+	}
 }
 
 if ($op eq "remove") {
 	print "Please enter hostname to delete: \n";
-	my $hostname = chomp(<>);
+	my $hostname = <>;
+	chomp($hostname);
 	$ok = $db->deletehost($hostname);
 	assert($ok);
-} elif ($op eq "add") {
+} elsif ($op eq "modify") {
+	print "Please enter hostname to modify: \n";
+	my $hostname = <>;
+	chomp($hostname);
+	my $host = $db->host($hostname);
+	print "Owner: $host->{owner} <$host->{owner_email}>\n";
+	print "Platform: $host->{platform}\n";
+	print "\n";
+	print "Modify owner or platform: [platform]:";
+	my $mod_op = <>;
+	chomp($mod_op);
+	if ($mod_op eq "") {
+		$mod_op = "platform";
+	}
+	if ($mod_op eq "platform") {
+		print "Enter new platform: ";
+		my $platform = <>;
+		chomp($platform);
+		$db->update_platform($hostname, $platform) or die "Unable to update platform";
+	} elsif ($mod_op eq "owner") {
+		print "Enter new owner's name: ";
+		my $owner = <>;
+		chomp($owner);
+		print "Enter new owner's e-mail address: ";
+		my $owner_email = <>;
+		chomp($owner_email);
+		$db->update_platform($hostname, $owner, $owner_email) or die "Unable to update owner";
+		
+	}	
+} elsif ($op eq "add") {
 	print "Machine hostname: ";
-	my $hostname = chomp(<>);
-	print "Machine platform (eg Fedora 9 x86_64): "
-	my $platform = chomp(<>);
+	my $hostname = <>;
+	chomp($hostname);
+	print "Machine platform (eg Fedora 9 x86_64): ";
+	my $platform = <>;
+	chomp($platform);
 	print "Machine Owner Name: ";
-	my $owner = chomp(<>);
+	my $owner = <>;
+	chomp($owner);
 	print "Machine Owner E-mail: ";
-	my $owner_email = chomp(<>);
-	until ($owner_email ~= /@/) {
-		print "Owner E-mail invalid, please enter owner e-mail: "
-		my $owner_email = chomp(<>);
-	}
+	my $owner_email = <>;
+	chomp($owner_email);
 	print "Enter password (press enter for random)";
-	my $password = chomp(<>);
+	my $password = <>;
+	chomp($password);
 	if ($password eq "") {
-		$password = chomp(`pwgen 16 1`);
-		print "Password will be: $password\n"
+		$password = `pwgen 16 1`;
+		chomp($password);
+		print "Password will be: $password\n";
 	}
-	print "Enter permission e-mail, finish with a ."
+	print "Enter permission e-mail, finish with a .";
 	my $permission;
 	while (<>) {
 		last if $_ eq ".\n";
@@ -75,7 +117,7 @@ if ($op eq "remove") {
 		print "Subject: $subject\n";
 		open(MAIL,"|cat");
 	} else {
-		open(MAIL,"|Mail -s \"Your new build farm host $hostname\" \"$owner <$owner_email\>");
+		open(MAIL,"|Mail -s \"Your new build farm host $hostname\" \"$owner \<$owner_email\>\" ");
 	}
 
 	my $body = << "__EOF__";
@@ -98,6 +140,11 @@ __EOF__
 	print MAIL $body;
 
 	close(MAIL);
+} elsif ($op eq "init") {
+	$db->provision();
+	print "Host database initialized successfully.\n";
 } else {
 	die("Unknown command $op");
 }
+
+1;
