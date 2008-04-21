@@ -10,7 +10,9 @@ use util;
 use CGI;
 use URI::Escape;
 
-my $hostdb = new hostdb("dbi:SQLite:$RealBin/../hostdb.sqlite" ) || die "Cannot connect: $DBI::errstr";
+my $hostdb = new hostdb("$RealBin/../hostdb.sqlite" ) || die "Cannot connect: $DBI::errstr";
+
+my $dbh = $hostdb->{dbh};
 
 my $cgi = new CGI;
 
