@@ -14,15 +14,18 @@ use Getopt::Long;
 use hostdb;
 
 my $opt_help = 0;
+my $opt_verbose = 0;
 
-my $result = GetOptions('help|h|?' => \$opt_help);
+my $result = GetOptions('help|h|?' => \$opt_help,
+                        'verbose|v' => sub { $opt_verbose++; });
 
 exit(1) unless ($result);
 
 if ($opt_help) {
-	print "$Script [OPTIONS] <LOG-FILE>\n";
+	print "$Script [OPTIONS] [LOGFILE...]\n";
 	print "Options:\n";
 	print " --help         This help message\n";
+	print " --verbose      Be verbose\n";
 	exit;
 }
 
@@ -36,7 +39,22 @@ foreach my $logfn (@ARGV) {
 		next;
 	}
 
+	if ($opt_verbose >= 2) {
+		print "Processing $logfn...\n";
+	}
+
+	my $stat = stat($logfn);
+
 	my ($tree, $host, $compiler) = ($logfn =~ /build\.([^.]+)\.([^.]+)\.([^.]+)\.log$/);
+
+	my $st = $dbh->prepare("SELECT * FROM build WHERE age >= ? AND tree = ? AND host = ? AND compiler = ?");
+
+	$st->execute($stat->mtime, $tree, $host, $compiler) or die("Unable to check for existing build data");
+
+	# Don't bother if we've already processed this file
+	my $relevant_rows = $st->fetchall_arrayref();
+
+	next if ($#$relevant_rows > -1);
 
 	my $sha1 = Digest::SHA1->new;
 	my $data = "";
@@ -45,12 +63,14 @@ foreach my $logfn (@ARGV) {
 	close(LOG);
 
 	my $checksum = sha1_hex($data);
-	$dbh->selectrow_array("SELECT * FROM build WHERE checksum = '$checksum'") and next;
-	print "$logfn\n";
+	if ($dbh->selectrow_array("SELECT * FROM build WHERE checksum = '$checksum'")) {
+		$dbh->do("UPDATE BUILD SET age = ? WHERE checksum = ?", undef, 
+			 	($stat->mtime, $checksum));
+	}
+	if ($opt_verbose) { print "$logfn\n"; }
 
 	my ($rev) = ($data =~ /BUILD REVISION: ([^\n]+)/);
-	my $st = $dbh->prepare("INSERT INTO build (tree, revision, host, compiler, checksum, age) VALUES (?, ?, ?, ?, ?, ?)");
-	my $stat = stat($logfn);
+	$st = $dbh->prepare("INSERT INTO build (tree, revision, host, compiler, checksum, age) VALUES (?, ?, ?, ?, ?, ?)");
 	$st->execute($tree, $rev, $host, $compiler, $checksum, $stat->mtime);
 	my $build = $dbh->func('last_insert_rowid');
 

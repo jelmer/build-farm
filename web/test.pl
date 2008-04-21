@@ -10,7 +10,7 @@ use util;
 use CGI;
 use URI::Escape;
 
-my $dbh = DBI->connect( "dbi:SQLite:$RealBin/../data.dbl" ) || die "Cannot connect: $DBI::errstr";
+my $hostdb = new hostdb("dbi:SQLite:$RealBin/../hostdb.sqlite" ) || die "Cannot connect: $DBI::errstr";
 
 my $cgi = new CGI;
 
