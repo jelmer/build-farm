@@ -116,10 +116,11 @@ if ($op eq "remove") {
 		print "Subject: $subject\n";
 		open(MAIL,"|cat");
 	} else {
-		open(MAIL,"|Mail -s \"Your new build farm host $hostname\" \"$owner \<$owner_email\>\" -b build\@samba.org");
+		$msg = new Mail::Send(Subject=>"Your new build farm host $hostname", To=>"$owner \<$owner_email\>", Bcc=>"build\@samba.org");
+		$fh = $msg->open; 
 	}
 
-	my $body = << "__EOF__";
+	my $body = << "__EOF__";	
 Welcome to the Samba.org build farm.  
 
 Your host $hostname has been added to the Samba Build farm.  
@@ -131,14 +132,29 @@ http://build.samba.org/instructions.html
 
 The password for your rsync .password file is $password
 
-Thank you for your contribution to ensuring portability
-and quality of Samba.org projects.
+An e-mail asking you to subscribe to the build-farmers mailing
+list will arrive shortly.  Please ensure you maintain your subscription to this
+list while you have hosts in the build farm.
+
+Thank you for your contribution to ensuring portability and quality
+of Samba.org projects.
 
 
 __EOF__
-	print MAIL $body;
+	if ($dry_run) {
+		print MAIL $body;
 
-	close(MAIL);
+		close(MAIL);
+	} else {
+		print $fh $body;
+		$fh->close;
+	}
+	
+	$msg = new Mail::Send(Subject=>'Subscribe to build-farmers mailing list', To=>'build-farmers-join@lists.samba.org', From=>"\"$owner\" \<$owner_email\>");
+	$fh = $msg->open; 
+	print $fh "Please subscribe $owner to the build-farmers mailing list";
+	$fh->close;
+	
 } elsif ($op eq "init") {
 	$db->provision();
 	print "Host database initialized successfully.\n";
