@@ -50,8 +50,7 @@ if ($op eq "remove") {
 	print "Please enter hostname to delete: \n";
 	my $hostname = <>;
 	chomp($hostname);
-	$ok = $db->deletehost($hostname);
-	assert($ok);
+	$db->deletehost($hostname) or die("Unable to create host $hostname");
 } elsif ($op eq "modify") {
 	print "Please enter hostname to modify: \n";
 	my $hostname = <>;
@@ -109,15 +108,15 @@ if ($op eq "remove") {
 		$permission = $_;
 	}
 	
-	$ok = $db->createhost($hostname, $platform, $owner, $owner_email, $password, $permission);
-	assert($ok);
+	$db->createhost($hostname, $platform, $owner, $owner_email, $password, $permission) or die("Unable to create host $hostname");
+	
 	# send the password in an e-mail to that address
 	if ($dry_run) {
 		print "To: $recipients\n" if defined($recipients);
 		print "Subject: $subject\n";
 		open(MAIL,"|cat");
 	} else {
-		open(MAIL,"|Mail -s \"Your new build farm host $hostname\" \"$owner \<$owner_email\>\" ");
+		open(MAIL,"|Mail -s \"Your new build farm host $hostname\" \"$owner \<$owner_email\>\" -b build\@samba.org");
 	}
 
 	my $body = << "__EOF__";
