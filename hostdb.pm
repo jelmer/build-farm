@@ -46,6 +46,8 @@ sub createhost($$$$$$)
 	my $sth = $self->{dbh}->prepare("INSERT INTO host (name, platform, owner, owner_email, password, permission) VALUES (?,?,?,?,?,?)");
 	
 	$sth->execute($name, $platform, $owner, $owner_email, $password, $permission);
+	
+	$self->{dbh}->do("CREATE UNIQUE INDEX unique_hostname ON host (name);");
 }
 
 sub deletehost($$)
@@ -83,8 +85,6 @@ sub update_platform($$$)
 	
 	my $changed = $self->{dbh}->do("UPDATE host SET platform = ? WHERE name = ?", undef, 
 		($new_platform, $name));
-
-	die("Inconsistent database: More than one entry with name $name") if ($changed > 1);
 	
 	return ($changed == 1);
 }
@@ -95,8 +95,6 @@ sub update_owner($$$$)
 	
 	my $changed = $self->{dbh}->do("UPDATE host SET owner = ?, owner_email = ? WHERE name = ?", 
 				       undef, ($new_owner, $new_owner_email, $name));
-				       
-	die("Inconsistent database: More than one entry with name $name") if ($changed > 1);
 	
 	return ($changed == 1);
 }
