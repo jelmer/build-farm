@@ -67,7 +67,7 @@ sub hosts($)
 {
 	my ($self) = @_;
 	
-	return $self->{dbh}->selectall_arrayref("SELECT * FROM host ORDER BY name", { Slice => {} });
+	return $self->{dbh}->selectall_arrayref("SELECT * FROM host", { Slice => {} });
 }
 
 sub host($$)
