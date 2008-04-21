@@ -24,8 +24,12 @@ use hostdb;
 
 my $db = new hostdb("$RealBin/hostdb.sqlite") or die("Unable to connect to host database: $!");
 
-$db->create_rsync_secrets("rsyncd.secrets");
+open(RSYNC_SECRETS, ">rsyncd.secrets") or die("Unable to open rsyncd.secrets file: $!");
+print RSYNC_SECRETS $db->create_rsync_secrets();
+close(RSYNC_SECRETS);
 
-$db->create_hosts_list("web/host.list");
+open(HOSTS, ">web/host.list") or die("Unable to open hosts file: $!");
+print HOSTS $db->create_hosts_list();
+close(HOSTS);
 
 1;
