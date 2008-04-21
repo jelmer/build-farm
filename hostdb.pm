@@ -56,7 +56,7 @@ sub deletehost($$)
 	
 	my $sth = $self->{dbh}->prepare("DELETE FROM host WHERE name = ?");
 	
-	$sth->execute($name);
+	return $sth->execute($name);
 }
 
 sub hosts($)

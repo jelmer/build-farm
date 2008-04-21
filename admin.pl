@@ -20,6 +20,7 @@
 use FindBin qw($RealBin);
 
 use hostdb;
+use Mail::Send;
 
 my $db = new hostdb("$RealBin/hostdb.sqlite") or die("Unable to connect to host database: $!");
 my $dry_run = true;
@@ -36,6 +37,7 @@ if ($#ARGV > -1) {
 	print "Add Machine to build farm:      add\n";
 	print "Remove Machine from build farm: remove\n";
 	print "Modify build farm account:      modify\n";
+	print "Print build farm host info:     info\n";
 	print "Select Operation: [add] ";
 
 	$op = lc(<STDIN>);
@@ -47,12 +49,12 @@ if ($#ARGV > -1) {
 }
 
 if ($op eq "remove") {
-	print "Please enter hostname to delete: \n";
+	print "Please enter hostname to delete: ";
 	my $hostname = <>;
 	chomp($hostname);
 	$db->deletehost($hostname) or die("Unable to create host $hostname");
 } elsif ($op eq "modify") {
-	print "Please enter hostname to modify: \n";
+	print "Please enter hostname to modify: ";
 	my $hostname = <>;
 	chomp($hostname);
 	my $host = $db->host($hostname);
@@ -148,16 +150,28 @@ __EOF__
 	} else {
 		print $fh $body;
 		$fh->close;
+
+		$msg = new Mail::Send(Subject=>'Subscribe to build-farmers mailing list', To=>'build-farmers-join@lists.samba.org', From=>"\"$owner\" \<$owner_email\>");
+		$fh = $msg->open; 
+		print $fh "Please subscribe $owner to the build-farmers mailing list";
+		$fh->close;
 	}
 	
-	$msg = new Mail::Send(Subject=>'Subscribe to build-farmers mailing list', To=>'build-farmers-join@lists.samba.org', From=>"\"$owner\" \<$owner_email\>");
-	$fh = $msg->open; 
-	print $fh "Please subscribe $owner to the build-farmers mailing list";
-	$fh->close;
+
 	
 } elsif ($op eq "init") {
 	$db->provision();
 	print "Host database initialized successfully.\n";
+} elsif ($op eq "info") {
+	print "Hostname: ";
+	my $hostname = <>;
+	chomp($hostname);
+	my $host = $db->host($hostname);
+	print "Host: $host->{name}";
+	if ($host->{fqdn}) { print " ($host->{fqdn})"; }
+	print "\n";
+	print "Platform: $host->{platform}\n";
+	print "Owner: $host->{owner} <$host->{owner_email}>\n";
 } else {
 	die("Unknown command $op");
 }
