@@ -1,4 +1,22 @@
 #!/usr/bin/perl
+# Samba.org buildfarm
+# Copyright (C) 2008 Andrew Bartlett <abartlet@samba.org>
+# Copyright (C) 2008 Jelmer Vernooij <jelmer@samba.org>
+#   
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#   
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#   
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
 
 use FindBind($RealBin);
 
@@ -54,32 +72,27 @@ if ($op == "add") {
 		open(MAIL,"|cat");
 	} else {
 		open(MAIL,"|Mail -s \"Your new build farm host $hostname\" \"$owner\" \<$owner_email\>");
-}
+	}
 
-my $body = << "__EOF__";
+	my $body = << "__EOF__";
 Welcome to the Samba.org build farm.  
 
 Your host $hostname has been added to the Samba Build farm.  
 
-We have recorded that it is runing $platform  
+We have recorded that it is running $platform.  
 
-Please download the build_test 
+If you have not already done so, please read:
+http://build.samba.org/instructions.html
 
-Broken build for tree $tree on host $host with compiler $compiler
-Build status for revision $cur->{rev} is $cur->{string}
-Build status for revision $old->{rev} is $old->{string}
+The password for your rsync .password file is $password
 
-See http://build.samba.org/?function=View+Build;host=$host;tree=$tree;compiler=$compiler
+Thank you for your contribution to ensuring portability
+and quality of Samba.org projects.
 
-The build may have been broken by one of the following commits:
 
-$log->{change_log}
 __EOF__
 print MAIL $body;
 
 close(MAIL);
-
-	}
-		
 }
 
