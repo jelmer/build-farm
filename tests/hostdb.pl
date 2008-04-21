@@ -14,7 +14,7 @@ my $db = new hostdb("foo.sqlite");
 ok($db->provision());
 is_deeply([], $db->{dbh}->selectall_arrayref("SELECT * FROM host"));
 
-ok($db->createhost("gwalcmai", "vax", "jelmer", "jelmer\@example.com", "Yo! Please put me on the buildfarm"));
+ok($db->createhost("gwalcmai", "vax", "jelmer", "jelmer\@example.com", "geheim", "Yo! Please put me on the buildfarm"));
 
 is_deeply([["gwalcmai"]], $db->{dbh}->selectall_arrayref("SELECT name FROM host"));
 

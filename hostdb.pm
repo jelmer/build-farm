@@ -8,7 +8,7 @@ sub new($)
  {
     my ($class, $filename) = @_;
     
-    my $dbh = DBI->connect("dbi:SQLite:$filename") or die("Unable to open SQLite database $filename: $!");
+    my $dbh = DBI->connect("dbi:SQLite:$filename") or return undef;
     
     my $self = { filename => $filename, dbh => $dbh };
     
@@ -19,15 +19,15 @@ sub provision($)
 {
 	my ($self) = @_;
 	
-	$self->{dbh}->do("CREATE TABLE host ( name text, owner text, owner_email text, ssh_access int, platform text, permission text );");
+	$self->{dbh}->do("CREATE TABLE host ( name text, owner text, owner_email text, password text, ssh_access int, platform text, permission text );");
 }
 
 sub createhost($$$$$$)
 {
-	my ($self, $name, $platform, $owner, $owner_email, $permission) = @_;
-	my $sth = $self->{dbh}->prepare("INSERT INTO host (name, platform, owner, owner_email, permission) VALUES (?,?,?,?,?)");
+	my ($self, $name, $platform, $owner, $owner_email, $password, $permission) = @_;
+	my $sth = $self->{dbh}->prepare("INSERT INTO host (name, platform, owner, owner_email, password, permission) VALUES (?,?,?,?,?,?)");
 	
-	$sth->execute($name, $platform, $owner, $owner_email, $permission);
+	$sth->execute($name, $platform, $owner, $owner_email, $password, $permission);
 }
 
 sub deletehost($$)
