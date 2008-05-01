@@ -39,7 +39,7 @@ sub provision($)
 {
 	my ($self) = @_;
 	
-	$self->{dbh}->do("CREATE TABLE host ( name text, owner text, owner_email text, password text, ssh_access int, fqdn text, platform text, permission text );");
+	$self->{dbh}->do("CREATE TABLE host ( name text, owner text, owner_email text, password text, ssh_access int, fqdn text, platform text, permission text, last_dead_mail int );");
 	
 	$self->{dbh}->do("CREATE UNIQUE INDEX unique_hostname ON host (name);");
 
@@ -74,6 +74,22 @@ sub hosts($)
 	my ($self) = @_;
 	
 	return $self->{dbh}->selectall_arrayref("SELECT * FROM host ORDER BY name", { Slice => {} });
+}
+
+sub dead_hosts($$)
+{
+        my ($self, $age) = @_;
+	my $dead_age = time() - $age;
+	return $self->{dbh}->selectall_arrayref("SELECT host, owner, owner_email, MAX(AGE) as last_update from BUILD join host on ( host.name == build.host) where ifnull(last_dead_mail, 0) < $dead_age group by build.host having MAX(AGE) < $dead_age", { Slice => {} });
+}
+
+sub sent_dead_mail($$) 
+{
+        my ($self, $host) = @_;
+	my $changed = $self->{dbh}->do("UPDATE host SET last_dead_mail = ? WHERE name = ?", undef, 
+		(time(), $host));
+	
+	return ($changed == 1);
 }
 
 sub host($$)

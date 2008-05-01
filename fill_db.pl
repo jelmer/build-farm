@@ -61,6 +61,9 @@ foreach my $logfn (@ARGV) {
 	open(LOG, "<$logfn") or die("Unable to open $logfn: $!");
 	while (<LOG>) { $data .= $_; }
 	close(LOG);
+	
+	# Don't bother with empty logs, they have no meaning (and would all share the same checksum)
+	next if ($data eq "");
 
 	my $checksum = sha1_hex($data);
 	if ($dbh->selectrow_array("SELECT * FROM build WHERE checksum = '$checksum'")) {

@@ -182,8 +182,24 @@ __EOF__
 	print "\n";
 	print "Platform: $host->{platform}\n";
 	print "Owner: $host->{owner} <$host->{owner_email}>\n";
+	
+	# Don't run the update of the text files
+	exit(0);
 } else {
 	die("Unknown command $op");
 }
 
+open(RSYNC_SECRETS, ">$RealBin/../rsyncd.secrets.new") or die("Unable to open rsyncd.secrets file: $!");
+print RSYNC_SECRETS $db->create_rsync_secrets();
+close(RSYNC_SECRETS);
+
+rename("$RealBin/../rsyncd.secrets.new", "../rsyncd.secrets");
+
+open(HOSTS, ">$RealBin/web/hosts.list.new") or die("Unable to open hosts file: $!");
+print HOSTS $db->create_hosts_list();
+close(HOSTS);
+
+rename("$RealBin/web/hosts.list.new", "$RealBin/web/hosts.list");
+
 1;
+
