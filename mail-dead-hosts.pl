@@ -25,7 +25,7 @@ use warnings;
 use strict;
 
 my $db = new hostdb("$RealBin/hostdb.sqlite") or die("Unable to connect to host database: $!");
-my $dry_run = 1;
+my $dry_run = 0;
 
 my $hosts = $db->dead_hosts(7 * 86400);
 foreach (@$hosts) {
