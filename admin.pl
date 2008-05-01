@@ -125,7 +125,7 @@ if ($op eq "remove") {
 		print "Subject: $subject\n";
 		open(MAIL,"|cat");
 	} else {
-		$msg = new Mail::Send(Subject=>$subject, To=>"$owner \<$owner_email\>", Bcc=>"build\@samba.org");
+		$msg = new Mail::Send(Subject=>$subject, To=>"\"$owner\" \<$owner_email\>", Bcc=>"build\@samba.org");
 		$fh = $msg->open; 
 	}
 
