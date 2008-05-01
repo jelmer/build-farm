@@ -57,15 +57,13 @@ action_configure() {
 # VOS: explicitly invoke bash here.
 	./timelimit $MAXTIME bash $srcdir/configure $config_and_prefix
 	cstatus=$?
+	if [ x"$cstatus" != x"0" ]; then
+	        if [ -f config.log ]; then
+			echo "contents of config.log:"
+			cat config.log
+		fi
+	fi
 	echo "CONFIGURE STATUS: $cstatus"
-	if [ -f config.h ]; then
-	    echo "contents of config.h:"
-	    cat config.h
-	fi
-	if [ -f include/config.h ]; then
-	    echo "contents of include/config.h:"
-	    cat include/config.h
-	fi
 	return $cstatus;
 }
 
