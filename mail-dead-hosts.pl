@@ -32,6 +32,8 @@ foreach (@$hosts) {
 	
 	my ($fh, $msg);
 	
+	$db->sent_dead_mail($_->{host}) or die "Could not update 'last dead mail sent' record for $_->{host}";
+
 	# send the password in an e-mail to that address
 	my $subject = "Your build farm host $_->{host} appears dead";
 	if ($dry_run) {
@@ -68,14 +70,10 @@ The Build Farm administration team.
 __EOF__
 
 	if ($dry_run) {
-	        $db->sent_dead_mail($_->{host}) or die "Could not update 'last dead mail sent' record for $_->{host}";
-
 		print MAIL $body;
 
 		close(MAIL);
 	} else {
-	        $db->sent_dead_mail($_->{host}) or die "Could not update 'last dead mail sent' record for $_->{host}";
-
 		print $fh "$body";
 		$fh->close;
 	}
