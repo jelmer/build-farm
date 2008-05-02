@@ -39,7 +39,7 @@ sub provision($)
 {
 	my ($self) = @_;
 	
-	$self->{dbh}->do("CREATE TABLE host ( name text, owner text, owner_email text, password text, ssh_access int, fqdn text, platform text, permission text, last_dead_mail int );");
+	$self->{dbh}->do("CREATE TABLE host ( name text, owner text, owner_email text, password text, ssh_access int, fqdn text, platform text, permission text, last_dead_mail int, join_time int );");
 	
 	$self->{dbh}->do("CREATE UNIQUE INDEX unique_hostname ON host (name);");
 
@@ -53,9 +53,9 @@ sub provision($)
 sub createhost($$$$$$)
 {
 	my ($self, $name, $platform, $owner, $owner_email, $password, $permission) = @_;
-	my $sth = $self->{dbh}->prepare("INSERT INTO host (name, platform, owner, owner_email, password, permission) VALUES (?,?,?,?,?,?)");
+	my $sth = $self->{dbh}->prepare("INSERT INTO host (name, platform, owner, owner_email, password, permission, join_time) VALUES (?,?,?,?,?,?)");
 	
-	$sth->execute($name, $platform, $owner, $owner_email, $password, $permission);
+	$sth->execute($name, $platform, $owner, $owner_email, $password, $permission, time());
 }
 
 sub deletehost($$)
@@ -80,7 +80,7 @@ sub dead_hosts($$)
 {
         my ($self, $age) = @_;
 	my $dead_age = time() - $age;
-	return $self->{dbh}->selectall_arrayref("SELECT host, owner, owner_email, MAX(AGE) as last_update from BUILD join host on ( host.name == build.host) where ifnull(last_dead_mail, 0) < $dead_age group by build.host having MAX(AGE) < $dead_age", { Slice => {} });
+	return $self->{dbh}->selectall_arrayref("SELECT host.name AS host, host.owner AS owner, host.owner_email AS owner_email, MAX(age) AS last_update FROM host LEFT JOIN build ON ( host.name == build.host) WHERE ifnull(last_dead_mail, 0) < $dead_age AND ifnull(join_time, 0) < $dead_age GROUP BY host.name having ifnull(MAX(age),0) < $dead_age", { Slice => {} });
 }
 
 sub sent_dead_mail($$) 

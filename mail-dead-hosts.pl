@@ -45,7 +45,12 @@ foreach (@$hosts) {
 		$fh = $msg->open; 
 	}
 
-        my $last_update = strftime ("%a %b %e %H:%M:%S %Y", gmtime($_->{last_update}));
+        my $last_update;
+	if (defined($_->{last_update})) {
+	    $last_update = strftime ("%a %b %e %H:%M:%S %Y", gmtime($_->{last_update}));
+	} else {
+	    $last_update = "a long time";
+	}
 
 	my $body = << "__EOF__";	
 Your host $_->{host} has been part of the Samba Build farm, hosted
