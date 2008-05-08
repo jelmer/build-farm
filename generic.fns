@@ -6,17 +6,19 @@ system=`uname`
 
 for compiler in gcc cc icc; do
 
+  ENVCFLAGS=$CFLAGS
   # arrgh, "which" gives no err code on solaris
   path=`which $compiler`
   if [ -x "$path" ]; then
 
     if $compiler -v 2>&1 | grep gcc.version > /dev/null; then
        isgcc=1
-       CFLAGS="$CFLAGS -Wall"
-       export CFLAGS
+       CFLAGS="$ENVCFLAGS -Wall"
     else
        isgcc=0
+       CFLAGS="$ENVCFLAGS"
     fi
+    export CFLAGS
     if [ $compiler = gcc -o $isgcc = 0 ]; then
       . common.fns
       test_tree lorikeet-heimdal . $compiler
