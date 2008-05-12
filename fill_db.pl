@@ -54,7 +54,7 @@ foreach my $logfn (@ARGV) {
 	# Don't bother if this isn't a valid host
 	my $relevant_rows = $st->fetchall_arrayref();
 
-	next if ($#$relevant_rows == 0);
+	next if ($#$relevant_rows == -1);
 
 	my $st = $dbh->prepare("SELECT * FROM build WHERE age >= ? AND tree = ? AND host = ? AND compiler = ?");
 
