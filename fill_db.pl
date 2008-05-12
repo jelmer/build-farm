@@ -47,6 +47,15 @@ foreach my $logfn (@ARGV) {
 
 	my ($tree, $host, $compiler) = ($logfn =~ /build\.([^.]+)\.([^.]+)\.([^.]+)\.log$/);
 
+	my $st = $dbh->prepare("SELECT name FROM host WHERE name = ?");
+
+	$st->execute($stat->mtime, $host) or die("Unable to check for a valid host entry");
+
+	# Don't bother if this isn't a valid host
+	my $relevant_rows = $st->fetchall_arrayref();
+
+	next if ($#$relevant_rows == 0);
+
 	my $st = $dbh->prepare("SELECT * FROM build WHERE age >= ? AND tree = ? AND host = ? AND compiler = ?");
 
 	$st->execute($stat->mtime, $tree, $host, $compiler) or die("Unable to check for existing build data");
@@ -56,7 +65,6 @@ foreach my $logfn (@ARGV) {
 
 	next if ($#$relevant_rows > -1);
 
-	my $sha1 = Digest::SHA1->new;
 	my $data = "";
 	open(LOG, "<$logfn") or die("Unable to open $logfn: $!");
 	while (<LOG>) { $data .= $_; }
@@ -69,6 +77,7 @@ foreach my $logfn (@ARGV) {
 	if ($dbh->selectrow_array("SELECT * FROM build WHERE checksum = '$checksum'")) {
 		$dbh->do("UPDATE BUILD SET age = ? WHERE checksum = ?", undef, 
 			 	($stat->mtime, $checksum));
+		next;
 	}
 	if ($opt_verbose) { print "$logfn\n"; }
 
