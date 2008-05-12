@@ -1,9 +1,9 @@
 #!/usr/bin/perl -w
 #
-# Extract information about recent git commits (based on bzrlog.pl
+# Extract information about recent git commits
 #
 # tridge@samba.org, November 2006
-# bjacke@samba.org, October 2007
+# bjacke@samba.org
 
 use strict;
 use lib "web";
@@ -46,7 +46,8 @@ sub git_parse($$$$)
 	my $magicstart = "---GIT-COMMIT-MAGIC-START---";
 	my $magicmsg = "---GIT-COMMIT-MAGIC-MESSAGE---";
 	my $magicdiff = "---GIT-COMMIT-MAGIC-DIFF---";
-	my $format = $magicstart."%n%H%n%ct%n%an%n".$magicmsg."%n%s%b%n".$magicdiff;
+	my $magicbody = "---GIT-COMMIT-MAGIC-BODY---";
+	my $format = $magicstart."%n%H%n%ct%n%an%n".$magicmsg."%n%s%n".$magicbody."%b%n".$magicdiff;
 	my $sincedays;
 	$sincedays = "--since='$days days'" if defined($days);
 	# the number of entries is also being limited to a maximum number
@@ -95,12 +96,14 @@ sub git_parse($$$$)
 			next;
 		}
 		
+		chomp $line;
 		if ($addto eq "MESSAGE") {
-			$entry->{MESSAGE} .= $line;
+			if ($line =~ /^$magicbody(<unknown>$)?(.*)$/) {
+				$line = $2;
+			}
+			$entry->{MESSAGE} .= $line."\n";
 			next;
 		}
-		chomp $line;
-		
 
 		if ($addto eq "DIFF_STUFF") {
 			$line =~ m/^([0-9]*)[ \t]*([0-9]*)[ \t]*(.*)/;
