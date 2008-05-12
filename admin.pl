@@ -126,6 +126,7 @@ if ($op eq "remove") {
 		open(MAIL,"|cat");
 	} else {
 		$msg = new Mail::Send(Subject=>$subject, To=>"\"$owner\" \<$owner_email\>", Bcc=>"build\@samba.org");
+		$msg->set("From", "\"Samba Build Farm\" \<build\@samba.org\>");
 		$fh = $msg->open; 
 	}
 
