@@ -49,7 +49,7 @@ foreach my $logfn (@ARGV) {
 
 	my $st = $dbh->prepare("SELECT name FROM host WHERE name = ?");
 
-	$st->execute($stat->mtime, $host) or die("Unable to check for a valid host entry");
+	$st->execute($host) or die("Unable to check for a valid host entry");
 
 	# Don't bother if this isn't a valid host
 	my $relevant_rows = $st->fetchall_arrayref();
