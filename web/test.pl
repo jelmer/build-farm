@@ -3,12 +3,14 @@
 use DBI;
 
 use FindBin qw($RealBin);
+use lib "$RealBin/..";
 use DBI;
 use strict;
 use warnings;
 use util;
 use CGI;
 use URI::Escape;
+use hostdb;
 
 my $hostdb = new hostdb("$RealBin/../hostdb.sqlite" ) || die "Cannot connect: $DBI::errstr";
 
