@@ -55,7 +55,7 @@ sub provision($)
 sub createhost($$$$$$)
 {
 	my ($self, $name, $platform, $owner, $owner_email, $password, $permission) = @_;
-	my $sth = $self->{dbh}->prepare("INSERT INTO host (name, platform, owner, owner_email, password, permission, join_time) VALUES (?,?,?,?,?,?)");
+	my $sth = $self->{dbh}->prepare("INSERT INTO host (name, platform, owner, owner_email, password, permission, join_time) VALUES (?,?,?,?,?,?,?)");
 	
 	$sth->execute($name, $platform, $owner, $owner_email, $password, $permission, time());
 }
