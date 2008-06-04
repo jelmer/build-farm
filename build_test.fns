@@ -369,14 +369,14 @@ s4selftest_update() {
 		return 1;
 	}
 
-	copy_dir $s4selftest $s4selftest.$tree.$compiler.$$ || {
-		rm -rf $s4selftest.$tree.$compiler.$$;
+	copy_dir $s4selftest tmp.$tree.$compiler.$$ || {
+		rm -rf tmp.$tree.$compiler.$$;
 		unlock_file "s4selftest.lck";
 		return 1;
 	}
 
 	rm -rf $s4selftest.$tree.$compiler
-	mv $s4selftest.$tree.$compiler.$$ $s4selftest.$tree.$compiler
+	mv tmp.$tree.$compiler.$$ $s4selftest.$tree.$compiler
 
 	unlock_file "s4selftest.lck"
 }
