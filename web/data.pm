@@ -53,7 +53,7 @@ sub new($;$) {
 	my $lcovdir = "$basedir/lcov/data";
 	return undef if not (-d $lcovdir);
 
-	my $lcovhost = "tridge";
+	my $lcovhost = "magni";
 
 	my @compilers = util::load_list("$webdir/compilers.list");
 	my (%hosts) = util::load_hash("$webdir/hosts.list");
