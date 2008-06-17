@@ -1,6 +1,3 @@
-# We need to disable ccache for the lcov love to work
-export CCACHE_DISABLE=yes
-export LCOV_REPORT=yes
 export PYTHON_VERSION=2.5
 
 compiler=gcc

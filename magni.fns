@@ -1,4 +1,21 @@
-# We want to test with python 2.5 on this host
+# We need to disable ccache for the lcov love to work
+export CCACHE_DISABLE=yes
+export LCOV_REPORT=yes
 export PYTHON_VERSION=2.5
 
-. generic.fns
+compiler=gcc
+
+. common.fns
+
+#lcov like shared libraries
+export config="--disable-shared"
+export PIDL_TESTS_SKIP=yes
+test_tree samba_4_0_test source $compiler 
+
+export config=""
+test_tree samba_3_2_test source $compiler
+
+#lcov and libtool disagree, enable OpenLDAP and disable OpenSSL
+export config="--with-ldap=/usr --without-openssl --disable-shared"
+test_tree lorikeet-heimdal . $compiler
+
