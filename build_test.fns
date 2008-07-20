@@ -707,6 +707,7 @@ test_tree() {
 
 	# start the build
 	(
+	{
 		# we all want to be able to read the output...
 		LANG=C
 		export LANG
@@ -819,7 +820,10 @@ test_tree() {
 		    do_make clean
 		fi
 		date
-	) > "$log" 2> "$err"
+	} 3>&2 2>&1 1>&3 | tee "$err"
+	) > "$log" 2>&1
+	# be aware the above channel swap may sometimes result in unordered
+	# stdout/stderr merge
 
 	if [ "$LCOV_REPORT" = "yes" ]; then
 	    chmod u=rwX,g=rX,o=rX -R $builddir/coverage
