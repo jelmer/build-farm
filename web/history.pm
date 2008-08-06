@@ -39,7 +39,7 @@ my (%bzr_trees) = ('ctdb' => " <a href=\"$UNPACKED_BASE/ctdb/%s\">%s</a>",
                    'python' => " <a href=\"$UNPACKED_BASE/python/%s\">%s</a>",
                    'samba-gtk' => " <a href=\"http://people.samba.org/bzr/jelmer/samba-gtk/trunk/%s\">%s</a>");
 
-my (%git_trees) = ('samba_3_2_test' =>" <a href=\"$GITWEB_BASE/?p=samba.git;a=history;f=%s;h=v3-2-test;hb=v3-2-test\">%s</a>",
+my (%git_trees) = ('samba_3_X_test' =>" <a href=\"$GITWEB_BASE/?p=samba.git;a=history;f=%s;h=v3-2-test;hb=v3-2-test\">%s</a>",
 		   'samba_4_0_test' =>" <a href=\"$GITWEB_BASE/?p=samba.git;a=history;f=%s;h=v4-0-test;hb=v4-0-test\">%s</a>",
 		   'libreplace' =>" <a href=\"$GITWEB_BASE/?p=samba.git;a=history;f=source/lib/replace/%s;h=v4-0-test;hb=v4-0-test\">%s</a>",
 		   'talloc' =>" <a href=\"$GITWEB_BASE/?p=samba.git;a=history;f=source/lib/talloc/%s;h=v4-0-test;hb=v4-0-test\">%s</a>",

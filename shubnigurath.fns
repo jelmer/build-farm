@@ -26,7 +26,7 @@ for compiler in gcc cc icc; do
           test_tree samba_4_0_test source $compiler
         fi
       fi
-      test_tree samba_3_2_test source $compiler
+      test_tree samba_3_X_test source $compiler
     fi
   fi
 done

@@ -6,7 +6,7 @@ export CHECK_FLAGS="-Wall --beam::source=/home/tridge/beam/config.tcl --beam::pa
 # allow make cc_checker to take up to 7 hours
 export MAXTIME=25200
 
-for d in samba_4_0_test samba_3_2_test; do
+for d in samba_4_0_test samba_3_X_test; do
     export CFLAGS="$CHECK_FLAGS --beam::data=/home/tridge/beam/$d"
     mkdir -p /home/tridge/beam/$d
     test_tree $d source checker configure config_log config_header build cc_checker install test

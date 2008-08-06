@@ -3,7 +3,7 @@
 samba_4_0_test:
 samba-docs:
 smb-build:
-samba_3_2_test:
+samba_3_X_test:
 rsync:
 distcc:
 ppp:

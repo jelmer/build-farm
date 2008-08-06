@@ -147,7 +147,7 @@ sub build_age_ctime($$$$$)
 #      and trees.list
 my @git_trees = ("rsync",
 		 "talloc",
-		 "samba_3_2_test",
+		 "samba_3_X_test",
 		 "samba_4_0_test");
 
 ##############################################
