@@ -406,7 +406,7 @@ action_build() {
 
 		;;
 	samba_3*)
-		do_make proto everything torture
+		do_make everything torture
 		bstatus=$?
 		;;
 	*)
