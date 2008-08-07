@@ -1,4 +1,0 @@
-#When testing Samba4, run the tests against OpenLDAP
-
-export TEST_LDAP=yes
-. generic.fns

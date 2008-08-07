@@ -1,4 +1,0 @@
-per_run_hook
-
-test_tree libreplace . gcc
-test_tree tdb . gcc
