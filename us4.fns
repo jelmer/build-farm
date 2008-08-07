@@ -17,8 +17,9 @@ test_tree samba_4_0_test source cc
 
 export config="--with-utmp --with-acl-support"
 test_tree samba_3_X_test source cc
+test_tree samba_3_X_devel source cc
 
 export CFLAGS="-O -Wall"
 test_tree samba_3_X_test source gcc
-
+test_tree samba_3_X_devel source gcc
 

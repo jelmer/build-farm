@@ -13,5 +13,6 @@ export SMBD_MAXTIME
 test_tree lorikeet-heimdal . $compiler
 CFLAGS="-g1 ${CFLAGS}" test_tree samba_4_0_test source $compiler
 CFLAGS="-g1 ${CFLAGS}" test_tree samba_3_X_test source $compiler
+CFLAGS="-g1 ${CFLAGS}" test_tree samba_3_X_devel source $compiler
 
 global_unlock

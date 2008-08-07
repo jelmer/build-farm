@@ -14,6 +14,7 @@ test_tree samba_4_0_test source $compiler
 
 export config=""
 test_tree samba_3_X_test source $compiler
+test_tree samba_3_X_devel source $compiler
 
 #lcov and libtool disagree, enable OpenLDAP and disable OpenSSL
 export config="--with-ldap=/usr --without-openssl --disable-shared"

@@ -148,6 +148,7 @@ sub build_age_ctime($$$$$)
 my @git_trees = ("rsync",
 		 "talloc",
 		 "samba_3_X_test",
+		 "samba_3_X_devel",
 		 "samba_4_0_test");
 
 ##############################################
