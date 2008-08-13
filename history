@@ -20,7 +20,7 @@
 ./bzrlog.pl http://people.samba.org/bzr/jelmer/samba-gtk/trunk 60 cache/history.samba-gtk
 
 ./gitlog.pl /data/git/samba.git/ 60 v3-2-test cache/history.samba_3_X_test
-./gitlog.pl /data/git/samba.git/ 60 v3-3-test cache/history.samba_3_X_devel
+./gitlog.pl /data/git/samba.git/ 60 v3-devel cache/history.samba_3_X_devel
 ./gitlog.pl /data/git/samba.git/ 60 v4-0-test cache/history.samba_4_0_test
 ./gitlog.pl /data/git/samba.git/ 60 v4-0-test cache/history.libreplace source/lib/replace
 ./gitlog.pl /data/git/samba.git/ 60 v4-0-test cache/history.talloc source/lib/talloc
