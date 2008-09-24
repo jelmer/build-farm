@@ -1,4 +1,5 @@
-export MAKE="make -j16"
+export MAKE="make"
+export MAKEFLAGS="-j16"
 
 per_run_hook
 
