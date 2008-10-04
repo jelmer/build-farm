@@ -4,9 +4,10 @@ global_lock
 
 system=`uname`
 
+ENVCFLAGS=$CFLAGS
+
 for compiler in gcc cc icc; do
 
-  ENVCFLAGS=$CFLAGS
   # arrgh, "which" gives no err code on solaris
   path=`which $compiler`
   if [ -x "$path" ]; then
