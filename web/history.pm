@@ -40,13 +40,13 @@ my (%bzr_trees) = ('ctdb' => " <a href=\"$UNPACKED_BASE/ctdb/%s\">%s</a>",
                    'samba-gtk' => " <a href=\"http://people.samba.org/bzr/jelmer/samba-gtk/trunk/%s\">%s</a>");
 
 my (%git_trees) = ('samba_3_X_test' =>" <a href=\"$GITWEB_BASE/?p=samba.git;a=history;f=%s;h=v3-2-test;hb=v3-2-test\">%s</a>",
-		   'samba_3_X_devel' =>" <a href=\"$GITWEB_BASE/?p=samba.git;a=history;f=%s;h=v3-devel;hb=v3-devel\">%s</a>",
-		   'samba_4_0_test' =>" <a href=\"$GITWEB_BASE/?p=samba.git;a=history;f=%s;h=v4-0-test;hb=v4-0-test\">%s</a>",
-		   'libreplace' =>" <a href=\"$GITWEB_BASE/?p=samba.git;a=history;f=source/lib/replace/%s;h=v4-0-test;hb=v4-0-test\">%s</a>",
-		   'talloc' =>" <a href=\"$GITWEB_BASE/?p=samba.git;a=history;f=source/lib/talloc/%s;h=v4-0-test;hb=v4-0-test\">%s</a>",
-		   'tdb' =>" <a href=\"$GITWEB_BASE/?p=samba.git;a=history;f=source/lib/tdb/%s;h=v4-0-test;hb=v4-0-test\">%s</a>",
-		   'ldb' =>" <a href=\"$GITWEB_BASE/?p=samba.git;a=history;f=source/lib/ldb/%s;h=v4-0-test;hb=v4-0-test\">%s</a>",
-		   'pidl' =>" <a href=\"$GITWEB_BASE/?p=samba.git;a=history;f=source/pidl/%s;h=v4-0-test;hb=v4-0-test\">%s</a>",
+		   'samba_3_X_devel' =>" <a href=\"$GITWEB_BASE/?p=samba.git;a=history;f=%s;h=master;hb=master\">%s</a>",
+		   'samba_4_0_test' =>" <a href=\"$GITWEB_BASE/?p=samba.git;a=history;f=%s;h=master;hb=master\">%s</a>",
+		   'libreplace' =>" <a href=\"$GITWEB_BASE/?p=samba.git;a=history;f=lib/replace/%s;h=master;hb=master\">%s</a>",
+		   'talloc' =>" <a href=\"$GITWEB_BASE/?p=samba.git;a=history;f=lib/talloc/%s;h=master;hb=mster\">%s</a>",
+		   'tdb' =>" <a href=\"$GITWEB_BASE/?p=samba.git;a=history;f=lib/tdb/%s;h=master;hb=master\">%s</a>",
+		   'ldb' =>" <a href=\"$GITWEB_BASE/?p=samba.git;a=history;f=source4/lib/ldb/%s;h=master;hb=master\">%s</a>",
+		   'pidl' =>" <a href=\"$GITWEB_BASE/?p=samba.git;a=history;f=pidl/%s;h=master;hb=master\">%s</a>",
 		   'rsync' =>" <a href=\"$GITWEB_BASE/?p=rsync.git;a=history;f=%s;h=HEAD;hb=HEAD\">%s</a>");
 
 my $unpacked_dir = "/home/ftp/pub/unpacked";
