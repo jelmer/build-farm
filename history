@@ -26,7 +26,7 @@
 ./gitlog.pl /data/git/samba.git/ 60 master cache/history.talloc lib/talloc
 ./gitlog.pl /data/git/samba.git/ 60 master cache/history.tdb lib/tdb
 ./gitlog.pl /data/git/samba.git/ 60 master cache/history.ldb source4/lib/ldb
-./gitlog.pl /data/git/samba.git/ 60 master cache/history.ldb pidl
+./gitlog.pl /data/git/samba.git/ 60 master cache/history.pidl pidl
 
 ./gitlog.pl /data/git/ctdb.git/ 60 master cache/history.ctdb
 
