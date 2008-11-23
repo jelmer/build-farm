@@ -4,7 +4,7 @@ global_lock
 
 compiler=cc
 
-MAXTIME=9000
+MAXTIME=18000
 export MAXTIME
 SMBD_MAXTIME=8500
 export SMBD_MAXTIME
