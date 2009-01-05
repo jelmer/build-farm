@@ -83,7 +83,7 @@ if ($op eq "remove") {
 		print "Enter new owner's e-mail address: ";
 		my $owner_email = <>;
 		chomp($owner_email);
-		$db->update_platform($hostname, $owner, $owner_email) or die "Unable to update owner";
+		$db->update_owner($hostname, $owner, $owner_email) or die "Unable to update owner";
 		
 	}	
 } elsif ($op eq "add") {
