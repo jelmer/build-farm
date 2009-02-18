@@ -794,7 +794,9 @@ test_tree() {
 
 		    ( action_$action )
 		    action_status=$?
-		    
+
+		    df .
+
 		    if [ $action_status != 0 ]; then
 			echo "ACTION FAILED: $action";
 		    else
