@@ -7,7 +7,7 @@
 # Copyright (C) 2001, 2003 by Martin Pool <mbp@samba.org>
 
 # default maximum runtime for any command
-MAXTIME=7200
+MAXTIME=12000
 # default maximum memory size (100M) for any command
 MAXMEM=100000
 RUN_FROM_BUILD_FARM=yes
