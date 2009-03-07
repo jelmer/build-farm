@@ -19,6 +19,10 @@ for compiler in gcc cc icc; do
        isgcc=0
        CFLAGS="$ENVCFLAGS"
     fi
+    CFLAGS_THIS_COMPILER=`eval CFLAGS_$compiler 2>/dev/null`
+    if [ $? = 0 ] ; then
+	    CFLAGS="$CFLAGS_THIS_COMPILER $CFLAGS"
+    fi
     export CFLAGS
     if [ $compiler = gcc -o $isgcc = 0 ]; then
       . common.fns
