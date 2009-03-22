@@ -17,6 +17,7 @@ export VALGRIND="valgrind -q --num-callers=30 --log-file=st/valgrind.log_%p --ge
 export MAXTIME=18000
 export TORTURE_MAXTIME=3600
 export SMBD_MAXTIME=18000
+export SAMBA_MAXTIME=18000
 
 test_tree samba_4_0_test source gcc
 test_tree samba_3_X_test source gcc
