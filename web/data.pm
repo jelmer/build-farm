@@ -58,8 +58,122 @@ sub new($;$) {
 	my @compilers = util::load_list("$webdir/compilers.list");
 	my (%hosts) = util::load_hash("$webdir/hosts.list");
 	my @hosts = sort { $hosts{$a} cmp $hosts{$b} } keys %hosts;
-	my (%trees) = util::load_hash("$webdir/trees.list");
 	my @pseudo_trees = util::load_list("$webdir/pseudo.list");
+
+	my (%trees) = (
+		'distcc' => {
+			'scm' => 'cvs',
+			'repo' => 'distcc',
+			'branch' => 'HEAD',
+			'subdir' => '',
+			'srcdir' => ''
+		},
+		'ccache' => {
+			'scm' => 'cvs',
+			'repo' => 'ccache',
+			'branch' => 'HEAD',
+			'subdir' => '',
+			'srcdir' => ''
+		},
+		'ppp' => {
+			'scm' => 'cvs',
+			'repo' => 'ppp',
+			'branch' => 'HEAD',
+			'subdir' => '',
+			'srcdir' => ''
+		},
+		'build_farm' => {
+			'scm' => 'svn',
+			'repo' => 'build-farm',
+			'branch' => 'trunk',
+			'subdir' => '',
+			'srcdir' => ''
+		},
+		'samba-web' => {
+			'scm' => 'svn',
+			'repo' => 'samba-web',
+			'branch' => 'trunk',
+			'subdir' => '',
+			'srcdir' => ''
+		},
+		'samba-docs' => {
+			'scm' => 'svn',
+			'repo' => 'samba-docs',
+			'branch' => 'trunk',
+			'subdir' => '',
+			'srcdir' => ''
+		},
+		'lorikeet' => {
+			'scm' => 'svn',
+			'repo' => 'lorikeeet',
+			'branch' => 'trunk',
+			'subdir' => '',
+			'srcdir' => ''
+		},
+		'samba_3_X_test' => {
+			'scm' => 'git',
+			'repo' => 'samba.git',
+			'branch' => 'v3-3-test',
+			'subdir' => '',
+			'srcdir' => 'source'
+		},
+		'samba_3_X_devel' => {
+			'scm' => 'git',
+			'repo' => 'samba.git',
+			'branch' => 'master',
+			'subdir' => '',
+			'srcdir' => 'source'
+		},
+		'samba_4_0_test' => {
+			'scm' => 'git',
+			'repo' => 'samba.git',
+			'branch' => 'master',
+			'subdir' => '',
+			'srcdir' => 'source'
+		},
+		'libreplace' => {
+			'scm' => 'git',
+			'repo' => 'samba.git',
+			'branch' => 'master',
+			'subdir' => 'lib/replace/',
+			'srcdir' => ''
+		},
+		'talloc' => {
+			'scm' => 'git',
+			'repo' => 'samba.git',
+			'branch' => 'master',
+			'subdir' => 'lib/talloc/',
+			'srcdir' => ''
+		},
+		'tdb' => {
+			'scm' => 'git',
+			'repo' => 'samba.git',
+			'branch' => 'master',
+			'subdir' => 'lib/tdb/',
+			'srcdir' => ''
+		},
+		'ldb' => {
+			'scm' => 'git',
+			'repo' => 'samba.git',
+			'branch' => 'master',
+			'subdir' => 'lib/ldb/',
+			'srcdir' => ''
+		},
+		'pidl' => {
+			'scm' => 'git',
+			'repo' => 'samba.git',
+			'branch' => 'master',
+			'subdir' => 'pidl/',
+			'srcdir' => ''
+		},
+		'rsync' => {
+			'scm' => 'git',
+			'repo' => 'rsync.git',
+			'branch' => 'HEAD',
+			'subdir' => '',
+			'srcdir' => ''
+		}
+	);
 
 	my $self = {
 		basedir		=> $basedir,
