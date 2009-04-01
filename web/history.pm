@@ -228,19 +228,19 @@ sub diff($$$$$$)
 	$self->fatal("unknown tree[$tree]") unless defined($t);
 
 	if ($t->{scm} eq "cvs") {
-		$self->cvs_diff($author, $date, $tree, $text_html);
+		$self->cvs_diff($t, $author, $date, $tree, $text_html);
 	} elsif ($t->{scm} eq "svn") {
-		$self->svn_diff($revision, $tree, $text_html);
+		$self->svn_diff($t, $revision, $tree, $text_html);
 	} elsif ($t->{scm} eq "git") {
-		$self->git_diff($revision, $tree, $text_html);
+		$self->git_diff($t, $revision, $tree, $text_html);
 	}
 }
 
 ###############################################
 # show recent svn entries
-sub svn_diff($$$$)
+sub svn_diff($$$$$)
 {
-	my ($self, $revision, $tree, $text_html) = @_;
+	my ($self, $t, $revision, $tree, $text_html) = @_;
 
 	chdir("$unpacked_dir/$tree") or $self->fatal("no tree $unpacked_dir/$tree available");
 
@@ -273,7 +273,7 @@ sub svn_diff($$$$)
 
 	# get information about the current diff
 	if ($text_html eq "html") {
-		print "<h2>SVN Diff in $tree for revision r$revision</h2>\n";
+		print "<h2>SVN Diff in $tree:$t->{branch} for revision r$revision</h2>\n";
 		print "<div class=\"history row\">\n";
 
 		$self->history_row($entry, $tree);
@@ -302,7 +302,7 @@ sub svn_diff($$$$)
 # show recent cvs entries
 sub cvs_diff($$$$$$)
 {
-	my ($self, $author, $date, $tree, $text_html) = @_;
+	my ($self, $t, $author, $date, $tree, $text_html) = @_;
 
 	chdir("$unpacked_dir/$tree") or $self->fatal("no tree $unpacked_dir/$tree available");
 
@@ -335,7 +335,7 @@ sub cvs_diff($$$$$$)
 	chomp($t2 = POSIX::ctime($date+60+($TIMEOFFSET*60*60)));
 
 	if ($text_html eq "html") {
-		print "<h2>CVS Diff in $tree for $t1</h2>\n";
+		print "<h2>CVS Diff in $tree:$t->{branch} for $t1</h2>\n";
 		$self->history_row($entry, $tree);
 	} else {
 		$self->history_row_text($entry, $tree);
@@ -398,9 +398,9 @@ in cvs</b>
 
 ###############################################
 # show recent git entries
-sub git_diff($$$$)
+sub git_diff($$$$$)
 {
-	my ($self, $revision, $tree, $text_html) = @_;
+	my ($self, $t, $revision, $tree, $text_html) = @_;
 
 	chdir("$unpacked_dir/$tree") or $self->fatal("no tree $unpacked_dir/$tree available");
 
@@ -423,7 +423,7 @@ sub git_diff($$$$)
 
 	# get information about the current diff
 	if ($text_html eq "html") {
-		print "<h2>GIT Diff in $tree for revision $revision</h2>\n";
+		print "<h2>GIT Diff in $tree:$t->{branch} for revision $revision</h2>\n";
 		print "<div class=\"history row\">\n";
 
 		$self->history_row($entry, $tree);
@@ -468,7 +468,7 @@ sub history($$)
 
 	my $req = $self->{req};
 
-	print "<h2>Recent checkins for $tree</h2>\n";
+	print "<h2>Recent checkins for $tree ($t->{scm} branch $t->{branch})</h2>\n";
 	print $req->startform("GET");
 	print "Select Author: ";
 	print $req->popup_menu("author", [sort keys %authors]);
