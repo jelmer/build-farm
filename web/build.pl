@@ -161,32 +161,34 @@ sub fatal($) {
 
 ################################################
 # get a param from the request, after sanitizing it
-sub get_param($) {
-    my $param = shift;
+sub get_param($;$) {
+	my ($param, $wantarray) = @_;
 
-    if (!defined $req->param($param)) {
-		return wantarray ? () : undef;
-    }
+	$wantarray = 0 unless defined($wantarray);
+	
+	if (!defined $req->param($param)) {
+		return $wantarray ? () : undef;
+	}
 
-    my @result = ();
-    if (wantarray) {
-	    @result = $req->param($param);
-    } else {
-	    $result[0] = $req->param($param);
-    }
+	my @result = ();
+	if ($wantarray) {
+		@result = $req->param($param);
+	} else {
+		$result[0] = $req->param($param);
+	}
 
-    for (my $i = 0; $i <= $#result; $i++) {
-	    $result[$i] =~ s/ /_/g;
-    }
+	for (my $i = 0; $i <= $#result; $i++) {
+		$result[$i] =~ s/ /_/g;
+	}
 
-    foreach (@result) {
-	    if ($_ =~ m/[^a-zA-Z0-9\-\_\.]/) {
-		    fatal("Parameter $param is invalid");
-		    return wantarray ? () : undef;
-	    }
-    }
+	foreach (@result) {
+		if ($_ =~ m/[^a-zA-Z0-9\-\_\.]/) {
+			fatal("Parameter $param is invalid");
+			return $wantarray ? () : undef;
+		}
+	}
 
-    return wantarray ? @result : $result[0];
+	return $wantarray ? @result : $result[0];
 }
 
 sub build_link($$$$$)
