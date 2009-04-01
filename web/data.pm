@@ -58,7 +58,6 @@ sub new($;$) {
 	my @compilers = util::load_list("$webdir/compilers.list");
 	my (%hosts) = util::load_hash("$webdir/hosts.list");
 	my @hosts = sort { $hosts{$a} cmp $hosts{$b} } keys %hosts;
-	my @pseudo_trees = util::load_list("$webdir/pseudo.list");
 
 	my (%trees) = (
 		'distcc' => {
@@ -189,7 +188,6 @@ sub new($;$) {
 		hosts_hash	=> \%hosts,
 		hosts_list	=> \@hosts,
 		trees		=> \%trees,
-		pseudo_trees	=> \@pseudo_trees,
 		OLDAGE		=> 60*60*4,
 		DEADAGE 	=> 60*60*24*4
 	};

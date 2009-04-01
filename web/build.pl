@@ -47,7 +47,6 @@ my @compilers = @{$db->{compilers}};
 my %hosts = %{$db->{hosts_hash}};
 my @hosts = @{$db->{hosts_list}};
 my %trees = %{$db->{trees}};
-my @pseudo_trees = @{$db->{pseudo_trees}};
 my $OLDAGE = $db->{OLDAGE};
 my $DEADAGE = $db->{DEADAGE};
 
@@ -846,7 +845,7 @@ sub main_menu() {
            $req->popup_menu(-name=>'host',
 			   -values=>\@hosts,
 			   -labels=>\%hosts),
-          $req->popup_menu("tree", [sort (keys %trees, @pseudo_trees)]),
+          $req->popup_menu("tree", [sort (keys %trees)]),
           $req->popup_menu("compiler", \@compilers),
           $req->br(),
           $req->submit('function', 'View Build'),
