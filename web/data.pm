@@ -255,14 +255,6 @@ sub build_age_ctime($$$$$)
 	return $age;
 }
 
-#TODO: merge this with the stuff from history.pm
-#      and trees.list
-my @git_trees = ("rsync",
-		 "talloc",
-		 "samba_3_X_test",
-		 "samba_3_X_devel",
-		 "samba_4_0_test");
-
 ##############################################
 # get the svn revision of build
 sub build_revision_details($$$$$)
@@ -275,8 +267,11 @@ sub build_revision_details($$$$$)
 
 	# don't fast-path for trees with git repository:
 	# we get the timestamp as rev and want the details
-	if ($rev and not util::InArray($tree, \@git_trees)) {
-		return $rev;
+	if ($rev) {
+		my %trees = %{$self->{trees}};
+		my $t = $trees{$t};
+		return $rev unless defined($t);
+		return $rev unless $t->{scm} eq "git";
 	}
 
 	my $st1 = stat("$file.log");
@@ -354,6 +349,7 @@ sub build_status($$$$$)
 
 	my $log = util::FileLoad("$file.log");
 	my $err = util::FileLoad("$file.err");
+	$err = "" unless defined($err);
 
 	sub span_status($)
 	{
