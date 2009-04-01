@@ -369,8 +369,15 @@ sub tree_link($)
 {
 	my ($tree) = @_;
 
+	my $branch = "";
+	my $t = $trees{$tree};
+	if (defined($t)) {
+		$branch = ":$t->{branch}";
+	}
+
 	return $req->a({-href=>"$myself?function=Recent+Builds;tree=$tree",
-					-title=>"View recent builds for $tree"}, $tree);
+			-title=>"View recent builds for $tree"},
+			"$tree$branch");
 }
 
 ##############################################
@@ -411,6 +418,8 @@ sub view_recent_builds($$) {
     util::InArray($tree, [keys %trees]) || fatal("not a build tree");
     util::InArray($sort_by, [keys %$sort]) || fatal("not a valid sort");
 
+    my $t = $trees{$tree};
+
     for my $host (@hosts) {
       for my $compiler (@compilers) {
 	  my $status = build_status($host, $tree, $compiler, "");
@@ -428,7 +437,7 @@ sub view_recent_builds($$) {
     my $sorturl = "$myself?tree=$tree;function=Recent+Builds";
 
 	print $req->start_div({-id=>"recent-builds", -class=>"build-section"}),
-		  $req->h2("Recent builds of $tree"),
+		  $req->h2("Recent builds of $tree ($t->{scm} branch $t->{branch})"),
 		  $req->start_table({-class => "real"}),
 	      $req->thead(
 			  $req->Tr(
@@ -842,12 +851,26 @@ sub make_collapsible_html
 ##############################################
 # main page
 sub main_menu() {
+	my %host_labels;
+	foreach my $host (@hosts) {
+    		$host_labels{$host} = "$hosts{$host} -- $host";
+	}
+
+	my @tree_values = (sort (keys %trees));
+	my %tree_labels;
+	foreach my $tree (@tree_values) {
+		my $t = $trees{$tree};
+    		$tree_labels{$tree} = "$tree:$t->{branch}";
+	}
+	
     return $req->startform("GET"), 
 	   $req->start_div({-id=>"build-menu"}),
            $req->popup_menu(-name=>'host',
 			   -values=>\@hosts,
-			   -labels=>\%hosts),
-          $req->popup_menu("tree", [sort (keys %trees)]),
+			   -labels=>\%host_labels),
+           $req->popup_menu(-name=>'tree',
+			   -values=>\@tree_values,
+			   -labels=>\%tree_labels),
           $req->popup_menu("compiler", \@compilers),
           $req->br(),
           $req->submit('function', 'View Build'),
