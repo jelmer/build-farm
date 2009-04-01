@@ -34,6 +34,8 @@ my $unpacked_dir = "/home/ftp/pub/unpacked";
 # we open readonly here as only apache(www-run) has write access
 my $db = new data($BASEDIR, 1);
 
+my %trees = %{$db->{trees}};
+
 #####################################t#
 # find the build status as an integer
 # it gets one point for passing each stage
@@ -245,6 +247,11 @@ if ($fname =~ /build\.([\w-]+)\.([\w-]+)\.([\w.-]+)\.log$/) {
 	confess "Unable to parse filename";
 }
 
+my $t = $trees{$tree};
+if (not defined($t)) {
+	confess "Unknown tree[$tree]";
+}
+
 my $cur = cur_status($host, $tree, $compiler);
 
 if (not defined($cur)) {
@@ -281,7 +288,7 @@ if (not defined($log)) {
 my $recipients = undef;
 $recipients = join(",", keys %{$log->{recipients}}) if defined($log->{recipients});
 
-my $subject = "BUILD of $tree BROKEN on $host with $compiler AT REVISION $cur->{rev}";
+my $subject = "BUILD of $tree:$t->{branch} BROKEN on $host with $compiler AT REVISION $cur->{rev}";
 
 # send the nastygram
 if ($dry_run) {
@@ -298,8 +305,11 @@ if ($dry_run) {
 
 my $body = << "__EOF__";
 Broken build for tree $tree on host $host with compiler $compiler
-Build status for revision $cur->{rev} is $cur->{string}
-Build status for revision $old->{rev} is $old->{string}
+
+Tree $tree is $t->{scm} branch $t->{branch}.
+
+Build status for new revision $cur->{rev} is $cur->{string}
+Build status for old revision $old->{rev} was $old->{string}
 
 See http://build.samba.org/?function=View+Build;host=$host;tree=$tree;compiler=$compiler
 
