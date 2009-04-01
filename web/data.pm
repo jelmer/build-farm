@@ -269,7 +269,7 @@ sub build_revision_details($$$$$)
 	# we get the timestamp as rev and want the details
 	if ($rev) {
 		my %trees = %{$self->{trees}};
-		my $t = $trees{$t};
+		my $t = $trees{$tree};
 		return $rev unless defined($t);
 		return $rev unless $t->{scm} eq "git";
 	}
