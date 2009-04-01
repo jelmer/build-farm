@@ -41,7 +41,9 @@ use File::stat;
 my $WEBDIR = "$RealBin";
 my $BASEDIR = "$WEBDIR/..";
 
+my $req = new CGI;
 my $db = new data($BASEDIR);
+my $history = new history($req, $db);
 
 my @compilers = @{$db->{compilers}};
 my %hosts = %{$db->{hosts_hash}};
@@ -49,8 +51,6 @@ my @hosts = @{$db->{hosts_list}};
 my %trees = %{$db->{trees}};
 my $OLDAGE = $db->{OLDAGE};
 my $DEADAGE = $db->{DEADAGE};
-
-my $req = new CGI;
 
 # this is automatically filled in
 my (@deadhosts) = ();
@@ -872,11 +872,11 @@ my $fn_name = get_param('function') || '';
 
 if ($fn_name eq 'text_diff') {
   print header('application/x-diff');
-  history::diff(get_param('author'),
-		get_param('date'),
-		get_param('tree'),
-		get_param('revision'),
-		"text");
+  $history->diff(get_param('author'),
+		 get_param('date'),
+		 get_param('tree'),
+		 get_param('revision'),
+		 "text");
 } elsif ($fn_name eq 'Text_Summary') {
 	print header('text/plain');
 	view_summary('text');
@@ -891,13 +891,13 @@ if ($fn_name eq 'text_diff') {
   } elsif ($fn_name eq "Recent_Builds") {
     view_recent_builds(get_param("tree"), get_param("sortby") || "revision");
   } elsif ($fn_name eq "Recent_Checkins") {
-    history::history(get_param('tree'));
+    $history->history(get_param('tree'));
   } elsif ($fn_name eq "diff") {
-    history::diff(get_param('author'),
-		  get_param('date'),
-		  get_param('tree'),
-		  get_param('revision'),
-		  "html");
+    $history->diff(get_param('author'),
+		   get_param('date'),
+		   get_param('tree'),
+		   get_param('revision'),
+		   "html");
   } elsif (path_info() ne "" and path_info() ne "/") {
 	my @paths = split('/', path_info());
 	if ($paths[1] eq "recent") {
