@@ -38,8 +38,8 @@ for compiler in gcc cc icc; do
         test_tree samba-gtk . $compiler
       fi
 
-      test_tree samba_3_X_test source $compiler
-      test_tree samba_3_X_devel source $compiler
+      test_tree samba_3_current source $compiler
+      test_tree samba_3_master source $compiler
 
       # by default build ppp only on SunOS or Linux systems
       if [ "$system" = Linux -o "$system" = SunOS ]; then

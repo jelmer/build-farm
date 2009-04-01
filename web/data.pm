@@ -109,14 +109,14 @@ sub new($;$) {
 			'subdir' => '',
 			'srcdir' => ''
 		},
-		'samba_3_X_test' => {
+		'samba_3_current' => {
 			'scm' => 'git',
 			'repo' => 'samba.git',
 			'branch' => 'v3-3-test',
 			'subdir' => '',
 			'srcdir' => 'source'
 		},
-		'samba_3_X_devel' => {
+		'samba_3_master' => {
 			'scm' => 'git',
 			'repo' => 'samba.git',
 			'branch' => 'master',

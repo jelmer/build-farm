@@ -883,7 +883,7 @@ kill_old_processes() {
     (ps -fu $USER | grep /build | grep -v grep | egrep 'Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec' | awk '{print $2}' | xargs kill -9) 2> /dev/null
 }
 
-delete_old_svn_tree() {
+delete_old_tree() {
 	otree=$1
 
 	test -z "$otree" && return 0;
@@ -891,6 +891,8 @@ delete_old_svn_tree() {
 	rm -rf $otree
 	rm -rf $otree.svn
 	rm -rf $otree.*.svn
+	rm -rf $otree.git
+	rm -rf $otree.*.git
 	rm -rf s4selftest.$otree.*
 	rm -rf build.$otree.*
 }
@@ -916,9 +918,11 @@ per_run_hook() {
 	rm -f build.log
     fi
 
-    delete_old_svn_tree "samba_3_2"
-    delete_old_svn_tree "samba_3_2_test"
-    delete_old_svn_tree "samba4"
+    delete_old_tree "samba_3_2"
+    delete_old_tree "samba_3_2_test"
+    delete_old_tree "samba4"
+    delete_old_tree "samba_3_X_test"
+    delete_old_tree "samba_3_X_devel"
 }
 
 

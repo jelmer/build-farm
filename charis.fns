@@ -8,11 +8,9 @@ global_lock
 system=`uname`
 
 compiler=gcc
-export config="--enable-automatic-dependencies --disable-gnutls"
+export config="--enable-automatic-dependencies"
 test_tree samba_4_0_test source gcc
-export config=""
-test_tree samba-gtk . gcc
 export config="--enable-merged-build"
-test_tree samba_3_X_devel source gcc
+test_tree samba_3_master source gcc
 
 global_unlock
