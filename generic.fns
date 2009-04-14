@@ -39,6 +39,7 @@ for compiler in gcc cc icc; do
       fi
 
       test_tree samba_3_current source $compiler
+      test_tree samba_3_next source $compiler
       test_tree samba_3_master source $compiler
 
       # by default build ppp only on SunOS or Linux systems

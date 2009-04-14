@@ -127,6 +127,7 @@ per_run_hook
 . common.fns
 
 test_tree samba_3_current source gcc
+test_tree samba_3_next source gcc
 test_tree samba_3_master source gcc
 #Skip Samba4 until we shorten file names
 #test_tree samba_4_0_test source gcc
