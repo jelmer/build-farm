@@ -1,5 +1,7 @@
 per_run_hook
 
+global_lock
+
 export CC=checker
 export CHECK_FLAGS="-Wall --beam::source=/home/tridge/beam/config.tcl --beam::parser_file=ibm_checker_parse.out --beam::complaint_file=ibm_checker.out"
 
@@ -17,3 +19,5 @@ for d in ldb tdb talloc libreplace lorikeet-heimdal ccache rsync; do
     mkdir -p /home/tridge/beam/$d
     test_tree $d . checker configure config_log config_header build cc_checker install test
 done
+
+global_unlock
