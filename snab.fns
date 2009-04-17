@@ -5,8 +5,8 @@ global_lock
 export CC=checker
 export CHECK_FLAGS="-Wall --beam::source=/home/tridge/beam/config.tcl --beam::parser_file=ibm_checker_parse.out --beam::complaint_file=ibm_checker.out"
 
-# allow make cc_checker to take up to 7 hours
-export MAXTIME=25200
+# allow make cc_checker to take up to 8 hours
+export MAXTIME=28800
 
 for d in samba_4_0_test samba_3_current samba_3_next samba_3_master; do
     export CFLAGS="$CHECK_FLAGS --beam::data=/home/tridge/beam/$d"
