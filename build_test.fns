@@ -817,7 +817,7 @@ test_tree() {
 			*)
 			    # ugly hack for s4, as lcov is otherwise not able to find 
 			    # these files
-			    rm -f heimdal/lib/*/{lex,parse}.{gcda,gcno}
+			    rm -f heimdal/lib/*/{lex,parse,sel-lex}.{gcda,gcno}
 			    lcov --base-directory $builddir --directory $builddir --capture --output-file $builddir/$tree.lcov.info
 			    ;;
 		    esac
