@@ -179,7 +179,7 @@ sub get_log_git($$$$$)
 		
 		# for now only send reports to samba.org addresses.
 		$author = undef unless $author =~ /\@samba\.org/;
-		$committer = undef unless $committer =~ /\@samba\.org/;
+		# $committer = undef unless $committer =~ /\@samba\.org/;
 
 		$log->{authors}->{$author} = 1 if defined($author);
 		$log->{committers}->{$committer} = 1 if defined($committer);
