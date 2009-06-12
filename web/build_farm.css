@@ -10,6 +10,7 @@
 #log .status.skipped {	color: rgb(0,   0,   153); }
 #log .status.error {	color: rgb(153, 0,   0);   }
 #log .status.warning {	color: rgb(153, 75,  0);   }
+#log .status.xfailed {	color: rgb(153, 75,  0);   }
 #log .status.mistake {	color: rgb(0,   0,   153); }
 #log .output {
 	color: rgb(0, 0, 0);
@@ -24,6 +25,7 @@
 #log div.unit.failed {	background-color: rgb(255, 180, 180); }
 #log div.unit.skipped {	background-color: rgb(180, 180, 255); }
 #log div.unit.warning {	background-color: rgb(255, 180, 125); }
+#log div.unit.xfailed {	background-color: rgb(255, 180, 125); }
 #log div.unit.error {	background-color: rgb(255, 180, 180); }
 #log div.unit.mistake {	background-color: rgb(180, 180, 255); }
 
@@ -33,6 +35,7 @@
 #log .unit.error   .output {	display: none;}
 #log .unit.mistake .output {	display: none;}
 #log .unit.warning .output {	display: none;}
+#log .unit.xfailed .output {	display: none;}
 
 #log div.output-stderr-0 {
 	display: none;

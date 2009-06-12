@@ -714,6 +714,24 @@ sub view_host {
 	draw_dead_hosts($output_type, @deadhosts);
 }
 
+sub subunit_to_buildfarm_result($)
+{
+	my ($subunit_result) = @_;
+	if ($subunit_result eq "success") {
+		return "passed";
+	} elsif ($subunit_result eq "error") {
+		return "error";
+	} elsif ($subunit_result eq "skip") {
+		return "skipped";
+	} elsif ($subunit_result eq "failure") {
+		return "failed";
+	} elsif ($subunit_result eq "xfail") {
+		return "xfailed";
+	} else {
+		return "unknown";
+	}
+}
+
 ##############################################
 # prints the log in a visually appealing manner
 sub print_log_pretty() {
@@ -749,6 +767,22 @@ sub print_log_pretty() {
 	      TEST\ (FAILED|PASSED|SKIPPED):.*?
 	      ==========================================\s+
 	     }{make_collapsible_html('test', $1, $2, $id++, $3)}exgs;
+
+  $log =~ s{
+	  	  skip-testsuite: ([\w\-=,_:\ /.&; \(\)]+).*?
+	  }{make_collapsible_html('test', $1, '', $id++, 'skipped')}exgs;
+
+
+  $log =~ s{
+		  testsuite: ([\w\-=,_:\ /.&; \(\)]+).*?
+		  (.*?)
+		  testsuite-(.*?): ([\w\-=,_:\ /.&; \(\)]+).*?
+	  }{make_collapsible_html('test', $1, $2, $id++, subunit_to_buildfarm_result($3))}exgs;
+  $log =~ s{
+		  test: ([\w\-=,_:\ /.&; \(\)]+).*?
+		  (.*?)
+		  (success|xfail|failure|skip): ([\w\-=,_:\ /.&; \(\)]+).*?
+	  }{make_collapsible_html('test', $1, $2, $id++, subunit_to_buildfarm_result($3))}exgs;
 
   print $req->pre($log)."\n";
 }
