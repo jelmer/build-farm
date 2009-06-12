@@ -5,7 +5,7 @@
 # Copyright (C) Andrew Bartlett <abartlet@samba.org>   2001
 # Copyright (C) Vance Lankhaar  <vance@samba.org>      2002-2005
 # Copyright (C) Martin Pool <mbp@samba.org>            2001
-# Copyright (C) Jelmer Vernooij <jelmer@samba.org>	   2007
+# Copyright (C) Jelmer Vernooij <jelmer@samba.org>	   2007-2009
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -732,6 +732,15 @@ sub subunit_to_buildfarm_result($)
 	}
 }
 
+sub format_subunit_reason($)
+{
+	my ($reason) = @_;
+
+	$reason =~ s/^\[\n+(.*?)\n+\]$/\1/;
+
+	return "<div class=\"reason\">$reason</div>";
+}
+
 ##############################################
 # prints the log in a visually appealing manner
 sub print_log_pretty() {
@@ -774,15 +783,15 @@ sub print_log_pretty() {
 
 
   $log =~ s{
-		  testsuite: ([\w\-=,_:\ /.&; \(\)]+).*?
+		  testsuite: ([\w\-=,_:\ /.&; \(\)\$]+).*?
 		  (.*?)
-		  testsuite-(.*?): ([\w\-=,_:\ /.&; \(\)]+).*?
-	  }{make_collapsible_html('test', $1, $2, $id++, subunit_to_buildfarm_result($3))}exgs;
+		  testsuite-(.*?): [\w\-=,_:\ /.&; \(\)]+( \[.*?\])?.*?
+	  }{make_collapsible_html('test', $1, $2.format_subunit_reason($4), $id++, subunit_to_buildfarm_result($3))}exgs;
   $log =~ s{
 		  test: ([\w\-=,_:\ /.&; \(\)]+).*?
 		  (.*?)
-		  (success|xfail|failure|skip): ([\w\-=,_:\ /.&; \(\)]+).*?
-	  }{make_collapsible_html('test', $1, $2, $id++, subunit_to_buildfarm_result($3))}exgs;
+		  (success|xfail|failure|skip): [\w\-=,_:\ /.&; \(\)]+( \[.*?\])?.*?
+	  }{make_collapsible_html('test', $1, $2.format_subunit_reason($4), $id++, subunit_to_buildfarm_result($3))}exgs;
 
   print $req->pre($log)."\n";
 }
