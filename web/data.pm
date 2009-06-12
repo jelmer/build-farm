@@ -374,6 +374,10 @@ sub build_status($$$$$)
 
 	if ($log =~ /TEST STATUS:(.*)/) {
 		$tstatus = span_status($1);
+	} else {
+		my $test_failures = 0;
+		$test_failures++ while $log =~ m/testsuite-(failure|error): /g;
+		$tstatus = span_status($test_failures);
 	}
 
 	if ($log =~ /INSTALL STATUS:(.*)/) {
