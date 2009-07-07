@@ -1,0 +1,25 @@
+per_run_hook
+
+global_lock
+
+system=`uname`
+
+
+compiler=gcc
+. common.fns
+test_tree lorikeet-heimdal . $compiler
+
+if which perl > /dev/null; then
+	test_tree samba_4_0_test source $compiler
+fi
+
+#test_tree samba_3_current source $compiler
+test_tree samba_3_next source $compiler
+test_tree samba_3_master source $compiler
+
+# only attempt pidl if we have perl
+if which perl > /dev/null; then
+  test_tree pidl . cc build test
+fi
+
+global_unlock
