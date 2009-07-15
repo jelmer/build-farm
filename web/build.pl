@@ -788,7 +788,7 @@ sub print_log_pretty() {
 		  testsuite-(.*?): [\w\-=,_:\ /.&; \(\)]+( \[.*?\])?.*?
 	  }{make_collapsible_html('test', $1, $2.format_subunit_reason($4), $id++, subunit_to_buildfarm_result($3))}exgs;
   $log =~ s{
-		  test: ([\w\-=,_:\ /.&; \(\)]+).*?
+		  ^test: ([\w\-=,_:\ /.&; \(\)]+).*?
 		  (.*?)
 		  (success|xfail|failure|skip): [\w\-=,_:\ /.&; \(\)]+( \[.*?\])?.*?
 	  }{make_collapsible_html('test', $1, $2.format_subunit_reason($4), $id++, subunit_to_buildfarm_result($3))}exgs;
