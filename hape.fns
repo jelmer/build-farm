@@ -1,0 +1,36 @@
+#export CFLAGS="-O2 -g -Wall"
+
+per_run_hook
+
+global_lock
+
+#PATH=/data/gcc/3.4.3/pa20_64/bin:$PATH
+#export PATH
+
+MAXTIME=18000
+TORTURE_MAXTIME=3600
+SMBD_MAXTIME=18000
+SAMBA_MAXTIME=18000
+export MAXTIME TORTURE_MAXTIME SMBD_MAXTIME SAMBA_MAXTIME
+
+#for compiler in gcc cc ; do
+for compiler in gcc ; do
+
+	export config="--with-included-popt"
+	. common.fns
+
+	# sun_path for unix sockets is char[92]
+	# so we need to use shorter pathes for make test
+	export config="--with-selftest-prefix=/data/home/build/st.samba_4_0_test --with-included-popt"
+	MAKE=gmake test_tree samba_4_0_test source $compiler
+
+	export config="--with-acl-support --with-libiconv=/usr/local --with-included-popt"
+	test_tree samba_3_current source $compiler
+	export config="--with-acl-support --with-libiconv=/usr/local --with-included-popt"
+	test_tree samba_3_next source $compiler
+	export config="--with-acl-support --with-libiconv=/usr/local --with-included-popt"
+	test_tree samba_3_master source $compiler
+
+done
+
+global_unlock
