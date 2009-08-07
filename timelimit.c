@@ -92,7 +92,9 @@ int main(int argc, char *argv[])
 		int status;
 		pid_t pid = wait(&status);
 		if (pid != -1) {
-			ret = WEXITSTATUS(status);
+			if (WIFEXITED(status)) {
+				ret = WEXITSTATUS(status);
+			}
 		} else if (errno == ECHILD) {
 			break;
 		}
