@@ -369,7 +369,7 @@ sub build_status($$$$$)
 	}
 
 	if ($log =~ /ACTION FAILED: test/) {
-		$tstatus = span_status(-1);
+		$tstatus = span_status(255);
 	}
 
 	if ($log =~ /TEST STATUS:(.*)/) {
@@ -382,7 +382,7 @@ sub build_status($$$$$)
 		if ($test_successes > 0) {
 			$tstatus = span_status($test_failures);
 		} else {
-			$tstatus = span_status(-1);			
+			$tstatus = span_status(255);			
 		}
 	}
 
