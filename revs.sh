@@ -26,30 +26,7 @@ for f in `find . -maxdepth 1 -type f -name "*.log" -links 1`; do
     test -z "$rev" && rev=0;
 
     base=`basename $f .log`
-    log_revname="oldrevs/$base-$rev.log"
-    err_revname="oldrevs/$base-$rev.err"
-
-    rm -f $log_revname $err_revname
-    ln -f $base.log $log_revname
-    ln -f $base.err $err_revname
-
-    alist="$alist $base";
-done
-
-for base in $alist; do
     # possibly mail the culprits if the build broke
     ../analyse.pl $base.log
 done
-
-# delete old ones that are not used any more
-find oldrevs -type f -mtime +4 -links 1 | xargs rm -f
-
-# delete any really old data
-find . -type f -mtime +120 | xargs rm -f
-
-# delete old cache data
-find ../cache -type f -name "build.*" -mtime +1 | xargs rm -f
-
-# delete partially uploaded files (crashed rsync)
-find . -type f -mtime +2 -name ".build.*" | xargs rm -f
 

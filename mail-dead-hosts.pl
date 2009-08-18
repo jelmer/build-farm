@@ -34,7 +34,7 @@ foreach (@$hosts) {
 	
 	$db->sent_dead_mail($_->{host}) or die "Could not update 'last dead mail sent' record for $_->{host}";
 
-	# send the password in an e-mail to that address
+	# send an e-mail to the owner
 	my $subject = "Your build farm host $_->{host} appears dead";
 	if ($dry_run) {
 		print "To: $_->{owner} <$_->{owner_email}>\n";

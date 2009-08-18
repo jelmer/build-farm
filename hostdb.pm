@@ -43,7 +43,7 @@ sub provision($)
 	
 	$self->{dbh}->do("CREATE UNIQUE INDEX unique_hostname ON host (name);");
 
-	$self->{dbh}->do("CREATE TABLE build ( id integer primary key autoincrement, tree text, revision text, host text, compiler text, checksum text, age int );");
+	$self->{dbh}->do("CREATE TABLE build ( id integer primary key autoincrement, tree text, revision text, host text, compiler text, checksum text, age int, status text, commit text);");
 	$self->{dbh}->do("CREATE UNIQUE INDEX unique_checksum ON build (checksum);");
 
 	$self->{dbh}->do("CREATE TABLE test_run ( build int, test text, result text, output text);");

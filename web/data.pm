@@ -335,28 +335,13 @@ sub build_revision_time($$$$$)
 
 ##############################################
 # get status of build
-sub build_status($$$$$)
+sub build_status_from_logs($$)
 {
-	my ($self, $host, $tree, $compiler, $rev) = @_;
-	my $file = $self->build_fname($tree, $host, $compiler, $rev);
-	my $cachefile = $self->cache_fname($tree, $host, $compiler, $rev).".status";
+        my ($self, $log, $err) = @_;
 	my ($cstatus, $bstatus, $istatus, $tstatus, $sstatus, $dstatus, $tostatus);
 	$cstatus = $bstatus = $istatus = $tstatus = $sstatus = $dstatus = $tostatus =
 		span({-class=>"status unknown"}, "?");
 
-	my $st1 = stat("$file.log");
-	if (!$st1) {
-		return "Unknown Build";
-	}
-	my $st2 = stat($cachefile);
-
-	if ($st1 && $st2 && $st1->ctime <= $st2->mtime) {
-		return util::FileLoad($cachefile);
-	}
-
-	my $log = util::FileLoad("$file.log");
-	my $err = util::FileLoad("$file.err");
-	$err = "" unless defined($err);
 
 	sub span_status($)
 	{
@@ -422,11 +407,122 @@ sub build_status($$$$$)
 		$sstatus .= "/".span({-class=>"status checker"}, $1);
 	}
 
-	my $ret = "$cstatus/$bstatus/$istatus/$tstatus$sstatus$dstatus$tostatus";
+	return "$cstatus/$bstatus/$istatus/$tstatus$sstatus$dstatus$tostatus";
+}
+
+##############################################
+# get status of build
+sub build_status($$$$$)
+{
+	my ($self, $host, $tree, $compiler, $rev) = @_;
+	my $file = $self->build_fname($tree, $host, $compiler, $rev);
+	my $cachefile = $self->cache_fname($tree, $host, $compiler, $rev).".status";
+	my $st1 = stat("$file.log");
+	if (!$st1) {
+		return "Unknown Build";
+	}
+	my $st2 = stat($cachefile);
+
+	if ($st1 && $st2 && $st1->ctime <= $st2->mtime) {
+		return util::FileLoad($cachefile);
+	}
+
+	my $log = util::FileLoad("$file.log");
+	my $err = util::FileLoad("$file.err");
+	$err = "" unless defined($err);
+
+	my $ret = $self->build_status_from_logs($log, $err);
 
 	util::FileSave("$cachefile", $ret) unless $self->{readonly};
 
 	return $ret;
+}
+
+#####################################t#
+# find the build status as an perl object
+# the 'value' gets one point for passing each stage
+sub build_status_info_from_string($$$)
+{
+	my ($self, $rev_seq, $rev, $status_raw) = @_;
+	my @status_split = split("/", $status_raw);
+	my $status_str = "";
+	my @status_arr = ();
+	my $status_val = 0;
+	my $status = undef;
+
+	foreach my $r (@status_split) {
+		$r =~ s/^\s+//;
+		$r =~ s/\s+$//;
+
+		my $e;
+		if ($r eq "ok") {
+			$e = 0;
+		} elsif ($r =~ /(\d+)/) {
+			$e = $1;
+			$e = 1 unless defined($e);
+			$e = 1 unless $e > 0;
+		} else {
+			$e = 1;
+		}
+
+		$status_str .= "/" unless $status_str eq "";
+		$status_str .= $r;
+
+		$status_val += $e;
+
+		push(@status_arr, $e);
+	}
+
+	$status->{rev}		= $rev;
+	$status->{rev_seq}	= $rev_seq;
+	$status->{array}	= \@status_arr;
+	$status->{string}	= $status_str;
+	$status->{value}	= $status_val;
+
+	return $status;
+}
+
+#####################################t#
+# find the build status as an perl object
+# the 'value' gets one point for passing each stage
+sub build_status_info_from_html($$$)
+{
+	my ($self, $rev_seq, $rev, $status_html) = @_;
+	my $status_raw = util::strip_html($status_html);
+	return build_status_info_from_string($rev_seq, $rev, $status_raw);
+}
+
+#####################################t#
+# find the build status as an perl object
+# the 'value' gets one point for passing each stage
+sub build_status_info($$$$)
+{
+	my ($self, $host, $tree, $compiler, $rev_seq) = @_;
+	my $rev = $self->build_revision($host, $tree, $compiler, $rev_seq);
+	my $status_html = $self->build_status($host, $tree, $compiler, $rev_seq);
+	return $self->build_status_info_from_html($rev_seq, $rev, $status_html)
+}
+
+sub status_info_cmp($$$)
+{
+	my ($self, $s1, $s2) = @_;
+	my @a1 = @{$s1->{array}};
+	my @a2 = @{$s2->{array}};
+	my $c1 = 0;
+	my $c2 = 0;
+
+	for (my $i = 0; ; $i++) {
+		$c1++ if defined($a1[$i]);
+		$c2++ if defined($a2[$i]);
+		last unless defined($a1[$i]);
+		last unless defined($a2[$i]);
+
+		return $c2 - $c1 if ($c1 != $c2);
+
+		return $a2[$i] - $a1[$i] if ($a1[$i] != $a2[$i]);
+	}
+
+	return $s2->{value} - $s1->{value};
 }
 
 ##############################################
