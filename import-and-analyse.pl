@@ -52,7 +52,7 @@ my $hostdb = new hostdb("$RealBin/hostdb.sqlite");
 my $dbh = $hostdb->{dbh};
 
 my @compilers = @{$db->{compilers}};
-my @hosts = @{$hostdb->{hosts}};
+my @hosts = $hostdb->hosts();
 my %trees = %{$db->{trees}};
 
 sub check_and_send_mails($$$$$) 
