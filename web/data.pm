@@ -369,7 +369,7 @@ sub build_status($$$$$)
 	}
 
 	if ($log =~ /ACTION FAILED: test/) {
-		$tstatus = span_status(255);
+		$tstatus = span_status(-1);
 	}
 
 	if ($log =~ /TEST STATUS:(.*)/) {
@@ -377,7 +377,13 @@ sub build_status($$$$$)
 	} elsif ($log =~ /ACTION (PASSED|FAILED): test/) {
 		my $test_failures = 0;
 		$test_failures++ while $log =~ m/testsuite-(failure|error): /g;
-		$tstatus = span_status($test_failures);
+		my $test_successes = 0;
+		$test_successes++ while $log =~ m/testsuite-success: /g;
+		if ($test_successes > 0) {
+			$tstatus = span_status($test_failures);
+		} else {
+			$tstatus = span_status(-1);			
+		}
 	}
 
 	if ($log =~ /INSTALL STATUS:(.*)/) {
