@@ -177,12 +177,16 @@ foreach my $host (@hosts) {
 	    my $status_html = $db->build_status_from_logs($data, $err);
 
 	    # Look up the database to find the previous status
-	    $st = $dbh->prepare("SELECT status FROM build WHERE tree = ? AND host = ? AND compiler = ? AND revision != ? AND commit_revision != ? ORDER BY id DESC LIMIT 1");
+	    $st = $dbh->prepare("SELECT status, revision, commit_revision FROM build WHERE tree = ? AND host = ? AND compiler = ? AND revision != ? AND commit_revision != ? ORDER BY id DESC LIMIT 1");
 	    $st->execute( $tree, $host, $compiler, $rev, $commit) or die "Could not search for existing build";
 
 	    my $old_status_html;
+	    my $old_rev;
+	    my $old_commit;
 	    while ( my @row = $st->fetchrow_array ) {
 		$old_status_html = @row[0];
+		$old_rev = @row[1];
+		$old_commit = @row[2];
 	    }
 
 
@@ -211,7 +215,7 @@ foreach my $host (@hosts) {
 
 	    # Can't send a nastygram until there are 2 builds..
 	    if (defined($old_status_html)) {
-		$old_status = $db->build_status_info_from_html($rev, $commit, $old_status_html);
+		$old_status = $db->build_status_info_from_html($old_rev, $old_commit, $old_status_html);
 		check_and_send_mails($tree, $host, $compiler, $cur_status, $old_status);
 	    }
 	    
