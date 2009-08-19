@@ -209,7 +209,7 @@ sub cache_fname($$$$$)
 	if ($rev) {
 		return "$self->{cachedir}/oldrevs/build.$tree.$host.$compiler-$rev";
 	}
-	return "$self->{cachedir}/build.$tree.$host.$compiler";
+	return "$self->{cachedir}/upload/build.$tree.$host.$compiler";
 }
 
 ################################
@@ -220,7 +220,7 @@ sub build_fname($$$$$)
 	if ($rev) {
 		return "$self->{datadir}/oldrevs/build.$tree.$host.$compiler-$rev";
 	}
-	return "$self->{datadir}/build.$tree.$host.$compiler";
+	return "$self->{datadir}/upload/build.$tree.$host.$compiler";
 }
 
 ###################
@@ -489,7 +489,7 @@ sub build_status_info_from_html($$$)
 {
 	my ($self, $rev_seq, $rev, $status_html) = @_;
 	my $status_raw = util::strip_html($status_html);
-	return build_status_info_from_string($rev_seq, $rev, $status_raw);
+	return $self->build_status_info_from_string($rev_seq, $rev, $status_raw);
 }
 
 #####################################t#

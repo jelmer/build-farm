@@ -52,7 +52,7 @@ my $hostdb = new hostdb("$RealBin/hostdb.sqlite");
 my $dbh = $hostdb->{dbh};
 
 my @compilers = @{$db->{compilers}};
-my @hosts = $hostdb->hosts();
+my @hosts = @{$db->{hosts_list}};
 my %trees = %{$db->{trees}};
 
 sub check_and_send_mails($$$$$) 
@@ -64,7 +64,7 @@ sub check_and_send_mails($$$$$)
     
     printf("old rev=$old->{rev} status=$old->{string}\n") if $dry_run;
     
-    my $cmp = $db->status_cmp($old, $cur);
+    my $cmp = $db->status_info_cmp($old, $cur);
 #printf("cmp: $cmp\n");
     
     if ($cmp <= 0) {
@@ -116,8 +116,6 @@ __EOF__
 }
 
 
-
-
 foreach my $host (@hosts) {
     foreach my $tree (keys %trees) {
 	foreach my $compiler (@compilers) {
@@ -136,7 +134,7 @@ foreach my $host (@hosts) {
 		print "Processing $logfn...\n";
 	    }
 	    
-	    my $st = $dbh->prepare("SELECT * FROM build WHERE age >= ? AND tree = ? AND host = ? AND compiler = ?");
+	    my $st = $dbh->prepare("SELECT checksum FROM build WHERE age >= ? AND tree = ? AND host = ? AND compiler = ?");
 	    
 	    $st->execute($stat->mtime, $tree, $host, $compiler) or die("Unable to check for existing build data");
 	    
@@ -161,7 +159,7 @@ foreach my $host (@hosts) {
 	    $dbh->begin_work() or die "could not get transaction lock";
 		
 	    my $checksum = sha1_hex($data);
-	    if ($dbh->selectrow_array("SELECT FROM build WHERE checksum = '$checksum'")) {
+	    if ($dbh->selectrow_array("SELECT checksum FROM build WHERE checksum = '$checksum'")) {
 		$dbh->do("UPDATE BUILD SET age = ? WHERE checksum = ?", undef, 
 			 ($stat->mtime, $checksum));
 		next;
@@ -179,8 +177,8 @@ foreach my $host (@hosts) {
 	    my $status_html = $db->build_status_from_logs($data, $err);
 
 	    # Look up the database to find the previous status
-	    $st = $dbh->prepare("SELECT status FROM build WHERE tree = '?' AND host = '?' AND compiler = '?' AND revision < '?' AND commit != '?' ORDER BY revision LIMIT 1");
-	    $st->execute( $tree, $host, $compiler, $rev, $commit );
+	    $st = $dbh->prepare("SELECT status FROM build WHERE tree = ? AND host = ? AND compiler = ? AND revision != ? AND commit_revision != ? ORDER BY id DESC LIMIT 1");
+	    $st->execute( $tree, $host, $compiler, $rev, $commit) or die "Could not search for existing build";
 
 	    my $old_status_html;
 	    while ( my @row = $st->fetchrow_array ) {
@@ -188,7 +186,7 @@ foreach my $host (@hosts) {
 	    }
 
 
-	    $st = $dbh->prepare("INSERT INTO build (tree, revision, commit, host, compiler, checksum, age, status) VALUES (?, ?, ?, ?, ?, ?, ?)");
+	    $st = $dbh->prepare("INSERT INTO build (tree, revision, commit_revision, host, compiler, checksum, age, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 	    $st->execute($tree, $rev, $commit, $host, $compiler, $checksum, $stat->mtime, $status_html);
 	    my $build = $dbh->func('last_insert_rowid');
 	    
@@ -210,18 +208,19 @@ foreach my $host (@hosts) {
 
 	    my $cur_status = $db->build_status_info_from_html($rev, $commit, $status_html);
 	    my $old_status;
+
+	    # Can't send a nastygram until there are 2 builds..
 	    if (defined($old_status_html)) {
 		$old_status = $db->build_status_info_from_html($rev, $commit, $old_status_html);
+		check_and_send_mails($tree, $host, $compiler, $cur_status, $old_status);
 	    }
 	    
-	    check_and_send_mails($tree, $host, $compiler, $cur_status, $old_status);
-
 	    if ($dry_run) {
-		$dbh->cancel();
+		$dbh->rollback;
 		next;
 	    }
 
-	    $dbh->commit() or die "Could not commit transaction";
+	    $dbh->commit or die "Could not commit transaction";
 	    if ($rev) {
 		# If we were able to put this into the DB (ie, a
 		# one-off event, so we won't repeat this), then also

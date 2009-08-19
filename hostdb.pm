@@ -47,8 +47,6 @@ sub provision($)
 	$self->{dbh}->do("CREATE UNIQUE INDEX unique_checksum ON build (checksum);");
 
 	$self->{dbh}->do("CREATE TABLE test_run ( build int, test text, result text, output text);");
-	$self->{dbh}->do("CREATE TABLE build_stage_run ( build int, action text, result text, output text, num int);");
-	$self->{dbh}->do("CREATE UNIQUE INDEX build_stage_build_run ON build_stage_run ( build, action );");
 
 }
 
