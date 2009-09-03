@@ -192,21 +192,24 @@ foreach my $host (@hosts) {
 
 	    $st = $dbh->prepare("INSERT INTO build (tree, revision, commit_revision, host, compiler, checksum, age, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 	    $st->execute($tree, $rev, $commit, $host, $compiler, $checksum, $stat->mtime, $status_html);
-	    my $build = $dbh->func('last_insert_rowid');
-	    
-	    $st = $dbh->prepare("INSERT INTO test_run (build, test, result, output) VALUES ($build, ?, ?, ?)");
-	    
-	    while ($data =~ /--==--==--==--==--==--==--==--==--==--==--.*?
-	Running\ test\ ([\w\-=,_:\ \/.&;]+).*?
-	--==--==--==--==--==--==--==--==--==--==--
-	(.*?)
-	==========================================.*?
-	TEST\ (FAILED|PASSED|SKIPPED):.*?
-	==========================================\s+
-	/sxg) {
-		# Note: output is discarded ($2)
-		$st->execute($1, $3, undef);
-	    }
+
+
+#   SKIP This code, as it creates massive databases, until we get code to use the information, and a way to expire the results
+#	    my $build = $dbh->func('last_insert_rowid');
+#	    
+#	    $st = $dbh->prepare("INSERT INTO test_run (build, test, result, output) VALUES ($build, ?, ?, ?)");
+#	    
+#	    while ($data =~ /--==--==--==--==--==--==--==--==--==--==--.*?
+#	Running\ test\ ([\w\-=,_:\ \/.&;]+).*?
+#	--==--==--==--==--==--==--==--==--==--==--
+#	(.*?)
+#	==========================================.*?
+#	TEST\ (FAILED|PASSED|SKIPPED):.*?
+#	==========================================\s+
+#	/sxg) {
+#		# Note: output is discarded ($2)
+#		$st->execute($1, $3, undef);
+#	    }
 
 	    $st->finish();
 
