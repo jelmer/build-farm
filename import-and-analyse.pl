@@ -13,6 +13,7 @@ use File::stat;
 use Getopt::Long;
 use hostdb;
 use data;
+use Carp;
 
 my $opt_help = 0;
 my $opt_verbose = 0;
@@ -44,6 +45,8 @@ EOU
 	exit(1);
 }
 
+my $unpacked_dir = "/home/ftp/pub/unpacked";
+
 # we open readonly here as only apache(www-run) has write access
 my $db = new data($RealBin, 1);
 
@@ -54,6 +57,89 @@ my $dbh = $hostdb->{dbh};
 my @compilers = @{$db->{compilers}};
 my @hosts = @{$db->{hosts_list}};
 my %trees = %{$db->{trees}};
+
+sub get_log_svn($$$$$)
+{
+	my ($host, $tree, $compiler, $cur, $old) = @_;
+	my $firstrev = $old->{rev} + 1;
+	my $cmd = "svn log --non-interactive -r $firstrev:$cur->{rev} $unpacked_dir/$tree";
+	my $log = undef;
+
+	$log->{change_log} = `$cmd` || confess "$cmd: failed";
+	#print($log->{change_log});
+
+	# get the list of possible culprits
+	my $log2 = $log->{change_log};
+
+	while ($log2 =~ /\nr\d+ \| (\w+) \|.*?line(s?)\n(.*)$/s) {
+		$log->{committers}->{"$1\@samba.org"} = 1;
+		$log2 = $3;
+	}
+
+	# Add a URL to the diffs for each change
+	$log->{change_log} =~ s/\n(r(\d+).*)/\n$1\nhttp:\/\/build.samba.org\/?function=diff;tree=${tree};revision=$2/g;
+
+	$log->{recipients} = $log->{committers};
+
+	return $log;
+}
+
+sub get_log_git($$$$$)
+{
+	my ($host, $tree, $compiler, $cur, $old) = @_;
+	my $cmd = "cd $unpacked_dir/$tree && git log --pretty=full $old->{rev}..$cur->{rev} ./";
+	my $log = undef;
+
+	$log->{change_log} = `$cmd` || confess "$cmd: failed";
+	#print($log->{change_log});
+
+	# get the list of possible culprits
+	my $log2 = $log->{change_log};
+
+	while ($log2 =~ /[\n]*Author: [^<]*<([^>]+)>\nCommit: [^<]*<([^>]+)>\n(.*)$/s) {
+		my $author = $1;
+		my $committer = $2;
+		$log2 = $3;
+		
+		# handle cherry-picks from svnmirror repo
+		$author =~ s/0c0555d6-39d7-0310-84fc-f1cc0bd64818/samba\.org/;
+		
+		# for now only send reports to samba.org addresses.
+		$author = undef unless $author =~ /\@samba\.org/;
+		# $committer = undef unless $committer =~ /\@samba\.org/;
+
+		$log->{authors}->{$author} = 1 if defined($author);
+		$log->{committers}->{$committer} = 1 if defined($committer);
+	}
+
+	# Add a URL to the diffs for each change
+	$log->{change_log} =~ s/([\n]*commit ([0-9a-f]+))/$1\nhttp:\/\/build.samba.org\/?function=diff;tree=${tree};revision=$2/g;
+
+	my @all = ();
+	push(@all, keys %{$log->{authors}}) if defined($log->{authors});
+	push(@all, keys %{$log->{committers}}) if defined($log->{committers});
+	my $all = undef;
+	foreach my $k (@all) {
+		$all->{$k} = 1;
+	}
+	$log->{recipients} = $all;
+
+	return $log;
+}
+
+sub get_log($$$$$)
+{
+	my ($host, $tree, $compiler, $cur, $old) = @_;
+	my $treedir = "$unpacked_dir/$tree";
+
+	if (-d "$treedir/.svn") {
+		return get_log_svn($host, $tree, $compiler, $cur, $old);
+	} elsif (-d "$treedir/.git") {
+		return get_log_git($host, $tree, $compiler, $cur, $old);
+	}
+
+	return undef;
+}
 
 sub check_and_send_mails($$$$$) 
 {
