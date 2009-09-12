@@ -176,7 +176,7 @@ sub check_and_send_mails($$$$$)
 	open(MAIL,"|cat");
     } else {
 	if (defined($recipients)) {
-	    open(MAIL,"|Mail -a \"Content-Type: text/plain;charset=utf-8\" -s \"$subject\" $recipients");
+	    open(MAIL,"|Mail -a \"Content-Type: text/plain;charset=utf-8\" -a \"Precedence: bulk\" -s \"$subject\" $recipients");
 	} else {
 	    open(MAIL,"|cat >/dev/null");
 	}
