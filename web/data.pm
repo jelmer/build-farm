@@ -619,11 +619,13 @@ sub get_old_revs($$$$)
 sub has_host($$)
 {
 	my ($self, $host) = @_;
-
-	my $ls = `ls $self->{datadir}/*.log`;
-
-	return 1 if ($ls =~ /$host/);
-	return 0;
+	my $directory = $self->{datadir}."/upload";
+	opendir(DIR, $directory) || die "can't opendir $directory: $!";
+	if (grep { /$host/ } readdir(DIR)) {
+		return 1;
+	} else {
+		return 0;
+	}
 }
 
 1;
