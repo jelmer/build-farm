@@ -604,7 +604,11 @@ sub read_err($$$$$)
 sub get_old_revs($$$$)
 {
 	my ($self, $tree, $host, $compiler) = @_;
-	my @list = split('\n', `ls $self->{datadir}/oldrevs/build.$tree.$host.$compiler-*.log`);
+
+	my $directory = $self->{datadir}."/oldrevs";
+	opendir(DIR, $directory) || die "can't opendir $directory: $!";
+	my @list = (grep { /^build\.$tree\.$host\.$compiler-.*\.log$/ } readdir(DIR));
+	closedir DIR;
 	my %ret;
 	for my $l (@list) {
 		if ($l =~ /-(\d+).log$/) {
