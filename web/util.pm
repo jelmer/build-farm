@@ -25,7 +25,13 @@ use Data::Dumper;
 sub load_list($)
 {
 	my $fname = shift;
-	my @lines = split('\n', `grep -v ^# $fname`);
+	my @lines;
+	open(FH,"<",$fname);
+	while (<FH>) {
+		chomp;
+		push (@lines,$_) unless (/^#/);
+	}
+	close FH;
 	return @lines;
 }
 
