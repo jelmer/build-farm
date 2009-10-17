@@ -539,9 +539,9 @@ test_tree() {
 	# darn, this affects sparse files too! disable it
 	# ulimit -f 100000 2> /dev/null
 
-	# try and limit the number of open files to 150. That means we'll discover
+	# try and limit the number of open files to 200. That means we'll discover
 	# fd leaks faster
-	ulimit -n 150 2> /dev/null
+	ulimit -n 200 2> /dev/null
 
 	# Keep stuff private
 	umask 077
