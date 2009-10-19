@@ -14,10 +14,10 @@ export WINBINDD_VALGRIND="valgrind -q --num-callers=30 --log-file=st/valgrind.lo
 export SAMBA_VALGRIND="valgrind -q --num-callers=30 --log-file=st/valgrind.log_%p --gen-suppressions=all --suppressions=.valgrind_suppressions"
 export VALGRIND="valgrind -q --num-callers=30 --log-file=st/valgrind.log_%p --gen-suppressions=all --suppressions=.valgrind_suppressions"
 
-export MAXTIME=18000
-export TORTURE_MAXTIME=3600
-export SMBD_MAXTIME=18000
-export SAMBA_MAXTIME=18000
+export MAXTIME=24000
+export TORTURE_MAXTIME=7200
+export SMBD_MAXTIME=24000
+export SAMBA_MAXTIME=24000
 
 test_tree samba_4_0_test source gcc
 test_tree samba_3_current source gcc
