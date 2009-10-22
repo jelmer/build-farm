@@ -205,6 +205,8 @@ __EOF__
 foreach my $host (@hosts) {
     foreach my $tree (keys %trees) {
 	foreach my $compiler (@compilers) {
+	    my $rev;
+	    my $retry = 0;
 	    if ($opt_verbose >= 2) {
 		print "Looking for a log file for $host $compiler $tree...\n";
 	    }
@@ -220,64 +222,70 @@ foreach my $host (@hosts) {
 		print "Processing $logfn...\n";
 	    }
 	    
-	    my $st = $dbh->prepare("SELECT checksum FROM build WHERE age >= ? AND tree = ? AND host = ? AND compiler = ?");
+	    eval {
+		my $st = $dbh->prepare("SELECT checksum FROM build WHERE age >= ? AND tree = ? AND host = ? AND compiler = ?");
 	    
-	    $st->execute($stat->mtime, $tree, $host, $compiler) or die("Unable to check for existing build data");
+		$st->execute($stat->mtime, $tree, $host, $compiler);
 	    
-	    # Don't bother if we've already processed this file
-	    my $relevant_rows = $st->fetchall_arrayref();
-	    
-	    next if ($#$relevant_rows > -1);
-	    
-	    # By reading the log file this way, using only the list of
-	    # hosts, trees and compilers as input, we ensure we
-	    # control the inputs
-	    my $data = util::FileLoad($logfn.".log");
-
-	    # Don't bother with empty logs, they have no meaning (and would all share the same checksum)
-	    if (not $data or $data eq "") {
-		next;
-	    }
-
-	    my $err = util::FileLoad($logfn.".err");
-	    $err = "" unless defined($err);
-
-	    $dbh->begin_work() or die "could not get transaction lock";
+		# Don't bother if we've already processed this file
+		my $relevant_rows = $st->fetchall_arrayref();
 		
-	    my $checksum = sha1_hex($data);
-	    if ($dbh->selectrow_array("SELECT checksum FROM build WHERE checksum = '$checksum'")) {
-		$dbh->do("UPDATE BUILD SET age = ? WHERE checksum = ?", undef, 
-			 ($stat->mtime, $checksum));
-		next;
-	    }
-	    if ($opt_verbose) { print "$logfn\n"; }
+		$st->finish();
+
+		if ($#$relevant_rows > -1) {
+		    die "next please"; #Moves to the next record in the exception handler
+		}
 	    
-	    my ($rev) = ($data =~ /BUILD REVISION: ([^\n]+)/);
-	    my $commit;
-	    
-	    if ($data =~ /BUILD COMMIT REVISION: (.*)/) {
-		$commit = $1;
-	    } else {
-		$commit = $rev;
-	    }
-	    my $status_html = $db->build_status_from_logs($data, $err);
-
-	    # Look up the database to find the previous status
-	    $st = $dbh->prepare("SELECT status, revision, commit_revision FROM build WHERE tree = ? AND host = ? AND compiler = ? AND revision != ? AND commit_revision != ? ORDER BY id DESC LIMIT 1");
-	    $st->execute( $tree, $host, $compiler, $rev, $commit) or die "Could not search for existing build";
-
-	    my $old_status_html;
-	    my $old_rev;
-	    my $old_commit;
-	    while ( my @row = $st->fetchrow_array ) {
-		$old_status_html = @row[0];
-		$old_rev = @row[1];
-		$old_commit = @row[2];
-	    }
-
-
-	    $st = $dbh->prepare("INSERT INTO build (tree, revision, commit_revision, host, compiler, checksum, age, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-	    $st->execute($tree, $rev, $commit, $host, $compiler, $checksum, $stat->mtime, $status_html);
+		# By reading the log file this way, using only the list of
+		# hosts, trees and compilers as input, we ensure we
+		# control the inputs
+		my $data = util::FileLoad($logfn.".log");
+		
+		# Don't bother with empty logs, they have no meaning (and would all share the same checksum)
+		if (not $data or $data eq "") {
+		    die "next please"; #Moves to the next record in the exception handler
+		}
+		
+		my $err = util::FileLoad($logfn.".err");
+		$err = "" unless defined($err);
+		
+		$dbh->begin_work();
+		
+		my $checksum = sha1_hex($data);
+		if ($dbh->selectrow_array("SELECT checksum FROM build WHERE checksum = '$checksum'")) {
+		    $dbh->do("UPDATE BUILD SET age = ? WHERE checksum = ?", undef, 
+			     ($stat->mtime, $checksum));
+		    die "next please"; #Moves to the next record in the exception handler
+		}
+		if ($opt_verbose) { print "$logfn\n"; }
+		
+		($rev) = ($data =~ /BUILD REVISION: ([^\n]+)/);
+		my $commit;
+		
+		if ($data =~ /BUILD COMMIT REVISION: (.*)/) {
+		    $commit = $1;
+		} else {
+		    $commit = $rev;
+		}
+		my $status_html = $db->build_status_from_logs($data, $err);
+		
+		# Look up the database to find the previous status
+		$st = $dbh->prepare("SELECT status, revision, commit_revision FROM build WHERE tree = ? AND host = ? AND compiler = ? AND revision != ? AND commit_revision != ? ORDER BY id DESC LIMIT 1");
+		$st->execute( $tree, $host, $compiler, $rev, $commit);
+		
+		my $old_status_html;
+		my $old_rev;
+		my $old_commit;
+		while ( my @row = $st->fetchrow_array ) {
+		    $old_status_html = @row[0];
+		    $old_rev = @row[1];
+		    $old_commit = @row[2];
+		}
+		
+		$st->finish();
+		
+		$st = $dbh->prepare("INSERT INTO build (tree, revision, commit_revision, host, compiler, checksum, age, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+		$st->execute($tree, $rev, $commit, $host, $compiler, $checksum, $stat->mtime, $status_html);
 
 
 #   SKIP This code, as it creates massive databases, until we get code to use the information, and a way to expire the results
@@ -297,23 +305,42 @@ foreach my $host (@hosts) {
 #		$st->execute($1, $3, undef);
 #	    }
 
-	    $st->finish();
+		$st->finish();
 
-	    my $cur_status = $db->build_status_info_from_html($rev, $commit, $status_html);
-	    my $old_status;
+		my $cur_status = $db->build_status_info_from_html($rev, $commit, $status_html);
+		my $old_status;
+		
+		# Can't send a nastygram until there are 2 builds..
+		if (defined($old_status_html)) {
+		    $old_status = $db->build_status_info_from_html($old_rev, $old_commit, $old_status_html);
+		    check_and_send_mails($tree, $host, $compiler, $cur_status, $old_status);
+		}
+		
+		if ($dry_run) {
+		    $dbh->rollback;
+		    die "next please"; #Moves to the next record in the exception handler
+		}
 
-	    # Can't send a nastygram until there are 2 builds..
-	    if (defined($old_status_html)) {
-		$old_status = $db->build_status_info_from_html($old_rev, $old_commit, $old_status_html);
-		check_and_send_mails($tree, $host, $compiler, $cur_status, $old_status);
-	    }
-	    
-	    if ($dry_run) {
+		$dbh->commit;
+	    };
+
+	    if ($@) {
+		local $dbh->{RaiseError} = 0;
 		$dbh->rollback;
+		
+		if ($@ eq "next please") {
+		    # Ignore errors and hope for better luck next time the script is run
+		    next;
+		} elsif ($@ =~ /database is locked/ and $retry < 3) {
+		    $retry++;
+		    sleep(1);
+		    redo;
+		}
+		
+		print "Failed to process record for reason: $@";
 		next;
 	    }
 
-	    $dbh->commit or die "Could not commit transaction";
 	    if ($rev) {
 		# If we were able to put this into the DB (ie, a
 		# one-off event, so we won't repeat this), then also
@@ -332,3 +359,5 @@ foreach my $host (@hosts) {
 	}
     }
 }
+
+$dbh->disconnect();

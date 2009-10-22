@@ -28,7 +28,8 @@ sub new($)
  {
     my ($class, $filename) = @_;
     
-    my $dbh = DBI->connect("dbi:SQLite:$filename") or return undef;
+    my $dbh = DBI->connect("dbi:SQLite:$filename", "", "", {RaiseError => 1, PrintError => 0,
+			 ShowErrorStatement => 1, AutoCommit => 0}) or return undef;
     
     my $self = { filename => $filename, dbh => $dbh };
     
@@ -38,16 +39,22 @@ sub new($)
 sub provision($)
 {
 	my ($self) = @_;
-	
-	$self->{dbh}->do("CREATE TABLE host ( name text, owner text, owner_email text, password text, ssh_access int, fqdn text, platform text, permission text, last_dead_mail int, join_time int );");
-	
-	$self->{dbh}->do("CREATE UNIQUE INDEX unique_hostname ON host (name);");
-
-	$self->{dbh}->do("CREATE TABLE build ( id integer primary key autoincrement, tree text, revision text, host text, compiler text, checksum text, age int, status text, commit text);");
-	$self->{dbh}->do("CREATE UNIQUE INDEX unique_checksum ON build (checksum);");
-
-	$self->{dbh}->do("CREATE TABLE test_run ( build int, test text, result text, output text);");
-
+	eval {
+	    $self->{dbh}->begin_work();
+	    $self->{dbh}->do("CREATE TABLE host ( name text, owner text, owner_email text, password text, ssh_access int, fqdn text, platform text, permission text, last_dead_mail int, join_time int );");
+	    
+	    $self->{dbh}->do("CREATE UNIQUE INDEX unique_hostname ON host (name);");
+	    
+	    $self->{dbh}->do("CREATE TABLE build ( id integer primary key autoincrement, tree text, revision text, host text, compiler text, checksum text, age int, status text, commit text);");
+	    $self->{dbh}->do("CREATE UNIQUE INDEX unique_checksum ON build (checksum);");
+	    
+	    $self->{dbh}->do("CREATE TABLE test_run ( build int, test text, result text, output text);");
+	    $self->{dbh}->commit();
+	};
+	if ($@) {
+	    local $self->{dbh}->{RaiseError} = 0;
+	    $self->{dbh}->rollback();
+	}
 }
 
 sub createhost($$$$$$)
@@ -55,16 +62,32 @@ sub createhost($$$$$$)
 	my ($self, $name, $platform, $owner, $owner_email, $password, $permission) = @_;
 	my $sth = $self->{dbh}->prepare("INSERT INTO host (name, platform, owner, owner_email, password, permission, join_time) VALUES (?,?,?,?,?,?,?)");
 	
-	$sth->execute($name, $platform, $owner, $owner_email, $password, $permission, time());
+	eval {
+	    $self->{dbh}->begin_work();
+	    $sth->execute($name, $platform, $owner, $owner_email, $password, $permission, time());
+	    $self->{dbh}->commit();
+	};
+	if ($@) {
+	    local $self->{dbh}->{RaiseError} = 0;
+	    $self->{dbh}->rollback();
+	}
 }
 
 sub deletehost($$)
 {
 	my ($self, $name) = @_;
-	
+	my $ret;
 	my $sth = $self->{dbh}->prepare("DELETE FROM host WHERE name = ?");
 	
-	my $ret = $sth->execute($name);
+	eval {
+	    $self->{dbh}->begin_work();
+	    $ret = $sth->execute($name);
+	    $self->{dbh}->commit();
+	};
+	if ($@) {
+	    local $self->{dbh}->{RaiseError} = 0;
+	    $self->{dbh}->rollback();
+	}
 	
 	return ($ret == 1);
 }
@@ -86,8 +109,18 @@ sub dead_hosts($$)
 sub sent_dead_mail($$) 
 {
         my ($self, $host) = @_;
-	my $changed = $self->{dbh}->do("UPDATE host SET last_dead_mail = ? WHERE name = ?", undef, 
+	my $changed;
+	eval {
+	    $self->{dbh}->begin_work();
+	    $changed = $self->{dbh}->do("UPDATE host SET last_dead_mail = ? WHERE name = ?", undef, 
 		(time(), $host));
+	    $self->{dbh}->commit();
+	};
+	if ($@) {
+	    local $self->{dbh}->{RaiseError} = 0;
+	    $self->{dbh}->rollback();
+	    return 0;
+	}
 	
 	return ($changed == 1);
 }
@@ -108,9 +141,19 @@ sub host($$)
 sub update_platform($$$)
 {
 	my ($self, $name, $new_platform) = @_;
-	
-	my $changed = $self->{dbh}->do("UPDATE host SET platform = ? WHERE name = ?", undef, 
+	my $changed;
+
+	eval {
+	    $self->{dbh}->begin_work();
+	    $changed = $self->{dbh}->do("UPDATE host SET platform = ? WHERE name = ?", undef, 
 		($new_platform, $name));
+	    $self->{dbh}->commit();
+	};
+	if ($@) {
+	    local $self->{dbh}->{RaiseError} = 0;
+	    $self->{dbh}->rollback();
+	    return 0;
+	}
 	
 	return ($changed == 1);
 }
@@ -118,9 +161,19 @@ sub update_platform($$$)
 sub update_owner($$$$)
 {
 	my ($self, $name, $new_owner, $new_owner_email) = @_;
-	
-	my $changed = $self->{dbh}->do("UPDATE host SET owner = ?, owner_email = ? WHERE name = ?", 
+	my $changed;
+
+	eval {
+	    $self->{dbh}->begin_work();
+	    $changed = $self->{dbh}->do("UPDATE host SET owner = ?, owner_email = ? WHERE name = ?", 
 				       undef, ($new_owner, $new_owner_email, $name));
+	    $self->{dbh}->commit();
+	};
+	if ($@) {
+	    local $self->{dbh}->{RaiseError} = 0;
+	    $self->{dbh}->rollback();
+	    return 0;
+	}
 	
 	return ($changed == 1);
 }
