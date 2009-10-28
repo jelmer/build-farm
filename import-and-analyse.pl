@@ -326,7 +326,7 @@ foreach my $host (@hosts) {
 		local $dbh->{RaiseError} = 0;
 		$dbh->rollback;
 		
-		if ($@ eq "next please") {
+		if ($@ =~ /^next please/) {
 		    # Ignore errors and hope for better luck next time the script is run
 		    next;
 		} elsif ($@ =~ /database is locked/ and $retry < 3) {
