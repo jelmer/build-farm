@@ -13,12 +13,17 @@ use data;
 
 is(new data("somedirthatdoesn'texist"), undef);
 
-mkdir("tmpdata");
-my $x = new data("tmpdata");
+mkdir("tmpdir");
+mkdir("tmpdir/data");
+mkdir("tmpdir/cache");
+mkdir("tmpdir/web");
+mkdir("tmpdir/lcov");
+mkdir("tmpdir/lcov/data");
+my $x = new data("tmpdir");
 ok($x);
 
-is($x->build_fname("mytree", "myhost", "cc", undef), "tmpdata/build.mytree.myhost.cc");
-is($x->build_fname("mytree", "myhost", "cc", 123), "tmpdata/oldrevs/build.mytree.myhost.cc-123");
+is($x->build_fname("mytree", "myhost", "cc", undef), "tmpdir/data/upload/build.mytree.myhost.cc");
+is($x->build_fname("mytree", "myhost", "cc", 123), "tmpdir/data/oldrevs/build.mytree.myhost.cc-123");
 
 rmdir("tmpdata");
 

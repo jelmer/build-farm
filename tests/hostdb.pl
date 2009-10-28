@@ -40,11 +40,11 @@ is_deeply([["gwalcmai"]], $db->{dbh}->selectall_arrayref("SELECT name FROM host"
 
 my $expected_host = { name => "gwalcmai", owner => "jelmer", owner_email => "jelmer\@example.com", 
              platform => "vax", permission => 'Yo! Please put me on the buildfarm', fqdn => undef,
-             password => "geheim", ssh_access => undef };
+             password => "geheim", ssh_access => undef, join_time => time(), last_dead_mail => undef };
 
-is_deeply([$expected_host], $db->hosts());
+is_deeply($db->hosts(), [$expected_host]);
 
-is_deeply($expected_host, $db->host("gwalcmai"));
+is_deeply($db->host("gwalcmai"), $expected_host);
 
 is(undef, $db->host("foo"));
 
