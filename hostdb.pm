@@ -40,12 +40,11 @@ sub provision($)
 {
 	my ($self) = @_;
 	eval {
-	    $self->{dbh}->begin_work();
 	    $self->{dbh}->do("CREATE TABLE host ( name text, owner text, owner_email text, password text, ssh_access int, fqdn text, platform text, permission text, last_dead_mail int, join_time int );");
 	    
 	    $self->{dbh}->do("CREATE UNIQUE INDEX unique_hostname ON host (name);");
 	    
-	    $self->{dbh}->do("CREATE TABLE build ( id integer primary key autoincrement, tree text, revision text, host text, compiler text, checksum text, age int, status text, commit text);");
+	    $self->{dbh}->do("CREATE TABLE build ( id integer primary key autoincrement, tree text, revision text, host text, compiler text, checksum text, age int, status text, commit_revision text);");
 	    $self->{dbh}->do("CREATE UNIQUE INDEX unique_checksum ON build (checksum);");
 	    
 	    $self->{dbh}->do("CREATE TABLE test_run ( build int, test text, result text, output text);");
@@ -54,7 +53,10 @@ sub provision($)
 	if ($@) {
 	    local $self->{dbh}->{RaiseError} = 0;
 	    $self->{dbh}->rollback();
+	    print "DB Failure: $@";
+	    return 0;
 	}
+	return 1;
 }
 
 sub createhost($$$$$$)
@@ -63,14 +65,16 @@ sub createhost($$$$$$)
 	my $sth = $self->{dbh}->prepare("INSERT INTO host (name, platform, owner, owner_email, password, permission, join_time) VALUES (?,?,?,?,?,?,?)");
 	
 	eval {
-	    $self->{dbh}->begin_work();
 	    $sth->execute($name, $platform, $owner, $owner_email, $password, $permission, time());
 	    $self->{dbh}->commit();
 	};
 	if ($@) {
 	    local $self->{dbh}->{RaiseError} = 0;
 	    $self->{dbh}->rollback();
+	    print "DB Failure: $@";
+	    return 0;
 	}
+	return 1;
 }
 
 sub deletehost($$)
@@ -80,13 +84,14 @@ sub deletehost($$)
 	my $sth = $self->{dbh}->prepare("DELETE FROM host WHERE name = ?");
 	
 	eval {
-	    $self->{dbh}->begin_work();
 	    $ret = $sth->execute($name);
 	    $self->{dbh}->commit();
 	};
 	if ($@) {
 	    local $self->{dbh}->{RaiseError} = 0;
 	    $self->{dbh}->rollback();
+	    print "DB Failure: $@";
+	    return 0;
 	}
 	
 	return ($ret == 1);
@@ -111,7 +116,6 @@ sub sent_dead_mail($$)
         my ($self, $host) = @_;
 	my $changed;
 	eval {
-	    $self->{dbh}->begin_work();
 	    $changed = $self->{dbh}->do("UPDATE host SET last_dead_mail = ? WHERE name = ?", undef, 
 		(time(), $host));
 	    $self->{dbh}->commit();
@@ -119,6 +123,7 @@ sub sent_dead_mail($$)
 	if ($@) {
 	    local $self->{dbh}->{RaiseError} = 0;
 	    $self->{dbh}->rollback();
+	    print "DB Failure: $@";
 	    return 0;
 	}
 	
@@ -144,7 +149,6 @@ sub update_platform($$$)
 	my $changed;
 
 	eval {
-	    $self->{dbh}->begin_work();
 	    $changed = $self->{dbh}->do("UPDATE host SET platform = ? WHERE name = ?", undef, 
 		($new_platform, $name));
 	    $self->{dbh}->commit();
@@ -152,6 +156,7 @@ sub update_platform($$$)
 	if ($@) {
 	    local $self->{dbh}->{RaiseError} = 0;
 	    $self->{dbh}->rollback();
+	    print "DB Failure: $@";
 	    return 0;
 	}
 	
@@ -164,7 +169,6 @@ sub update_owner($$$$)
 	my $changed;
 
 	eval {
-	    $self->{dbh}->begin_work();
 	    $changed = $self->{dbh}->do("UPDATE host SET owner = ?, owner_email = ? WHERE name = ?", 
 				       undef, ($new_owner, $new_owner_email, $name));
 	    $self->{dbh}->commit();

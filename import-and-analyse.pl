@@ -249,8 +249,6 @@ foreach my $host (@hosts) {
 		my $err = util::FileLoad($logfn.".err");
 		$err = "" unless defined($err);
 		
-		$dbh->begin_work();
-		
 		my $checksum = sha1_hex($data);
 		if ($dbh->selectrow_array("SELECT checksum FROM build WHERE checksum = '$checksum'")) {
 		    $dbh->do("UPDATE BUILD SET age = ? WHERE checksum = ?", undef, 
