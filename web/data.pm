@@ -207,9 +207,9 @@ sub cache_fname($$$$$)
 {
 	my ($self, $tree, $host, $compiler, $rev) = @_;
 	if ($rev) {
-		return "$self->{cachedir}/oldrevs/build.$tree.$host.$compiler-$rev";
+		return "$self->{cachedir}/build.$tree.$host.$compiler-$rev";
 	}
-	return "$self->{cachedir}/upload/build.$tree.$host.$compiler";
+	return "$self->{cachedir}/build.$tree.$host.$compiler";
 }
 
 ################################

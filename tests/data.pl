@@ -24,6 +24,8 @@ ok($x);
 
 is($x->build_fname("mytree", "myhost", "cc", undef), "tmpdir/data/upload/build.mytree.myhost.cc");
 is($x->build_fname("mytree", "myhost", "cc", 123), "tmpdir/data/oldrevs/build.mytree.myhost.cc-123");
+is($x->cache_fname("mytree", "myhost", "cc", 123), "tmpdir/cache/build.mytree.myhost.cc-123");
+is($x->cache_fname("mytree", "myhost", "cc", undef), "tmpdir/cache/build.mytree.myhost.cc");
 
 rmdir("tmpdata");
 
