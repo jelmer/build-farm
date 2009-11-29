@@ -259,6 +259,10 @@ foreach my $host (@hosts) {
 		if ($opt_verbose) { print "$logfn\n"; }
 		
 		($rev) = ($data =~ /BUILD REVISION: ([^\n]+)/);
+		if ($rev == "") {
+			$rev = $stat->ctime;
+		}
+
 		my $commit;
 		
 		if ($data =~ /BUILD COMMIT REVISION: (.*)/) {
@@ -349,6 +353,9 @@ foreach my $host (@hosts) {
 		
 		if ($@ =~ /^next please/) {
 		    # Ignore errors and hope for better luck next time the script is run
+		    if ($opt_verbose > 1) {
+			print "next please retry\n";
+		    }		    
 		    next;
 		} elsif ($@ =~ /database is locked/ and $retry < 3) {
 		    $retry++;
