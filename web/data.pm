@@ -609,15 +609,22 @@ sub get_old_revs($$$$)
 	opendir(DIR, $directory) || die "can't opendir $directory: $!";
 	my @list = (grep { /^build\.$tree\.$host\.$compiler-.*\.log$/ } readdir(DIR));
 	closedir DIR;
-	my %ret;
+	my @ret;
 	for my $l (@list) {
-		if ($l =~ /-(\d+).log$/) {
+		if ($l =~ /-([0-9A-Fa-f]+).log$/) {
 			my $rev = $1;
-			$ret{$rev} = $self->build_status($host, $tree, $compiler, $rev);
+			my $r;
+			my $stat = stat($directory . "/" . $l);
+			$r->{STATUS} = $self->build_status($host, $tree, $compiler, $rev);
+			$r->{REVISION} = $rev;
+			$r->{TIMESTAMP} = $stat->ctime;
+			push(@ret, $r);			
 		}
 	}
 
-	return %ret;
+	@ret = sort { return $b->{TIMESTAMP} - $a->{TIMESTAMP} } @ret;
+
+	return @ret;
 }
 
 sub has_host($$)

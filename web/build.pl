@@ -501,8 +501,8 @@ sub draw_dead_hosts {
 sub show_oldrevs($$$)
 {
     my ($tree, $host, $compiler) = @_;
-    my %revs = $db->get_old_revs($tree, $host, $compiler);
-    my @revs = sort { if ($b > $a) {return 1;} elsif ($b < $a) {return -1;} else {return 0;} } keys %revs;
+
+    my @revs = $db->get_old_revs($tree, $host, $compiler);
 
     return if ($#revs < 1);
 
@@ -515,12 +515,13 @@ sub show_oldrevs($$$)
     my $lastrev = "";
 
     for my $rev (@revs) {
-	    my $s = $revs{$rev};
-	    my $revision = $db->build_revision($host, $tree, $compiler, $rev);
+	    my $s = $rev->{STATUS};
+	    my $revision = $rev->{REVISION};
 	    $s =~ s/$rev/0/;
 	    next if ($s eq $lastrev);
 	    $lastrev = $s;
-	    $ret.=$req->Tr($req->td([revision_link($revision, $tree), build_link($host, $tree, $compiler, $rev, $revs{$rev})]));
+	    $ret.=$req->Tr($req->td([revision_link($revision, $tree), build_link($host, $tree, $compiler, 
+										 $rev->{REVISION}, $rev->{STATUS})]));
     }
     if ($lastrev ne "") {
 		# Only print table if there was any actual data
