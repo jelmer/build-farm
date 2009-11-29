@@ -615,7 +615,7 @@ test_tree() {
 	echo "Starting build of $tree.$compiler in process $$ at `date`"
 
 	case "$tree" in
-	    tdb | talloc | ldb | libreplace)
+	    ldb | libreplace)
 		builddir="$test_root/tmp.$tree.$compiler"
 		usingtmpbuild=1
 		if [ -d $builddir ]; then
