@@ -268,9 +268,6 @@ foreach my $host (@hosts) {
 		if ($opt_verbose) { print "$logfn\n"; }
 		
 		($rev) = ($data =~ /BUILD REVISION: ([^\n]+)/);
-		if ($rev == "") {
-			$rev = $stat->ctime;
-		}
 
 		my $commit;
 		
@@ -278,6 +275,10 @@ foreach my $host (@hosts) {
 		    $commit = $1;
 		} else {
 		    $commit = $rev;
+		}
+
+		if ($rev == "") {
+			$rev = $commit;
 		}
 
 		my $status_html = $db->build_status_from_logs($data, $err);
