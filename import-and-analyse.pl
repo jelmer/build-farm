@@ -223,7 +223,8 @@ foreach my $host (@hosts) {
 	    }
 	    
 	    eval {
-		my $st = $dbh->prepare("SELECT checksum FROM build WHERE age >= ? AND tree = ? AND host = ? AND compiler = ?");
+		my $expression = "SELECT checksum FROM build WHERE age >= ? AND tree = ? AND host = ? AND compiler = ?";
+		my $st = $dbh->prepare($expression);
 	    
 		$st->execute($stat->mtime, $tree, $host, $compiler);
 	    
@@ -265,7 +266,12 @@ foreach my $host (@hosts) {
 		} else {
 		    $commit = $rev;
 		}
+
 		my $status_html = $db->build_status_from_logs($data, $err);
+
+		if ($opt_verbose > 1) {
+			print "Found rev=$rev commit=$commit status=$status_html\n";
+		}
 		
 		# Look up the database to find the previous status
 		$st = $dbh->prepare("SELECT status, revision, commit_revision FROM build WHERE tree = ? AND host = ? AND compiler = ? AND revision != ? AND commit_revision != ? ORDER BY id DESC LIMIT 1");
@@ -278,6 +284,10 @@ foreach my $host (@hosts) {
 		    $old_status_html = @row[0];
 		    $old_rev = @row[1];
 		    $old_commit = @row[2];
+		}
+
+		if ($opt_verbose > 1) {
+			print "Old rev=$old_rev old_commit=$commit status=$old_status_html\n";
 		}
 		
 		$st->finish();
@@ -308,15 +318,26 @@ foreach my $host (@hosts) {
 		my $cur_status = $db->build_status_info_from_html($rev, $commit, $status_html);
 		my $old_status;
 		
+		if ($opt_verbose > 1) {
+			print "cur_status=$cur_status\n";
+		}
+
 		# Can't send a nastygram until there are 2 builds..
 		if (defined($old_status_html)) {
 		    $old_status = $db->build_status_info_from_html($old_rev, $old_commit, $old_status_html);
+		    if ($opt_verbose > 1) {
+			    print "old_status=$old_status\n";
+		    }
 		    check_and_send_mails($tree, $host, $compiler, $cur_status, $old_status);
 		}
 		
 		if ($dry_run) {
 		    $dbh->rollback;
 		    die "next please"; #Moves to the next record in the exception handler
+		}
+
+		if ($opt_verbose > 1) {
+			print "Committing\n";
 		}
 
 		$dbh->commit;
@@ -349,15 +370,14 @@ foreach my $host (@hosts) {
 		# This ensures that the names under 'oldrev' are well known and well formed 
 		my $log_rev = $db->build_fname($tree, $host, $compiler, $rev) . ".log";
 		my $err_rev = $db->build_fname($tree, $host, $compiler, $rev) . ".err";
-		my $errfn = $db->build_fname($tree, $host, $compiler) . ".err";
 		if ($opt_verbose >= 2) {
 			print "Linking $logfn to $log_rev\n";
-			print "Linking $errfn to $err_rev\n";
+			print "Linking $logfn to $err_rev\n";
 		}
 		unlink $log_rev;
 		unlink $err_rev;
-		link($logfn, $log_rev) || die "Failed to link $logfn to $log_rev";
-		link($errfn, $err_rev) || die "Failed to link $errfn to $err_rev";
+		link($logfn . ".log", $log_rev) || die "Failed to link $logfn to $log_rev";
+		link($logfn . ".err", $err_rev) || die "Failed to link $logfn to $err_rev";
 	    }
 	}
     }
