@@ -234,6 +234,9 @@ foreach my $host (@hosts) {
 		$st->finish();
 
 		if ($#$relevant_rows > -1) {
+		    if ($opt_verbose > 1) {
+			    print "retry relevant_rows=$#$relevant_rows\n";
+		    }
 		    die "next please"; #Moves to the next record in the exception handler
 		}
 	    
@@ -244,6 +247,9 @@ foreach my $host (@hosts) {
 		
 		# Don't bother with empty logs, they have no meaning (and would all share the same checksum)
 		if (not $data or $data eq "") {
+		    if ($opt_verbose > 1) {
+			    print "retry empty data\n";
+		    }
 		    die "next please"; #Moves to the next record in the exception handler
 		}
 		
@@ -254,6 +260,9 @@ foreach my $host (@hosts) {
 		if ($dbh->selectrow_array("SELECT checksum FROM build WHERE checksum = '$checksum'")) {
 		    $dbh->do("UPDATE BUILD SET age = ? WHERE checksum = ?", undef, 
 			     ($stat->mtime, $checksum));
+		    if ($opt_verbose > 1) {
+			    print "retry checksum match\n";
+		    }
 		    die "next please"; #Moves to the next record in the exception handler
 		}
 		if ($opt_verbose) { print "$logfn\n"; }
