@@ -349,10 +349,15 @@ foreach my $host (@hosts) {
 		# This ensures that the names under 'oldrev' are well known and well formed 
 		my $log_rev = $db->build_fname($tree, $host, $compiler, $rev) . ".log";
 		my $err_rev = $db->build_fname($tree, $host, $compiler, $rev) . ".err";
+		my $errfn = $db->build_fname($tree, $host, $compiler) . ".err";
+		if ($opt_verbose >= 2) {
+			print "Linking $logfn to $log_rev\n";
+			print "Linking $errfn to $err_rev\n";
+		}
 		unlink $log_rev;
 		unlink $err_rev;
-		link($logfn, $log_rev);
-		link($db->build_fname($tree, $host, $compiler) . ".err", $err_rev);
+		link($logfn, $log_rev) || die "Failed to link $logfn to $log_rev";
+		link($errfn, $err_rev) || die "Failed to link $errfn to $err_rev";
 	    }
 	}
     }
