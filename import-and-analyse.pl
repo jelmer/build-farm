@@ -226,7 +226,7 @@ foreach my $host (@hosts) {
 		my $expression = "SELECT checksum FROM build WHERE age >= ? AND tree = ? AND host = ? AND compiler = ?";
 		my $st = $dbh->prepare($expression);
 	    
-		$st->execute($stat->mtime, $tree, $host, $compiler);
+		$st->execute($stat->ctime, $tree, $host, $compiler);
 	    
 		# Don't bother if we've already processed this file
 		my $relevant_rows = $st->fetchall_arrayref();
@@ -259,7 +259,7 @@ foreach my $host (@hosts) {
 		my $checksum = sha1_hex($data);
 		if ($dbh->selectrow_array("SELECT checksum FROM build WHERE checksum = '$checksum'")) {
 		    $dbh->do("UPDATE BUILD SET age = ? WHERE checksum = ?", undef, 
-			     ($stat->mtime, $checksum));
+			     ($stat->ctime, $checksum));
 		    if ($opt_verbose > 1) {
 			    print "retry checksum match\n";
 		    }
@@ -307,7 +307,7 @@ foreach my $host (@hosts) {
 		$st->finish();
 		
 		$st = $dbh->prepare("INSERT INTO build (tree, revision, commit_revision, host, compiler, checksum, age, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-		$st->execute($tree, $rev, $commit, $host, $compiler, $checksum, $stat->mtime, $status_html);
+		$st->execute($tree, $rev, $commit, $host, $compiler, $checksum, $stat->ctime, $status_html);
 
 
 #   SKIP This code, as it creates massive databases, until we get code to use the information, and a way to expire the results
@@ -377,7 +377,7 @@ foreach my $host (@hosts) {
 		next;
 	    }
 
-	    if ($rev) {
+	    if ($commit) {
 		# If we were able to put this into the DB (ie, a
 		# one-off event, so we won't repeat this), then also
 		# hard-link the log files to the revision, if we know
@@ -385,8 +385,8 @@ foreach my $host (@hosts) {
 
 
 		# This ensures that the names under 'oldrev' are well known and well formed 
-		my $log_rev = $db->build_fname($tree, $host, $compiler, $rev) . ".log";
-		my $err_rev = $db->build_fname($tree, $host, $compiler, $rev) . ".err";
+		my $log_rev = $db->build_fname($tree, $host, $compiler, $commit) . ".log";
+		my $err_rev = $db->build_fname($tree, $host, $compiler, $commit) . ".err";
 		if ($opt_verbose >= 2) {
 			print "Linking $logfn to $log_rev\n";
 			print "Linking $logfn to $err_rev\n";
