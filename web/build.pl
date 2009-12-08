@@ -545,7 +545,7 @@ sub view_build($$$$) {
     my $revision = $db->build_revision($host, $tree, $compiler, $rev);
     my $status = build_status($host, $tree, $compiler, $rev);
 
-    $rev = int($rev) if $rev;
+    ($rev =~ /^[0-9a-fA-F]*$/) || fatal("bad revision");
 
     my $log = $db->read_log($tree, $host, $compiler, $rev);
     my $err = $db->read_err($tree, $host, $compiler, $rev);
