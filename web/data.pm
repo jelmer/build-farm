@@ -615,6 +615,8 @@ sub get_old_revs($$$$)
 			my $rev = $1;
 			my $r;
 			my $stat = stat($directory . "/" . $l);
+			# skip the current build
+			$stat->nlink == 2 && next;
 			$r->{STATUS} = $self->build_status($host, $tree, $compiler, $rev);
 			$r->{REVISION} = $rev;
 			$r->{TIMESTAMP} = $stat->ctime;

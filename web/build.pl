@@ -504,7 +504,7 @@ sub show_oldrevs($$$)
 
     my @revs = $db->get_old_revs($tree, $host, $compiler);
 
-    return if ($#revs < 1);
+    return if ($#revs < 0);
 
     my $ret = $req->h2("Older builds:");
 
@@ -517,7 +517,7 @@ sub show_oldrevs($$$)
     for my $rev (@revs) {
 	    my $s = $rev->{STATUS};
 	    my $revision = $rev->{REVISION};
-	    $s =~ s/$rev/0/;
+	    $s =~ s/$revision/0/;
 	    next if ($s eq $lastrev);
 	    $lastrev = $s;
 	    $ret.=$req->Tr($req->td([revision_link($revision, $tree), build_link($host, $tree, $compiler, 
