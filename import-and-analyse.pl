@@ -205,7 +205,8 @@ __EOF__
 foreach my $host (@hosts) {
     foreach my $tree (keys %trees) {
 	foreach my $compiler (@compilers) {
-	    my $rev, $commit;
+	    my $rev;
+	    my $commit;
 	    my $retry = 0;
 	    if ($opt_verbose >= 2) {
 		print "Looking for a log file for $host $compiler $tree...\n";
