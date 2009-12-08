@@ -111,6 +111,12 @@ sub dead_hosts($$)
 	return $self->{dbh}->selectall_arrayref("SELECT host.name AS host, host.owner AS owner, host.owner_email AS owner_email, MAX(age) AS last_update FROM host LEFT JOIN build ON ( host.name == build.host) WHERE ifnull(last_dead_mail, 0) < $dead_age AND ifnull(join_time, 0) < $dead_age GROUP BY host.name having ifnull(MAX(age),0) < $dead_age", { Slice => {} });
 }
 
+sub host_ages($)
+{
+        my ($self) = @_;
+	return $self->{dbh}->selectall_arrayref("SELECT host.name AS host, host.owner AS owner, host.owner_email AS owner_email, MAX(age) AS last_update FROM host LEFT JOIN build ON ( host.name == build.host) GROUP BY host.name ORDER BY age", { Slice => {} });
+}
+
 sub sent_dead_mail($$) 
 {
         my ($self, $host) = @_;

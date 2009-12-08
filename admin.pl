@@ -23,6 +23,8 @@ use hostdb;
 use Mail::Send;
 use warnings;
 use strict;
+use Data::Dumper;
+use util;
 
 my $hostname;
 
@@ -42,6 +44,7 @@ if ($#ARGV > -1) {
 	print "Remove Machine from build farm: remove\n";
 	print "Modify build farm account:      modify\n";
 	print "Print build farm host info:     info\n";
+	print "Print build farm host list:     list\n";
 	print "Select Operation: [add] ";
 
 	$op = lc(<STDIN>);
@@ -186,6 +189,14 @@ __EOF__
 	
 	# Don't run the update of the text files
 	exit(0);
+} elsif ($op eq "list") {
+    my $hosts = $db->host_ages();
+    foreach (@$hosts) {
+	my $h = $_;
+	my $age = util::dhm_time(time() - $h->{last_update});
+	printf "%-12s $h->{host}\n", $age;
+    }
+#    print Dumper($hosts);
 } else {
 	die("Unknown command $op");
 }
