@@ -41,7 +41,7 @@ foreach (@$hosts) {
 		print "Subject: $subject\n";
 		open(MAIL,"|cat");
 	} else {
-		$msg = new Mail::Send(Subject=>$subject, To=>"\"$_->{owner}\" <$_->{owner_email}>", Bcc=>"build\@samba.org");
+		$msg = new Mail::Send(Subject=>$subject, To=>"build\@samba.org");
 		$msg->set("From", "\"Samba Build Farm\" \<build\@samba.org\>");
 		$fh = $msg->open; 
 	}
