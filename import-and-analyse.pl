@@ -205,7 +205,7 @@ __EOF__
 foreach my $host (@hosts) {
     foreach my $tree (keys %trees) {
 	foreach my $compiler (@compilers) {
-	    my $rev;
+	    my $rev, $commit;
 	    my $retry = 0;
 	    if ($opt_verbose >= 2) {
 		print "Looking for a log file for $host $compiler $tree...\n";
@@ -269,8 +269,6 @@ foreach my $host (@hosts) {
 		
 		($rev) = ($data =~ /BUILD REVISION: ([^\n]+)/);
 
-		my $commit;
-		
 		if ($data =~ /BUILD COMMIT REVISION: (.*)/) {
 		    $commit = $1;
 		} else {
