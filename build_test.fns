@@ -465,6 +465,11 @@ action_install() {
 action_test_samba() {
 	do_make test
 	totalstatus=$?
+	# if we produced a test summary then show it
+	[ -f st/summary ] && {
+	    echo "TEST SUMMARY"
+	    cat st/summary
+	}
 	return "$totalstatus"
 }
 
