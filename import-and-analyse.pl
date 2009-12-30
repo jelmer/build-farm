@@ -10,6 +10,7 @@ use Digest::SHA1 qw(sha1_hex);
 use strict;
 use util;
 use File::stat;
+use File::Copy;
 use Getopt::Long;
 use hostdb;
 use data;
@@ -393,7 +394,11 @@ foreach my $host (@hosts) {
 		unlink $log_rev;
 		unlink $err_rev;
 		link($logfn . ".log", $log_rev) || die "Failed to link $logfn to $log_rev";
-		link($logfn . ".err", $err_rev) || die "Failed to link $logfn to $err_rev";
+
+		# this prevents lots of links building up with err files
+		copy($logfn . ".err", $err_rev) || die "Failed to copy $logfn to $err_rev";
+		unlink($logfn . ".err");
+		link($err_rev, $logfn . ".err");
 	    }
 	}
     }
