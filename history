@@ -17,8 +17,8 @@
 ./cvslog.pl /data/cvs/CVSROOT/ppp.updates 60 ppp "" cache/history.ppp
 
 ./gitlog.pl /data/git/rsync.git/ 60 master cache/history.rsync
-./gitlog.pl /data/git/samba.git/ 60 v3-3-test cache/history.samba_3_current
-./gitlog.pl /data/git/samba.git/ 60 v3-4-test cache/history.samba_3_next
+./gitlog.pl /data/git/samba.git/ 60 v3-4-test cache/history.samba_3_current
+./gitlog.pl /data/git/samba.git/ 60 v3-5-test cache/history.samba_3_next
 ./gitlog.pl /data/git/samba.git/ 60 master cache/history.samba_3_master
 ./gitlog.pl /data/git/samba.git/ 60 master cache/history.samba_4_0_test
 ./gitlog.pl /data/git/samba.git/ 60 master cache/history.libreplace lib/replace
