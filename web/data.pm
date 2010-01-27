@@ -60,24 +60,17 @@ sub new($;$) {
 	my @hosts = sort { $hosts{$a} cmp $hosts{$b} } keys %hosts;
 
 	my (%trees) = (
-		'distcc' => {
-			'scm' => 'cvs',
-			'repo' => 'distcc',
-			'branch' => 'HEAD',
-			'subdir' => '',
-			'srcdir' => ''
-		},
 		'ccache' => {
-			'scm' => 'cvs',
+			'scm' => 'git',
 			'repo' => 'ccache',
-			'branch' => 'HEAD',
+			'branch' => 'master',
 			'subdir' => '',
 			'srcdir' => ''
 		},
 		'ppp' => {
-			'scm' => 'cvs',
+			'scm' => 'git',
 			'repo' => 'ppp',
-			'branch' => 'HEAD',
+			'branch' => 'master',
 			'subdir' => '',
 			'srcdir' => ''
 		},
