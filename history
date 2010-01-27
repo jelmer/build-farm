@@ -13,9 +13,9 @@
 ./svnlog.pl svn://svnanon.samba.org/build-farm trunk 60 build_farm cache/history.build_farm
 
 ./cvslog.pl /data/cvs/CVSROOT/distcc.updates 60 distcc "" cache/history.distcc
-./cvslog.pl /data/cvs/CVSROOT/ccache.updates 60 ccache "" cache/history.ccache
 ./cvslog.pl /data/cvs/CVSROOT/ppp.updates 60 ppp "" cache/history.ppp
 
+./gitlog.pl /data/git/ccache.git/ 60 master cache/history.ccache
 ./gitlog.pl /data/git/rsync.git/ 60 master cache/history.rsync
 ./gitlog.pl /data/git/samba.git/ 60 v3-4-test cache/history.samba_3_current
 ./gitlog.pl /data/git/samba.git/ 60 v3-5-test cache/history.samba_3_next
