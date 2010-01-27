@@ -141,11 +141,11 @@ choose_scm() {
 	tree=$1
 
 	case "$tree" in
-    		ccache | distcc)
+    		distcc)
 			echo "cvs"
         		return 0
         	;;
-    		samba* | rsync | libreplace | talloc | tdb | ldb | pidl)
+    		samba* | rsync | libreplace | talloc | tdb | ldb | pidl | ccache)
 			echo "git"
         		return 0
         	;;
