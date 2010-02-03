@@ -50,7 +50,6 @@ my %hosts = %{$db->{hosts_hash}};
 my @hosts = @{$db->{hosts_list}};
 my %trees = %{$db->{trees}};
 my $OLDAGE = $db->{OLDAGE};
-my $DEADAGE = $db->{DEADAGE};
 
 # this is automatically filled in
 my (@deadhosts) = ();
@@ -161,21 +160,15 @@ sub fatal($) {
 
 ################################################
 # get a param from the request, after sanitizing it
-sub get_param($;$) {
-	my ($param, $wantarray) = @_;
+sub get_param($) {
+	my $param = shift;
 
-	$wantarray = 0 unless defined($wantarray);
-	
 	if (!defined $req->param($param)) {
-		return $wantarray ? () : undef;
+		return undef;
 	}
-
+	
 	my @result = ();
-	if ($wantarray) {
-		@result = $req->param($param);
-	} else {
-		$result[0] = $req->param($param);
-	}
+	$result[0] = $req->param($param);
 
 	for (my $i = 0; $i <= $#result; $i++) {
 		$result[$i] =~ s/ /_/g;
@@ -184,11 +177,11 @@ sub get_param($;$) {
 	foreach (@result) {
 		if ($_ =~ m/[^a-zA-Z0-9\-\_\.]/) {
 			fatal("Parameter $param is invalid");
-			return $wantarray ? () : undef;
+			return undef;
 		}
 	}
 
-	return $wantarray ? @result : $result[0];
+	return $result[0];
 }
 
 sub build_link($$$$$)
@@ -289,11 +282,11 @@ sub view_summary($)
 			    next if $status =~ /^Unknown Build/;
 			    my $age_mtime = $db->build_age_mtime($host, $tree, $compiler, "");
 			    
-			    if ($age_mtime != -1 && $age_mtime < $DEADAGE) {
+			    if ($age_mtime != -1) {
 				    $host_count{$tree}++;
 			    }
 
-			    if ($age_mtime < $DEADAGE && $status =~ /status failed/) {
+			    if ($status =~ /status failed/) {
 				    $broken_count{$tree}++;
 				    if ($status =~ /PANIC/) {
 					    $panic_count{$tree}++;
@@ -428,7 +421,7 @@ sub view_recent_builds($$) {
 	  my $revision = $db->build_revision($host, $tree, $compiler, "");
 	  my $revision_time = $db->build_revision_time($host, $tree, $compiler, "");
 	  push @all_builds, [$age_ctime, $hosts{$host}, $req->a({-href=>"$myself?function=View+Host;host=$host;tree=$tree;compiler=$compiler#$host"}, $host), $compiler, $tree, $status, revision_link($revision, $tree), $revision_time]
-	  	unless $age_mtime == -1 or $age_mtime >= $DEADAGE;
+	  	unless $age_mtime == -1;
       }
     }
 
@@ -667,7 +660,7 @@ sub view_host {
 				my $age_mtime = $db->build_age_mtime($host, $tree, $compiler, "");
 				my $age_ctime = $db->build_age_ctime($host, $tree, $compiler, "");
 				my $warnings = $db->err_count($host, $tree, $compiler, "");
-				if ($age_ctime != -1 && $age_ctime < $DEADAGE) {
+				if ($age_ctime != -1) {
 					my $status = build_status($host, $tree, $compiler, "");
 					if ($row == 0) {
 						if ($output_type eq 'text') {
