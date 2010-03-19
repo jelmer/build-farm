@@ -19,6 +19,7 @@ export TORTURE_MAXTIME=7200
 export SMBD_MAXTIME=24000
 export SAMBA_MAXTIME=24000
 
+test_tree samba_4_0_waf source4 gcc
 test_tree samba_4_0_test source gcc
 test_tree samba_3_current source gcc
 test_tree samba_3_next source gcc

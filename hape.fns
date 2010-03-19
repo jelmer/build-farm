@@ -23,6 +23,7 @@ for compiler in gcc ; do
 	# so we need to use shorter pathes for make test
 	export config="--with-selftest-prefix=/data/home/build/st.samba_4_0_test --with-included-popt"
 	MAKE=gmake test_tree samba_4_0_test source $compiler
+	MAKE=gmake test_tree samba_4_0_waf source4 $compiler
 
 	export config="--with-acl-support --with-libiconv=/usr/local --with-included-popt"
 	test_tree samba_3_current source $compiler
