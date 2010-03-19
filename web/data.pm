@@ -130,6 +130,13 @@ sub new($;$) {
 			'subdir' => '',
 			'srcdir' => 'source'
 		},
+		'samba_4_0_waf' => {
+			'scm' => 'git',
+			'repo' => 'waf-wip.git',
+			'branch' => 'waf-wip',
+			'subdir' => '',
+			'srcdir' => 'source4'
+		},
 		'libreplace' => {
 			'scm' => 'git',
 			'repo' => 'samba.git',
