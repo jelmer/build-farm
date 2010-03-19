@@ -271,6 +271,10 @@ action_configure() {
 			echo "contents of config.log:"
 			cat config.log
 		fi
+	        if [ -f bin/config.log ]; then
+			echo "contents of config.log:"
+			cat bin/config.log
+		fi
 	fi
 	echo "CONFIGURE STATUS: $cstatus"
 	return $cstatus;
@@ -279,12 +283,15 @@ action_configure() {
 ############################
 # show the configure log
 action_config_log() {
-        if [ ! -f config.log ]; then
+    log_files="config.log bin/config.log"
+    for f in $log_files; do
+        if [ -f $f ]; then
+	    echo "contents of config.log:"
+	    cat $f
 	    return 0;
 	fi
-	echo "contents of config.log:"
-	cat config.log
-	return 0;
+    done
+    return 0
 }
 
 ############################
