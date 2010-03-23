@@ -5,12 +5,24 @@ global_lock
 system=`uname`
 
 ENVCFLAGS=$CFLAGS
-
+cur_compiler_sum=""
+last_compiler_sum=""
 for compiler in gcc cc icc; do
 
   # arrgh, "which" gives no err code on solaris
   path=`which $compiler`
   if [ -x "$path" ]; then
+
+    # We do not want to build with the same compiler twice
+    # cc is a symlink to gcc on some systems
+    cur_compiler_sum="`sum $path`"
+    test x"$cur_compiler_sum" = x"" && {
+       cur_compiler_sum="$path"
+    }
+    test x"$last_compiler_sum" = x"$cur_compiler_sum" && {
+       continue;
+    }
+    last_compiler_sum="$cur_compiler_sum"
 
     if $compiler -v 2>&1 | grep gcc.version > /dev/null; then
        isgcc=1
