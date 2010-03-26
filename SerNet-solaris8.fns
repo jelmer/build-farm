@@ -1,0 +1,30 @@
+per_run_hook
+
+global_lock
+
+MAXTIME=36000
+TORTURE_MAXTIME=3600
+SMBD_MAXTIME=18000
+SAMBA_MAXTIME=18000
+export MAXTIME TORTURE_MAXTIME SMBD_MAXTIME SAMBA_MAXTIME
+
+for compiler in cc ; do
+	#export config="--with-included-popt"
+	. common.fns
+
+	test_tree samba_4_0_test source $compiler
+
+	# this is a strange one. SerNet-solaris8 has two copies
+	# of iconv, one in /usr and the other in /usr/local
+	# it also has the python libs, but only in /usr/local
+	# we need to ensure it doesn't find python in /usr/local
+	# and iconv from /usr, otherwise the -I flags will conflict
+	CFLAGS="-I/usr/local/include" test_tree samba_4_0_waf source4 $compiler
+
+	test_tree samba_3_current source $compiler
+	test_tree samba_3_next source $compiler
+	test_tree samba_3_master source $compiler
+
+done
+
+global_unlock
