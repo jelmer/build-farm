@@ -297,15 +297,15 @@ action_config_log() {
 ############################
 # show the config.h
 action_config_header() {
-	if [ -f config.h ]; then
-	    echo "contents of config.h:"
-	    cat config.h
+    hdr_files="config.h include/config.h bin/default/source4/include/config.h bin/default/source3/include/config.h"
+    for h in $hdr_files; do
+	if [ -f $h ]; then
+	    echo "contents of $h:"
+	    cat $h
+	    return 0;
 	fi
-	if [ -f include/config.h ]; then
-	    echo "contents of include/config.h:"
-	    cat include/config.h
-	fi
-	return 0;
+    done
+    return 0;
 }
 
 copy_dir() {
