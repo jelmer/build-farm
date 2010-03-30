@@ -14,12 +14,7 @@ for compiler in cc ; do
 
 	test_tree samba_4_0_test source $compiler
 
-	# this is a strange one. SerNet-solaris8 has two copies
-	# of iconv, one in /usr and the other in /usr/local
-	# it also has the python libs, but only in /usr/local
-	# we need to ensure it doesn't find python in /usr/local
-	# and iconv from /usr, otherwise the -I flags will conflict
-	CFLAGS="-I/usr/local/include" test_tree samba_4_0_waf source4 $compiler
+	test_tree samba_4_0_waf source4 $compiler
 
 	test_tree samba_3_current source $compiler
 	test_tree samba_3_next source $compiler
