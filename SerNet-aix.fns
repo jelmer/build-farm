@@ -1,0 +1,21 @@
+per_run_hook
+
+global_lock
+
+# get the newer version of python
+PATH=/opt/home/tridge/python:$PATH
+export PATH
+
+compiler="cc"
+
+. common.fns
+
+test_tree samba_4_0_waf source4 $compiler
+test_tree lorikeet-heimdal . $compiler
+MAKE=gmake test_tree samba_4_0_test source $compiler
+test_tree samba_3_current source $compiler
+test_tree samba_3_next source $compiler
+test_tree samba_3_master source $compiler
+test_tree pidl . cc build test
+
+global_unlock
