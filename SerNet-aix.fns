@@ -3,7 +3,7 @@ per_run_hook
 global_lock
 
 # get the newer version of python
-PATH=/opt/home/tridge/python:$PATH
+PATH=/opt/home/tridge/python/bin:$PATH
 export PATH
 
 compiler="cc"
