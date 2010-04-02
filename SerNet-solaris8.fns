@@ -8,7 +8,7 @@ SMBD_MAXTIME=18000
 SAMBA_MAXTIME=18000
 export MAXTIME TORTURE_MAXTIME SMBD_MAXTIME SAMBA_MAXTIME
 
-for compiler in cc ; do
+for compiler in cc gcc; do
 	#export config="--with-included-popt"
 	. common.fns
 
