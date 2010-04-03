@@ -9,7 +9,7 @@ VERSION="Python-2.6.5"
 do_install_python() {
    ( 
        mkdir -p python_install || exit 1
-       rsync -av samba.org::ftp/tridge/python/$VERSION.tar python_install || exit 1
+       rsync -avz samba.org::ftp/tridge/python/$VERSION.tar python_install || exit 1
        cd python_install || exit 1;
        rm -rf $VERSION || exit 1
        tar -xf $VERSION.tar || exit 1
