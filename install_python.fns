@@ -19,9 +19,8 @@ do_install_python() {
        ./configure --prefix=$HOME/python --disable-ipv6 || exit 1
        make || exit 1
        make install || exit 1
-       cd ..
-       rm -rf $VERSION || exit 1     
-       cd .. || exit 1
+       cd ../.. || exit 1
+       rm -rf python_install || exit 1
        rsync install_python.fns $HOME/python || exit 1
    ) > install_python.$host.log 2>&1
 
