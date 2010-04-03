@@ -12,3 +12,4 @@ icc
 tcc
 icc-9
 checker
+xlc_r
