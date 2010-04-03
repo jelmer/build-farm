@@ -4,6 +4,9 @@ export CFLAGS="-Wall -g"
 
 compiler=gcc
 
+# this is not needed, but its useful as a test
+. install_python.fns
+
 # do most packages
 . common.fns
 
