@@ -10,12 +10,14 @@ compiler="cc"
 
 . common.fns
 
-test_tree samba_4_0_waf source4 $compiler
 test_tree lorikeet-heimdal . $compiler
 MAKE=gmake test_tree samba_4_0_test source $compiler
 test_tree samba_3_current source $compiler
 test_tree samba_3_next source $compiler
 test_tree samba_3_master source $compiler
 test_tree pidl . cc build test
+
+compiler="xlc_r"
+test_tree samba_4_0_waf source4 $compiler
 
 global_unlock
