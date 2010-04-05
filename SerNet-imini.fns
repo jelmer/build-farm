@@ -2,8 +2,6 @@ per_run_hook
 
 global_lock
 
-. install_python.fns
-
 for compiler in gcc cc; do
 	. common.fns
 
