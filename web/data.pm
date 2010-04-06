@@ -132,8 +132,8 @@ sub new($;$) {
 		},
 		'samba_4_0_waf' => {
 			'scm' => 'git',
-			'repo' => 'waf-wip.git',
-			'branch' => 'waf-wip',
+			'repo' => 'samba.git',
+			'branch' => 'master',
 			'subdir' => '',
 			'srcdir' => 'source4'
 		},
