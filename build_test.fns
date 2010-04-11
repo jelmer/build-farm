@@ -98,7 +98,7 @@ fetch_tree() {
 	else
 		fetchtree=$1
 		if rsync --exclude=autom4te.cache/ --exclude=.svn/ --exclude=.git/ \
-			--delete-excluded -q --partial --timeout=200 -crlpz --delete --ignore-errors \
+			--delete-excluded -q --partial --timeout=200 -ctrlpz --delete --ignore-errors \
 			samba.org::ftp/unpacked/$fetchtree/ $test_root/$fetchtree; then
 			echo "transferred $fetchtree OK"
 		else
