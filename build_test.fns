@@ -319,12 +319,9 @@ s4selftest_create() {
 		return 1;
 	}
 
-	rm -rf $s4selftest/
-	mkdir -p $s4selftest/source
-
 	# we currently only need smbtorture
 	mkdir -p $s4selftest/source/bin
-	rsync -a $builddir/bin/smbtorture $s4selftest/source/bin/smbtorture || {
+	rsync -aL $builddir/bin/smbtorture.static $s4selftest/source/bin/smbtorture || {
 		rm -rf $s4selftest/;
 		unlock_file "s4selftest.lck";
 		return 1;
