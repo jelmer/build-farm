@@ -571,10 +571,7 @@ test_tree() {
 	    talloc | tdb)
 		deptrees="libreplace";
 	    ;;
-	    ldb)
-		deptrees="libreplace talloc tdb";
-	    ;;
-		samba-gtk)
+	    samba-gtk)
 		deptrees="samba_4_0_test"
 		;;
 	esac
@@ -620,7 +617,7 @@ test_tree() {
 	echo "Starting build of $tree.$compiler in process $$ at `date`"
 
 	case "$tree" in
-	    ldb | libreplace)
+	    libreplace)
 		builddir="$test_root/tmp.$tree.$compiler"
 		usingtmpbuild=1
 		if [ -d $builddir ]; then
@@ -676,9 +673,6 @@ test_tree() {
 	samba-gtk)
 		PKG_CONFIG_PATH="$test_root/prefix/samba_4_0_test.$compiler/lib/pkgconfig"
 		export PKG_CONFIG_PATH
-		;;
-	ldb)
-		fetch_tree popt
 		;;
 	talloc)
 		fetch_tree libreplace
