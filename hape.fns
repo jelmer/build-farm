@@ -15,8 +15,7 @@ export MAXTIME TORTURE_MAXTIME SMBD_MAXTIME SAMBA_MAXTIME
 
 #for compiler in gcc cc ; do
 for compiler in gcc ; do
-
-	export config="--with-included-popt"
+	export config=""
 	. common.fns
 
 	# sun_path for unix sockets is char[92]
