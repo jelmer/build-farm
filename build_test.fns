@@ -311,7 +311,10 @@ action_config_header() {
 copy_dir() {
 	Tsrc=$1
 	Tdst=$2
-	rsync -a --delete $Tsrc/ $Tdst
+	pwd
+	echo rsync -a --delete $Tsrc/ $Tdst
+	rsync -a --delete $Tsrc/ $Tdst || return 1
+	return 0
 }
 
 s4selftest_create() {
