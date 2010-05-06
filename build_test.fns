@@ -568,9 +568,6 @@ test_tree() {
 	# work out what other trees this package depends on
 	deptrees=""
 	case "$tree" in
-	    talloc | tdb)
-		deptrees="libreplace";
-	    ;;
 	    samba-gtk)
 		deptrees="samba_4_0_test"
 		;;
@@ -673,9 +670,6 @@ test_tree() {
 	samba-gtk)
 		PKG_CONFIG_PATH="$test_root/prefix/samba_4_0_test.$compiler/lib/pkgconfig"
 		export PKG_CONFIG_PATH
-		;;
-	talloc)
-		fetch_tree libreplace
 		;;
 	*)
 		testsuite=testsuite
