@@ -371,23 +371,29 @@ s4selftest_create() {
 
 s4selftest_update() {
 	lock_file "s4selftest.lck" || {
-		return 1;
+	    echo "s4selftest_update LOCKED"
+	    return 1;
 	}
 
 	echo tmp.$tree.$compiler.$$ >tmp.dirname
 	tempdir=`cut -b1-32 tmp.dirname`
 	rm -f tmp.dirname
 
+	echo "COPYING $s4selftest => $tempdir"
 	copy_dir $s4selftest $tempdir || {
 		rm -rf $tempdir;
 		unlock_file "s4selftest.lck";
+		echo "s4selftest_update COPY FAILED"
 		return 1;
 	}
 
+	echo "RENAMING $tempdir $s4selftest.$tree.$compiler"
 	rm -rf $s4selftest.$tree.$compiler
 	mv $tempdir $s4selftest.$tree.$compiler
 
 	unlock_file "s4selftest.lck"
+	echo "s4selftest_update OK"
+	return 0
 }
 
 ############################
