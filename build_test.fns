@@ -319,7 +319,8 @@ copy_dir() {
 
 s4selftest_create() {
 	lock_file "s4selftest.lck" || {
-		return 1;
+	    echo "s4selftest_create: already locked"
+	    return 1;
 	}
 
 	# we currently only need smbtorture
@@ -327,12 +328,12 @@ s4selftest_create() {
 	echo "s4selftest_create: rsync -aL $builddir/bin/smbtorture.static $s4selftest/source/bin/smbtorture"
 	rsync -aL $builddir/bin/smbtorture.static $s4selftest/source/bin/smbtorture || {
 	    echo "s4selftest_create: failed rsync"
-	    rm -rf $s4selftest/;
 	    unlock_file "s4selftest.lck";
 	    return 1;
 	}
 
 	unlock_file "s4selftest.lck"
+	echo "s4selftest_create: OK"
 	return 0;
 
 	copy_dir $builddir/bin $s4selftest/source/bin || {
