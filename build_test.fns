@@ -141,7 +141,7 @@ choose_scm() {
 	tree=$1
 
 	case "$tree" in
-    		samba* | rsync | libreplace | talloc | tdb | ldb | pidl | ccache)
+    		samba* | rsync | libreplace | talloc | tdb | ldb | pidl | ccache*)
 			echo "git"
         		return 0
         	;;
@@ -214,7 +214,7 @@ do_make() {
   MMTIME=$MAXTIME
   # some trees don't need as much time
   case "$tree" in
-	rsync | tdb | talloc | libreplace | ccache)
+	rsync | tdb | talloc | libreplace | ccache*)
 	  if [ "$compiler" != "checker" ]; then
 	      MMTIME=`expr $MMTIME / 5`
 	  fi
@@ -539,7 +539,7 @@ test_tree() {
 	shift
 	shift
 	shift
-	if [ "$compiler" = "gcc" ] && [ "$tree" != "ccache" ] && ccache -V > /dev/null; then
+	if [ "$compiler" = "gcc" ] && [ "$tree" != "ccache" ] && [ "$tree" != "ccache-maint" ] && ccache -V > /dev/null; then
 	    CCACHE="ccache"
 	    export CCACHE
 	else

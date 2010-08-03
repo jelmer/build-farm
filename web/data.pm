@@ -67,6 +67,13 @@ sub new($;$) {
 			'subdir' => '',
 			'srcdir' => ''
 		},
+		'ccache-maint' => {
+			'scm' => 'git',
+			'repo' => 'ccache',
+			'branch' => 'maint',
+			'subdir' => '',
+			'srcdir' => ''
+		},
 		'ppp' => {
 			'scm' => 'git',
 			'repo' => 'ppp',
