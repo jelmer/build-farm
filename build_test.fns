@@ -933,6 +933,7 @@ per_run_hook() {
     delete_old_tree "samba_3_2"
     delete_old_tree "samba_3_2_test"
     delete_old_tree "samba4"
+    delete_old_tree "samba_4_0_test"
     delete_old_tree "samba_3_X_test"
     delete_old_tree "samba_3_X_devel"
 }
