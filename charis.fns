@@ -9,8 +9,6 @@ system=`uname`
 
 compiler=gcc
 test_tree samba_4_0_waf source4 gcc
-export config="--enable-automatic-dependencies"
-test_tree samba_4_0_test source gcc
 export config="--enable-merged-build"
 test_tree samba_3_master source gcc
 

@@ -9,8 +9,6 @@ export CFLAGS
 . common.fns
 #test_tree lorikeet-heimdal . $compiler
 
-export config="--with-selftest-prefix=/data/bf/st.samba_4_0_test"
-test_tree samba_4_0_test source $compiler
 export config="--with-selftest-prefix=/data/bf/st.samba_4_0_waf"
 test_tree samba_4_0_waf source4 $compiler
 export config=""

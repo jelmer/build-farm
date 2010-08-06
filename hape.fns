@@ -18,11 +18,6 @@ for compiler in gcc ; do
 	export config=""
 	. common.fns
 
-	# sun_path for unix sockets is char[92]
-	# so we need to use shorter pathes for make test
-	export config="--with-selftest-prefix=/data/home/build/st.samba_4_0_test --with-included-popt"
-	MAKE=gmake test_tree samba_4_0_test source $compiler
-
 	export config="--bundled-libraries=popt"
 	MAKE=gmake test_tree samba_4_0_waf source4 $compiler
 

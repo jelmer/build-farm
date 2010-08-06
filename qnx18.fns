@@ -10,7 +10,6 @@ compiler=gcc
 test_tree lorikeet-heimdal . $compiler
 
 if which perl > /dev/null; then
-	test_tree samba_4_0_test source $compiler
 	test_tree samba_4_0_waf source4 $compiler
 fi
 
