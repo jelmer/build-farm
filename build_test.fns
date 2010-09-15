@@ -253,7 +253,7 @@ do_make() {
 # configure the tree
 action_configure() {
 	if [ ! -x $srcdir/configure -a -r $srcdir/Makefile.PL ]; then
-		perl $srcdir/Makefile.PL "$prefix"
+		perl $srcdir/Makefile.PL PREFIX="$prefix"
 		cstatus=$?
 		echo "CONFIGURE STATUS: $cstatus"
 		return $cstatus;

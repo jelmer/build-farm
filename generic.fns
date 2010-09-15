@@ -60,7 +60,7 @@ done
 
 # only attempt pidl if we have perl
 if which perl > /dev/null; then
-  test_tree pidl . cc build test
+  test_tree pidl . cc
 fi
 
 global_unlock
