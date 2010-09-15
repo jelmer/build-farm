@@ -252,6 +252,12 @@ do_make() {
 ############################
 # configure the tree
 action_configure() {
+	if [ ! -x $srcdir/configure -a -r $srcdir/Makefile.PL ]
+		perl $srcdir/Makefile.PL "$prefix"
+		cstatus=$?
+		echo "CONFIGURE STATUS: $cstatus"
+		return $cstatus;
+	fi
         if [ ! -x $srcdir/configure ]; then
 	    ls -l $srcdir/configure
 	    echo "$srcdir/configure is missing"
@@ -778,12 +784,6 @@ test_tree() {
 		  if [ -n "$ctime" ]; then
 		    echo "BUILD COMMIT TIME: $ctime"
 		  fi
-		fi
-
-		if [ "$tree" = "pidl" ] 
-		then
-			cd $builddir
-			perl ./Makefile.PL "$prefix"
 		fi
 
 		for action in $actions; do
