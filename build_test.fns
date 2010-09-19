@@ -793,6 +793,7 @@ test_tree() {
 		fi
 
 		if [ -x $builddir/killbysubdir ]; then
+		    echo "$builddir/killbysubdir $builddir in `pwd`"
 		    $builddir/killbysubdir $builddir
 		fi
 
