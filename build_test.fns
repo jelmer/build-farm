@@ -925,12 +925,13 @@ per_run_hook() {
 	rm -f build.log
     fi
 
-    delete_old_tree "samba_3_2"
-    delete_old_tree "samba_3_2_test"
-    delete_old_tree "samba4"
-    delete_old_tree "samba_4_0_test"
-    delete_old_tree "samba_3_X_test"
-    delete_old_tree "samba_3_X_devel"
+    old_trees="samba_3_2 samba_3_2_test samba4 samba_4_0_test samba_3_X_test samba_3_X_devel samba_3_X_devel"
+    for d in old_trees; do
+	delete_old_tree $d
+	if [ -x $test_root/killbysubdir ]; then
+	    $test_root/killbysubdir $d
+	fi
+    done
 }
 
 
