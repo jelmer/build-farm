@@ -225,17 +225,17 @@ do_make() {
   for t in $*; do
     if [ x"$BUILD_FARM_NUM_JOBS" = x ]; then
       echo "$MAKE $t"
-      ./timelimit $MMTIME "$MAKE" "$t"
+      $test_root/timelimit $MMTIME "$MAKE" "$t"
       status=$?
     else
       # we can parallelize everything and all targets
       if [ x"$t" = xeverything ] || [ x"$t" = xall]; then
         echo "$MAKE" "-j$BUILD_FARM_NUM_JOBS"  "$t"
-        ./timelimit $MMTIME "$MAKE" "-j$BUILD_FARM_NUM_JOBS"  "$t"
+        $test_root/timelimit $MMTIME "$MAKE" "-j$BUILD_FARM_NUM_JOBS"  "$t"
         status=$?
       else
         echo "$MAKE $t"
-        ./timelimit $MMTIME "$MAKE" "$t"
+        $test_root/timelimit $MMTIME "$MAKE" "$t"
         status=$?
       fi
     fi
@@ -270,7 +270,7 @@ action_configure() {
 	echo CC="$CCACHE $compiler" $srcdir/configure $config_and_prefix
 	CC="$CCACHE $compiler"
 	export CC
-	./timelimit $MAXTIME $srcdir/configure $config_and_prefix
+	$test_root/timelimit $MAXTIME $srcdir/configure $config_and_prefix
 	cstatus=$?
 	if [ x"$cstatus" != x"0" ]; then
 	        if [ -f config.log ]; then
@@ -904,8 +904,7 @@ delete_old_tree() {
 per_run_hook() {
     # build the timelimit utility
     echo "Building timelimit"
-    mkdir -p $builddir
-    $compiler $TIMELIMIT_FLAGS -o $builddir/timelimit $test_root/timelimit.c || exit 1
+    $compiler $TIMELIMIT_FLAGS -o $test_root/timelimit $test_root/timelimit.c || exit 1
 
     # build the killbysubdir utility
     echo "Building killbysubdir"
