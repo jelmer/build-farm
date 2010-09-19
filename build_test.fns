@@ -909,8 +909,7 @@ per_run_hook() {
 
     # build the killbysubdir utility
     echo "Building killbysubdir"
-    mkdir -p $builddir
-    $compiler -o $builddir/killbysubdir $test_root/killbysubdir.c
+    $compiler -o $test_root/killbysubdir $test_root/killbysubdir.c
 
     # kill old processes on systems with a known problem
     case $host in
