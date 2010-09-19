@@ -225,17 +225,17 @@ do_make() {
   for t in $*; do
     if [ x"$BUILD_FARM_NUM_JOBS" = x ]; then
       echo "$MAKE $t"
-      $test_root/timelimit $MMTIME "$MAKE" "$t"
+      $builddir/timelimit $MMTIME "$MAKE" "$t"
       status=$?
     else
       # we can parallelize everything and all targets
       if [ x"$t" = xeverything ] || [ x"$t" = xall]; then
         echo "$MAKE" "-j$BUILD_FARM_NUM_JOBS"  "$t"
-        $test_root/timelimit $MMTIME "$MAKE" "-j$BUILD_FARM_NUM_JOBS"  "$t"
+        $builddir/timelimit $MMTIME "$MAKE" "-j$BUILD_FARM_NUM_JOBS"  "$t"
         status=$?
       else
         echo "$MAKE $t"
-        $test_root/timelimit $MMTIME "$MAKE" "$t"
+        $builddir/timelimit $MMTIME "$MAKE" "$t"
         status=$?
       fi
     fi
@@ -270,7 +270,7 @@ action_configure() {
 	echo CC="$CCACHE $compiler" $srcdir/configure $config_and_prefix
 	CC="$CCACHE $compiler"
 	export CC
-	$test_root/timelimit $MAXTIME $srcdir/configure $config_and_prefix
+	$builddir/timelimit $MAXTIME $srcdir/configure $config_and_prefix
 	cstatus=$?
 	if [ x"$cstatus" != x"0" ]; then
 	        if [ -f config.log ]; then
@@ -658,6 +658,17 @@ test_tree() {
 	    fi
 	fi
 
+        # build the timelimit utility
+	echo "Building timelimit"
+	mkdir -p $builddir
+	echo $compiler $TIMELIMIT_FLAGS -o $builddir/timelimit $test_root/timelimit.c
+	$compiler $TIMELIMIT_FLAGS -o $builddir/timelimit $test_root/timelimit.c || exit 1
+
+        # build the killbysubdir utility
+	echo "Building killbysubdir"
+	echo $compiler -o $builddir/killbysubdir $test_root/killbysubdir.c
+	$compiler -o $builddir/killbysubdir $test_root/killbysubdir.c
+
 	prefix="$test_root/prefix/$tree.$compiler"
 	mkdir -p "$prefix"
 
@@ -781,8 +792,8 @@ test_tree() {
 		  fi
 		fi
 
-		if [ -x $test_root/killbysubdir ]; then
-		    $test_root/killbysubdir $builddir
+		if [ -x $builddir/killbysubdir ]; then
+		    $builddir/killbysubdir $builddir
 		fi
 
 		for action in $actions; do
@@ -902,14 +913,6 @@ delete_old_tree() {
 # farm that we want to do to the build farm. never leave it empty. instead,
 # use ":" as the fn body.
 per_run_hook() {
-    # build the timelimit utility
-    echo "Building timelimit"
-    $compiler $TIMELIMIT_FLAGS -o $test_root/timelimit $test_root/timelimit.c || exit 1
-
-    # build the killbysubdir utility
-    echo "Building killbysubdir"
-    $compiler -o $test_root/killbysubdir $test_root/killbysubdir.c
-
     # kill old processes on systems with a known problem
     case $host in
 	nohost)
@@ -927,9 +930,6 @@ per_run_hook() {
     old_trees="samba_3_2 samba_3_2_test samba4 samba_4_0_test samba_3_X_test samba_3_X_devel samba_3_X_devel"
     for d in old_trees; do
 	delete_old_tree $d
-	if [ -x $test_root/killbysubdir ]; then
-	    $test_root/killbysubdir $d
-	fi
     done
 }
 
