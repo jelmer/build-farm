@@ -756,11 +756,6 @@ test_tree() {
 		echo "Showing limits"
 		ulimit -a 2> /dev/null
 
-           	# build the timelimit utility
-		echo "Building timelimit"
-		mkdir -p $builddir
-		$compiler $TIMELIMIT_FLAGS -o $builddir/timelimit $test_root/timelimit.c || exit 1
-
 		# the following is for non-samba builds only
 		if [ "$scm" = "svn" -a -r $test_root/$tree.svn ]; then
 		  h_rev=`grep 'Revision: ' $test_root/$tree.svn | cut -d ':' -f2 | cut -d ' ' -f2 | sed 1q`
@@ -784,6 +779,10 @@ test_tree() {
 		  if [ -n "$ctime" ]; then
 		    echo "BUILD COMMIT TIME: $ctime"
 		  fi
+		fi
+
+		if [ -x $test_root/killbysubdir ]; then
+		    $test_root/killbysubdir $builddir
 		fi
 
 		for action in $actions; do
@@ -885,16 +884,6 @@ global_unlock() {
     unlock_file "global.lck"
 }
 
-#########################################################
-# enable this on a per host basis only when needed please
-# (at least for the moment)
-kill_old_processes() {
-    # this should work on systems with linux like ps
-    (ps uxfw | grep /build | grep -v grep | egrep 'Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec' | awk '{print $2}' | xargs kill -9) 2> /dev/null
-    # and this should work on sysv style ps
-    (ps -fu $USER | grep /build | grep -v grep | egrep 'Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec' | awk '{print $2}' | xargs kill -9) 2> /dev/null
-}
-
 delete_old_tree() {
 	otree=$1
 
@@ -913,13 +902,20 @@ delete_old_tree() {
 # farm that we want to do to the build farm. never leave it empty. instead,
 # use ":" as the fn body.
 per_run_hook() {
+    # build the timelimit utility
+    echo "Building timelimit"
+    mkdir -p $builddir
+    $compiler $TIMELIMIT_FLAGS -o $builddir/timelimit $test_root/timelimit.c || exit 1
+
+    # build the killbysubdir utility
+    echo "Building killbysubdir"
+    mkdir -p $builddir
+    $compiler -o $builddir/killbysubdir $test_root/killbysubdir.c
+
     # kill old processes on systems with a known problem
     case $host in
 	nohost)
 	    echo "just a placeholder";
-	    ;;
-	tridge)
-	    kill_old_processes
 	    ;;
 	deckchair)
 	    rm -f deckchair.fns
