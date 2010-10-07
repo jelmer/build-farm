@@ -19,6 +19,7 @@
 ./gitlog.pl /data/git/samba.git/ 60 v3-6-test cache/history.samba_3_next
 ./gitlog.pl /data/git/samba.git/ 60 master cache/history.samba_3_master
 ./gitlog.pl /data/git/samba.git/ 60 master cache/history.samba_4_0_test
+./gitlog.pl /data/git/samba.git/ 60 master cache/history.samba_4_0_waf
 ./gitlog.pl /data/git/samba.git/ 60 master cache/history.libreplace lib/replace
 ./gitlog.pl /data/git/samba.git/ 60 master cache/history.talloc lib/talloc
 ./gitlog.pl /data/git/samba.git/ 60 master cache/history.tdb lib/tdb
