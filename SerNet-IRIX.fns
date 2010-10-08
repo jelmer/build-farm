@@ -13,7 +13,7 @@ for compiler in cc ; do
 	#export config="--with-included-popt"
 	. common.fns
 
-	test_tree samba_4_0_waf source4 $compiler
+	test_tree samba_4_0_test source4 $compiler
 
 	test_tree samba_3_current source $compiler
 	test_tree samba_3_next source $compiler

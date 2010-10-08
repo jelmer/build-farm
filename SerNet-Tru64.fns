@@ -13,7 +13,7 @@ export SAMBA_MAXTIME
 
 . common.fns
 test_tree lorikeet-heimdal . $compiler
-CFLAGS="-g1 ${CFLAGS}" test_tree samba_4_0_waf source4 $compiler
+CFLAGS="-g1 ${CFLAGS}" test_tree samba_4_0_test source4 $compiler
 CFLAGS="-g1 ${CFLAGS}" test_tree samba_3_current source $compiler
 CFLAGS="-g1 ${CFLAGS}" test_tree samba_3_next source $compiler
 CFLAGS="-g1 ${CFLAGS}" test_tree samba_3_master source $compiler

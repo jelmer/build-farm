@@ -36,7 +36,7 @@ for compiler in gcc cc icc; do
 	    CFLAGS="$CFLAGS_THIS_COMPILER $CFLAGS"
     fi
     export CFLAGS
-    test_tree samba_4_0_waf source4 $compiler
+    test_tree samba_4_0_test source4 $compiler
     if [ $compiler = gcc -o $isgcc = 0 ]; then
       . common.fns
       test_tree lorikeet-heimdal . $compiler
