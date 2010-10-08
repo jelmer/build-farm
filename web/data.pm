@@ -130,7 +130,7 @@ sub new($;$) {
 			'subdir' => '',
 			'srcdir' => 'source'
 		},
-		'samba_4_0_waf' => {
+		'samba_4_0_test' => {
 			'scm' => 'git',
 			'repo' => 'samba.git',
 			'branch' => 'master',
