@@ -1,0 +1,17 @@
+per_run_hook
+
+global_lock
+
+#. install_python.fns
+
+for compiler in gcc cc; do
+	. common.fns
+
+	test_tree samba_4_0_test source4 $compiler
+
+	test_tree samba_3_current source $compiler
+	test_tree samba_3_next source $compiler
+	test_tree samba_3_master source $compiler
+done
+
+global_unlock
