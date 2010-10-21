@@ -323,90 +323,6 @@ copy_dir() {
 	return 0
 }
 
-s4selftest_create() {
-	lock_file "s4selftest.lck" || {
-	    echo "s4selftest_create: already locked"
-	    return 1;
-	}
-
-	# we currently only need smbtorture
-	mkdir -p $s4selftest/source/bin
-	echo "s4selftest_create: rsync -aL $builddir/bin/smbtorture.static $s4selftest/source/bin/smbtorture"
-	rsync -aL $builddir/bin/smbtorture.static $s4selftest/source/bin/smbtorture || {
-	    echo "s4selftest_create: failed rsync"
-	    unlock_file "s4selftest.lck";
-	    return 1;
-	}
-
-	unlock_file "s4selftest.lck"
-	echo "s4selftest_create: OK"
-	return 0;
-
-	copy_dir $builddir/bin $s4selftest/source/bin || {
-		rm -rf $s4selftest/;
-		unlock_file "s4selftest.lck";
-		return 1;
-	}
-
-	copy_dir $srcdir/setup $s4selftest/source/setup || {
-		rm -rf $s4selftest/;
-		unlock_file "s4selftest.lck";
-		return 1;
-	}
-
-	copy_dir $srcdir/../testprogs $s4selftest/testprogs || {
-		rm -rf $s4selftest/;
-		unlock_file "s4selftest.lck";
-		return 1;
-	}
-
-	copy_dir $srcdir/selftest $s4selftest/source/selftest || {
-		rm -rf $s4selftest/;
-		unlock_file "s4selftest.lck";
-		return 1;
-	}
-
-	copy_dir $srcdir/script $s4selftest/source/script || {
-		rm -rf $s4selftest/;
-		unlock_file "s4selftest.lck";
-		return 1;
-	}
-
-	mkdir -p $s4selftest/source/scripting || {
-		rm -rf $s4selftest/;
-		unlock_file "s4selftest.lck";
-		return 1;
-	}
-
-	unlock_file "s4selftest.lck"
-}
-
-s4selftest_update() {
-	lock_file "s4selftest.lck" || {
-	    echo "s4selftest_update LOCKED"
-	    return 1;
-	}
-
-	echo tmp.$tree.$compiler.$$ >tmp.dirname
-	tempdir=`cut -b1-32 tmp.dirname`
-	rm -f tmp.dirname
-
-	echo "COPYING $s4selftest => $tempdir"
-	copy_dir $s4selftest $tempdir || {
-		rm -rf $tempdir;
-		unlock_file "s4selftest.lck";
-		echo "s4selftest_update COPY FAILED"
-		return 1;
-	}
-
-	echo "RENAMING $tempdir $s4selftest.$tree.$compiler"
-	rm -rf $s4selftest.$tree.$compiler
-	mv $tempdir $s4selftest.$tree.$compiler
-
-	unlock_file "s4selftest.lck"
-	echo "s4selftest_update OK"
-	return 0
-}
 
 ############################
 # build the tree
@@ -426,11 +342,6 @@ action_build() {
 			do_make testsuite
 			bstatus=$?
 		fi
-
-		if test x"$bstatus" = x"0"; then
-			s4selftest_create
-		fi
-
 		;;
 	samba_3*)
 		do_make everything torture
@@ -672,9 +583,6 @@ test_tree() {
 	prefix="$test_root/prefix/$tree.$compiler"
 	mkdir -p "$prefix"
 
-	s4selftest=$test_root/s4selftest
-	export s4selftest
-
 	sw_config=$config
 
 	case "$tree" in
@@ -689,12 +597,6 @@ test_tree() {
 	samba_3*)
 		sw_config="$config --enable-socket-wrapper"
 		sw_config="$sw_config --enable-nss-wrapper"
-		s4selftest_update "$tree" "$compiler" && {
-			t="$s4selftest.$tree.$compiler/source"
-			#sw_config="$sw_config --with-samba4srcdir=$t"
-			t="$t/bin/smbtorture"
-			sw_config="$sw_config --with-smbtorture4-path=$t"
-		}
 		;;
 	samba-gtk)
 		PKG_CONFIG_PATH="$test_root/prefix/samba_4_0_test.$compiler/lib/pkgconfig"
@@ -906,7 +808,6 @@ delete_old_tree() {
 	rm -rf $otree.*.svn
 	rm -rf $otree.git
 	rm -rf $otree.*.git
-	rm -rf s4selftest.$otree.*
 	rm -rf build.$otree.*
 }
 
