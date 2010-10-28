@@ -241,6 +241,12 @@ do_make() {
     fi
 
     if [ $status != 0 ]; then
+      # run again with V=1, so we see failed commands
+      $builddir/timelimit $MMTIME "$MAKE" "$t" V=1
+      status=$?
+    fi
+
+    if [ $status != 0 ]; then
       return $status;
     fi
 
@@ -331,17 +337,6 @@ action_build() {
 	samba_4*)
 		do_make everything
 		bstatus=$?
-		if test x"$bstatus" != x"0"; then
-			# the 2nd 'make everything' is to work around a bug
-			# in netbsd make. 
-			do_make everything
-			bstatus=$?
-		fi
-
-		if test x"$bstatus" != x"0"; then
-			do_make testsuite
-			bstatus=$?
-		fi
 		;;
 	samba_3*)
 		do_make everything torture
