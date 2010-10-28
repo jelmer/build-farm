@@ -241,9 +241,15 @@ do_make() {
     fi
 
     if [ $status != 0 ]; then
-      # run again with V=1, so we see failed commands
-      $builddir/timelimit $MMTIME "$MAKE" "$t" V=1
-      status=$?
+	case "$t" in
+	    test | check | installcheck)
+		;;
+	    *)
+      		# run again with V=1, so we see failed commands
+		$builddir/timelimit $MMTIME "$MAKE" "$t" V=1
+		status=$?
+		;;
+	esac
     fi
 
     if [ $status != 0 ]; then
