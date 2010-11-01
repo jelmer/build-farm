@@ -52,15 +52,15 @@ class History(object):
         t = self.db.trees[tree]
 
         if t["scm"] == "cvs":
-            self.cvs_diff(t, author, date, tree)
+            self._cvs_diff(t, author, date, tree)
         elif t["scm"] == "svn":
-            self.svn_diff(t, revision, tree)
+            self._svn_diff(t, revision, tree)
         elif t["scm"] == "git":
-            self.git_diff(t, revision, tree)
+            self._git_diff(t, revision, tree)
         else:
             raise Exception("Unknown VCS %s" % t["scm"])
 
-    def svn_diff(self, t, revision, tree):
+    def _svn_diff(self, t, revision, tree):
         """show recent svn entries"""
 
         os.chdir(os.path.join(UNPACKED_DIR, tree))
@@ -97,7 +97,7 @@ class History(object):
 
         return (title, entry, tree, [(cmd, commands.getoutput("%s 2> /dev/null" % cmd))])
 
-    def cvs_diff(self, t, author, date, tree):
+    def _cvs_diff(self, t, author, date, tree):
         """show recent cvs entries"""
         os.chdir(os.path.join(UNPACKED_DIR, tree))
 
@@ -145,7 +145,7 @@ class History(object):
             diffs = [(cmd, commands.getoutput("%s 2> /dev/null" % cmd))]
         return (title, entry, tree, diffs)
 
-    def git_diff(self, t, revision, tree):
+    def _git_diff(self, t, revision, tree):
         """show recent git entries"""
         os.chdir(os.path.join(UNPACKED_DIR, tree))
 
