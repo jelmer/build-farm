@@ -117,3 +117,8 @@ error2
 error3""")
         build = self.x.get_build("tdb", "charis", "cc")
         self.assertEquals(3, build.err_count())
+
+    def test_has_host(self):
+        self.assertFalse(self.x.has_host("charis"))
+        self.create_mock_logfile("tdb", "charis", "cc")
+        self.assertTrue(self.x.has_host("charis"))

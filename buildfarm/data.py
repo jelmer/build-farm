@@ -335,7 +335,7 @@ class BuildResultStore(object):
         else:
             sstatus = None
 
-        return (cstatus, bstatus, istatus, tstatus, sstatus, other_failures)
+        return ((cstatus, bstatus, istatus, tstatus, sstatus), other_failures)
 
     def lcov_status(self, tree):
         """get status of build"""
@@ -392,7 +392,13 @@ class BuildResultStore(object):
         return ret
 
     def has_host(self, host):
-        return host in os.listdir(os.path.join(self.datadir, "upload"))
+        for name in os.listdir(os.path.join(self.datadir, "upload")):
+            try:
+                if name.split(".")[2] == host:
+                    return True
+            except IndexError:
+                pass
+        return False
 
     def host_age(self, host):
         """get the overall age of a host"""

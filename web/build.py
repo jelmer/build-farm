@@ -79,7 +79,7 @@ def build_link(myself, tree, host, compiler, rev, status):
 
 
 def html_build_status(status):
-    (cstatus, bstatus, istatus, tstatus, sstatus, other_failures) = status
+    ((cstatus, bstatus, istatus, tstatus, sstatus), other_failures) = status
     def span(classname, contents):
         return "<span class=\"%s\">%s</span>" % (classname, contents)
 
