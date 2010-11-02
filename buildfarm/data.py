@@ -167,7 +167,7 @@ class BuildResultStore(object):
             return time.time() - st.st_ctime
 
     def build_revision_details(self, tree, host, compiler, rev=None):
-        """get the svn revision of build"""
+        """get the revision of build"""
         file = self.build_fname(tree, host, compiler, rev)
         cachef = self.cache_fname(tree, host, compiler, rev)
 
@@ -183,7 +183,7 @@ class BuildResultStore(object):
             st1 = os.stat("%s.log" % file)
         except OSError:
             # File does not exist
-            return "NO SUCH FILE"
+            raise NoSuchBuildError(tree, host, compiler, rev)
 
         try:
             st2 = os.stat("%s.revision" % cachef)
@@ -306,7 +306,7 @@ class BuildResultStore(object):
             st1 = os.stat("%s.log" % file)
         except OSError:
             # No such file
-            return "Unknown Build"
+            raise NoSuchBuildError(tree, host, compiler, rev)
 
         try:
             st2 = os.stat(cachefile)
@@ -394,7 +394,7 @@ class BuildResultStore(object):
             st1 = os.stat(file)
         except OSError:
             # File does not exist
-            return ""
+            raise NoSuchBuildError(tree, self.LCOVHOST, "lcov")
         try:
             st2 = os.stat(cachefile)
         except OSError:

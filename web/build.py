@@ -129,15 +129,12 @@ def view_summary(myself, output_type):
     for host in hosts:
         for compiler in compilers:
             for tree in trees:
-                status = build_status(myself, tree, host, compiler, "")
-                if status.startswith("Unknown Build"):
-                    continue
                 try:
-                    age_mtime = db.build_age_mtime(tree, host, compiler)
+                    status = build_status(myself, tree, host, compiler)
                 except data.NoSuchBuildError:
-                    pass
-                else:
-                    host_count[tree]+=1
+                    continue
+                age_mtime = db.build_age_mtime(tree, host, compiler)
+                host_count[tree]+=1
 
                 if "status failed" in status:
                     broken_count[tree]+=1
@@ -168,7 +165,11 @@ def view_summary(myself, output_type):
             else:
                     yield "<td>"
             yield "%d</td>" % panic_count[tree]
-            yield "<td>%s</td>" % db.lcov_status(tree)
+            try:
+                lcov_data = db.lcov_status(tree)
+            except data.NoSuchBuildError:
+                lcov_data = ""
+            yield "<td>%s</td>" % lcov_data
             yield "</tr>"
 
     if output_type == 'text':
@@ -240,12 +241,12 @@ def view_recent_builds(myself, tree, sort_by):
 
     for host in hosts:
         for compiler in compilers:
-            status = build_status(myself, tree, host, compiler)
             try:
-                age_mtime = db.build_age_mtime(tree, host, compiler)
+                status = build_status(myself, tree, host, compiler)
             except data.NoSuchBuildError:
                 pass
             else:
+                age_mtime = db.build_age_mtime(tree, host, compiler)
                 age_ctime = db.build_age_ctime(tree, host, compiler)
                 revision = db.build_revision(tree, host, compiler)
                 revision_time = db.build_revision_time(tree, host, compiler)
@@ -462,7 +463,7 @@ def view_host(myself, output_type, *requested_hosts):
                 else:
                     age_ctime = db.build_age_ctime(tree, host, compiler)
                     warnings = db.err_count(tree, host, compiler)
-                    status = build_status(myself, tree, host, compiler, "")
+                    status = build_status(myself, tree, host, compiler)
                     if row == 0:
                         if output_type == 'text':
                             yield "%-12s %-10s %-10s %-10s %-10s\n" % (
