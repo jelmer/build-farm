@@ -270,15 +270,6 @@ class BuildResultStore(object):
             return os.path.join(self.datadir, "oldrevs/build.%s.%s.%s-%s" % (tree, host, compiler, rev))
         return os.path.join(self.datadir, "upload/build.%s.%s.%s" % (tree, host, compiler))
 
-
-    def build_revision(self, tree, host, compiler, rev=None):
-        build = self.get_build(tree, host, compiler, rev)
-        return build.revision_details()[0]
-
-    def build_revision_time(self, tree, host, compiler, rev=None):
-        build = self.get_build(tree, host, compiler, rev)
-        return build.revision_details()[1]
-
     def build_status_from_logs(self, log, err):
         """get status of build"""
         def span_status(st):
