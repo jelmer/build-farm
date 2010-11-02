@@ -32,12 +32,6 @@ TIMEZONE = "PST"
 TIMEOFFSET = 0
 UNPACKED_DIR = "/home/ftp/pub/unpacked"
 
-CVSWEB_BASE = "http://pserver.samba.org/cgi-bin/cvsweb"
-VIEWCVS_BASE = "http://websvn.samba.org/cgi-bin/viewcvs.cgi"
-UNPACKED_BASE = "http://svn.samba.org/ftp/unpacked"
-GITWEB_BASE = "http://gitweb.samba.org"
-
-
 class History(object):
 
     def __init__(self, db):
@@ -51,14 +45,14 @@ class History(object):
         # validate the tree
         t = self.db.trees[tree]
 
-        if t["scm"] == "cvs":
+        if t.scm == "cvs":
             self._cvs_diff(t, author, date, tree)
-        elif t["scm"] == "svn":
+        elif t.scm == "svn":
             self._svn_diff(t, revision, tree)
-        elif t["scm"] == "git":
+        elif t.scm == "git":
             self._git_diff(t, revision, tree)
         else:
-            raise Exception("Unknown VCS %s" % t["scm"])
+            raise Exception("Unknown VCS %s" % t.scm)
 
     def _svn_diff(self, t, revision, tree):
         """show recent svn entries"""
@@ -90,7 +84,7 @@ class History(object):
 
         # get information about the current diff
         title = "SVN Diff in %s:%s for revision r%s" % (
-            tree, t["branch"], revision)
+            tree, t.branch, revision)
 
         old_revision = revision - 1
         cmd = "svn diff -r %s:%s" % (old_revision, revision)
@@ -118,7 +112,7 @@ class History(object):
         t1 = time.ctime(date-60+(TIMEOFFSET*60*60)).strip()
         t2 = time.ctime(date+60+(TIMEOFFSET*60*60)).strip()
 
-        title = "CVS Diff in %s:%s for %s" % (tree, t["branch"], t1)
+        title = "CVS Diff in %s:%s for %s" % (tree, t.branch, t1)
 
         if entry["TAG"] != "" and entry["REVISIONS"] != "":
             raise Exception("sorry, cvs diff on branches not currently possible due to a limitation in cvs")
@@ -162,7 +156,7 @@ class History(object):
 
         # get information about the current diff
         title = "GIT Diff in %s:%s for revision %s" % (
-            tree, t["branch"], revision)
+            tree, t.branch, revision)
 
         cmd = "git diff %s^ %s ./" % (revision, revision)
         return (title, entry, tree, [(cmd, commands.getoutput("%s 2> /dev/null" % cmd))])

@@ -47,6 +47,11 @@ hosts = db.hosts
 trees = db.trees
 OLDAGE = db.OLDAGE
 
+CVSWEB_BASE = "http://pserver.samba.org/cgi-bin/cvsweb"
+VIEWCVS_BASE = "http://websvn.samba.org/cgi-bin/viewcvs.cgi"
+UNPACKED_BASE = "http://svn.samba.org/ftp/unpacked"
+GITWEB_BASE = "http://gitweb.samba.org"
+
 # this is automatically filled in
 deadhosts = []
 
@@ -256,7 +261,7 @@ def view_recent_builds(myself, tree, sort_by):
     sorturl = "%s?tree=%s;function=Recent+Builds" % (myself, tree)
 
     yield "<div id='recent-builds' class='build-section'>"
-    yield "<h2>Recent builds of %s (%s branch %s)</h2>" % (tree, t["scm"], t["branch"])
+    yield "<h2>Recent builds of %s (%s branch %s)</h2>" % (tree, t.scm, t.branch)
     yield "<table class='real'>"
     yield "<thead>"
     yield "<tr>"
@@ -674,7 +679,7 @@ def main_menu():
     yield "</select>"
     yield "<select name='tree'>"
     for tree, t in trees.iteritems():
-        yield "<option value='%s'>%s:%s</option>" % (tree, tree, t["branch"])
+        yield "<option value='%s'>%s:%s</option>" % (tree, tree, t.branch)
     yield "</select>"
     yield "<select name='compiler'>"
     for compiler in compilers:
@@ -721,14 +726,14 @@ def web_paths(t, paths):
 
     fmt = None
 
-    if t["scm"] == "cvs":
-        fmt = " <a href=\"%s/%s/%%s\">%%s</a>" % (CVSWEB_BASE, t["repo"])
-    elif t["scm"] == "svn":
-        fmt = " <a href=\"%s/%s/%%s?root=%s\">%%s</a>" % (VIEWCVS_BASE, t["branch"], t["repo"])
-    elif t["scm"] == "git":
-        r = t["repo"]
-        s = t["subdir"]
-        b = t["branch"]
+    if t.scm == "cvs":
+        fmt = " <a href=\"%s/%s/%%s\">%%s</a>" % (CVSWEB_BASE, t.repo)
+    elif t.scm == "svn":
+        fmt = " <a href=\"%s/%s/%%s?root=%s\">%%s</a>" % (VIEWCVS_BASE, t.branch, t.repo)
+    elif t.scm == "git":
+        r = t.repo
+        s = t.subdir
+        b = t.branch
         fmt = " <a href=\"%s/?p=%s;a=history;f=%s%%s;h=%s;hb=%s\">%%s</a>" % (GITWEB_BASE, r, s, b, b)
     else:
         return paths
@@ -874,7 +879,7 @@ def buildApp(environ, start_response):
             authors.update(history.authors(tree))
 
             yield "<h2>Recent checkins for %s (%s branch %s)</h2>\n" % (
-                tree, t["scm"], t["branch"])
+                tree, t.scm, t.branch)
             yield "<form method='GET'>"
             yield "Select Author: "
             yield "<select name='author'>"

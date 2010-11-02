@@ -36,6 +36,7 @@ class BuildfarmDatabaseTests(BuildFarmTestCase):
 
         self.write_compilers(["cc"])
         self.write_hosts(["gwenhwyvar", "charis"])
+        self.write_trees({"tdb": {"scm": "git", "repo": "tdb", "branch": "master"}})
 
         self.x = data.BuildfarmDatabase(self.path)
 

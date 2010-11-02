@@ -41,6 +41,17 @@ class BuildFarmTestCase(TestCase):
         finally:
             f.close()
 
+    def write_trees(self, trees):
+        f = open(os.path.join(self.path, "web", "trees.conf"), "w")
+        try:
+            for t in trees:
+                f.write("[%s]\n" % t)
+                for k, v in trees[t].iteritems():
+                    f.write("%s = %s\n" % (k, v))
+                f.write("\n")
+        finally:
+            f.close()
+
     def setUp(self):
         super(BuildFarmTestCase, self).setUp()
         self.path = tempfile.mkdtemp()

@@ -22,6 +22,7 @@
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+import ConfigParser
 import os
 import re
 import time
@@ -58,13 +59,42 @@ def status_info_cmp(self, s1, s2):
     return s2["value"] - s1["value"]
 
 
+class Tree(object):
+    """A tree to build."""
+
+    def __init__(self, name, scm, repo, branch, subdir="", srcdir=""):
+        self.name = name
+        self.repo = repo
+        self.branch = branch
+        self.subdir = subdir
+        self.srcdir = srcdir
+
+    def __repr__(self):
+        return "<%s %r>" % (self.__class__.__name__, self.name)
+
+
+def read_trees_from_conf(path):
+    ret = {}
+    cfp = ConfigParser.ConfigParser()
+    cfp.readfp(open(path))
+    for s in cfp.sections():
+        ret[s] = Tree(name=s, **dict(cfp.items(s)))
+    return s
+
+
 class BuildfarmDatabase(object):
+    """The build farm build result database."""
 
     OLDAGE = 60*60*4,
     DEADAGE = 60*60*24*4
     LCOVHOST = "magni"
 
     def __init__(self, basedir, readonly=False):
+        """Open the database.
+
+        :param basedir: Build result base directory
+        :param readonly: Whether to avoid saving cache files
+        """
         self.basedir = basedir
         check_dir_exists("base", self.basedir)
         self.readonly = readonly
@@ -84,127 +114,7 @@ class BuildfarmDatabase(object):
         self.compilers = util.load_list(os.path.join(self.webdir, "compilers.list"))
         self.hosts = util.load_hash(os.path.join(self.webdir, "hosts.list"))
 
-        self.trees = {
-            'ccache': {
-                'scm': 'git',
-                'repo': 'ccache',
-                'branch': 'master',
-                'subdir': '',
-                'srcdir': ''
-            },
-            'ccache-maint': {
-                'scm': 'git',
-                'repo': 'ccache',
-                'branch': 'maint',
-                'subdir': '',
-                'srcdir': ''
-            },
-            'ppp': {
-                'scm': 'git',
-                'repo': 'ppp',
-                'branch': 'master',
-                'subdir': '',
-                'srcdir': ''
-            },
-            'build_farm': {
-                'scm': 'svn',
-                'repo': 'build-farm',
-                'branch': 'trunk',
-                'subdir': '',
-                'srcdir': ''
-            },
-            'samba-web': {
-                'scm': 'svn',
-                'repo': 'samba-web',
-                'branch': 'trunk',
-                'subdir': '',
-                'srcdir': ''
-            },
-            'samba-docs': {
-                'scm': 'svn',
-                'repo': 'samba-docs',
-                'branch': 'trunk',
-                'subdir': '',
-                'srcdir': ''
-            },
-            'lorikeet': {
-                'scm': 'svn',
-                'repo': 'lorikeeet',
-                'branch': 'trunk',
-                'subdir': '',
-                'srcdir': ''
-            },
-            'samba_3_current': {
-                'scm': 'git',
-                'repo': 'samba.git',
-                'branch': 'v3-5-test',
-                'subdir': '',
-                'srcdir': 'source'
-            },
-            'samba_3_next': {
-                'scm': 'git',
-                'repo': 'samba.git',
-                'branch': 'v3-6-test',
-                'subdir': '',
-                'srcdir': 'source'
-            },
-            'samba_3_master': {
-                'scm': 'git',
-                'repo': 'samba.git',
-                'branch': 'master',
-                'subdir': '',
-                'srcdir': 'source'
-            },
-            'samba_4_0_test': {
-                'scm': 'git',
-                'repo': 'samba.git',
-                'branch': 'master',
-                'subdir': '',
-                'srcdir': 'source4'
-            },
-            'libreplace': {
-                'scm': 'git',
-                'repo': 'samba.git',
-                'branch': 'master',
-                'subdir': 'lib/replace/',
-                'srcdir': ''
-            },
-            'talloc': {
-                'scm': 'git',
-                'repo': 'samba.git',
-                'branch': 'master',
-                'subdir': 'lib/talloc/',
-                'srcdir': ''
-            },
-            'tdb': {
-                'scm': 'git',
-                'repo': 'samba.git',
-                'branch': 'master',
-                'subdir': 'lib/tdb/',
-                'srcdir': ''
-            },
-            'ldb': {
-                'scm': 'git',
-                'repo': 'samba.git',
-                'branch': 'master',
-                'subdir': 'lib/ldb/',
-                'srcdir': ''
-            },
-            'pidl': {
-                'scm': 'git',
-                'repo': 'samba.git',
-                'branch': 'master',
-                'subdir': 'pidl/',
-                'srcdir': ''
-            },
-            'rsync': {
-                'scm': 'git',
-                'repo': 'rsync.git',
-                'branch': 'HEAD',
-                'subdir': '',
-                'srcdir': ''
-            }
-        }
+        self.trees = read_trees_from_conf(os.path.join(self.webdir, "trees.conf"))
 
     def cache_fname(self, tree, host, compiler, rev=None):
         if rev is not None:
@@ -223,7 +133,6 @@ class BuildfarmDatabase(object):
     # on a host.
     # the ctime age is used to determine when the last real build happened
 
-    ##############################################
     def build_age_mtime(self, host, tree, compiler, rev):
         """get the age of build from mtime"""
         file = self.build_fname(tree, host, compiler, rev)
@@ -257,7 +166,7 @@ class BuildfarmDatabase(object):
         if rev:
             if tree not in self.trees:
                 return rev
-            if self.trees[tree]["scm"] != "git":
+            if self.trees[tree].scm != "git":
                 return rev
 
         try:
@@ -371,7 +280,16 @@ class BuildfarmDatabase(object):
                 cstatus, bstatus, istatus, tstatus, sstatus, dstatus, tostatus)
 
     def build_status(self, host, tree, compiler, rev):
-        """get status of build"""
+        """get status of build
+
+        :param host: Host name
+        :param tree: Tree name
+        :param compiler: Compiler name
+        :param rev: Revision
+        :return: string with build status
+        """
+        # FIXME: This should return a tuple
+
         file = self.build_fname(tree, host, compiler, rev)
         cachefile = self.cache_fname(tree, host, compiler, rev)+".status"
         try:
