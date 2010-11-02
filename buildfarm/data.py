@@ -176,6 +176,36 @@ class Build(object):
 
         return (revid, timestamp)
 
+    def status(self):
+        """get status of build
+
+        :return: string with build status
+        """
+        # FIXME: This should return a tuple
+
+        file = self._store.build_fname(self.tree, self.host, self.compiler, self.rev)
+        cachefile = self._store.cache_fname(self.tree, self.host, self.compiler, self.rev)+".status"
+        st1 = os.stat("%s.log" % file)
+
+        try:
+            st2 = os.stat(cachefile)
+        except OSError:
+            # No such file
+            st2 = None
+
+        if st2 and st1.st_ctime <= st2.st_mtime:
+            return util.FileLoad(cachefile)
+
+        log = self.read_log()
+        err = self.read_err()
+
+        ret = self._store.build_status_from_logs(log, err)
+
+        if not self.readonly:
+            util.FileSave(cachefile, ret)
+
+        return ret
+
 
 def read_trees_from_conf(path):
     """Read trees from a configuration file."""
@@ -312,48 +342,6 @@ class BuildResultStore(object):
         return "%s/%s/%s/%s%s%s%s" % (
                 cstatus, bstatus, istatus, tstatus, sstatus, dstatus, tostatus)
 
-    def build_status(self, tree, host, compiler, rev=None):
-        """get status of build
-
-        :param tree: Tree name
-        :param host: Host name
-        :param compiler: Compiler name
-        :param rev: Revision
-        :return: string with build status
-        """
-        # FIXME: This should return a tuple
-
-        file = self.build_fname(tree, host, compiler, rev)
-        cachefile = self.cache_fname(tree, host, compiler, rev)+".status"
-        try:
-            st1 = os.stat("%s.log" % file)
-        except OSError:
-            # No such file
-            raise NoSuchBuildError(tree, host, compiler, rev)
-
-        try:
-            st2 = os.stat(cachefile)
-        except OSError:
-            # No such file
-            st2 = None
-
-        if st2 and st1.st_ctime <= st2.st_mtime:
-            return util.FileLoad(cachefile)
-
-        log = util.FileLoad("%s.log" % file)
-        try:
-            err = util.FileLoad("%s.err" % file)
-        except OSError:
-            # No such file
-            err = ""
-
-        ret = self.build_status_from_logs(log, err)
-
-        if not self.readonly:
-            util.FileSave(cachefile, ret)
-
-        return ret
-
     def build_status_info_from_string(self, rev_seq, rev, status_raw):
         """find the build status as an perl object
 
@@ -406,7 +394,7 @@ class BuildResultStore(object):
         """
         build = self.get_build(tree, host, compiler, rev_seq)
         rev, rev_time = build.revision_details()
-        status_html = self.build_status(tree, host, compiler, rev_seq)
+        status_html = build.status()
         return self.build_status_info_from_html(rev_seq, rev, status_html)
 
     def lcov_status(self, tree):
@@ -483,8 +471,9 @@ class BuildResultStore(object):
                 # skip the current build
                 if stat.st_nlink == 2:
                     continue
+                build = self.get_build(tree, host, compiler, rev)
                 r = {
-                    "STATUS": self.build_status(tree, host, compiler, rev),
+                    "STATUS": build.status(),
                     "REVISION": rev,
                     "TIMESTAMP": stat.st_ctime
                     }

@@ -79,7 +79,8 @@ def build_link(myself, tree, host, compiler, rev, status):
 
 
 def build_status(myself, tree, host, compiler, rev):
-    status = db.build_status(tree, host, compiler, rev)
+    build = db.get_build(tree, host, compiler, rev)
+    status = build.build_status()
     return build_link(myself, tree, host, compiler, rev, status)
 
 
