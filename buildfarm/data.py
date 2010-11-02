@@ -24,6 +24,7 @@
 
 import os
 import re
+import time
 import util
 
 
@@ -260,7 +261,7 @@ class BuildfarmDatabase(object):
                 return rev
 
         try:
-            st1 = stat("%s.log" % file)
+            st1 = os.stat("%s.log" % file)
         except OSError:
             # File does not exist
             return "NO SUCH FILE"

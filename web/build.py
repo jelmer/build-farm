@@ -24,10 +24,13 @@
 # TODO: Allow filtering of the "Recent builds" list to show
 # e.g. only broken builds or only builds that you care about.
 
+import os
+import sys
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
 from buildfarm import data, util, history
 
 import cgi
-import os
 import re
 import time
 
