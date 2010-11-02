@@ -110,8 +110,55 @@ class Build(object):
         :return: Tuple with revision id and timestamp (if available)
         """
         file = self._store.build_fname(self.tree, self.host, self.compiler, self.rev)
-        cachef = self._store.cache_fname(self.tree, self.host, self.compiler, self.rev)
 
+        revid = None
+        timestamp = None
+        f = open("%s.log" % file, 'r')
+        try:
+            for l in f.readlines():
+                if l.startswith("BUILD COMMIT REVISION: "):
+                    revid = l.split(":", 1)[1].strip()
+                elif l.startswith("BUILD REVISION: "):
+                    revid = l.split(":", 1)[1].strip()
+                elif l.startswith("BUILD COMMIT TIME"):
+                    timestamp = l.split(":", 1)[1].strip()
+        finally:
+            f.close()
+
+        return (revid, timestamp)
+
+    def status(self):
+        """get status of build
+
+        :return: string with build status
+        """
+        # FIXME: This should return a tuple
+
+        log = self.read_log()
+        err = self.read_err()
+
+        return self._store.html_build_status_from_logs(log, err)
+
+    def err_count(self):
+        """get status of build"""
+        file = self._store.build_fname(self.tree, self.host, self.compiler, self.rev)
+
+        try:
+            err = util.FileLoad("%s.err" % file)
+        except OSError:
+            # File does not exist
+            return 0
+
+        return util.count_lines(err)
+
+
+class CachingBuild(Build):
+    """Build subclass that caches some of the results that are expensive
+    to calculate."""
+
+    def revision_details(self):
+        file = self._store.build_fname(self.tree, self.host, self.compiler, self.rev)
+        cachef = self._store.cache_fname(self.tree, self.host, self.compiler, self.rev)
         st1 = os.stat("%s.log" % file)
 
         try:
@@ -128,61 +175,14 @@ class Build(object):
                 return (revid, None)
             else:
                 return (revid, timestamp)
-
-        revid = None
-        timestamp = None
-        f = open("%s.log" % file, 'r')
-        try:
-            for l in f.readlines():
-                if l.startswith("BUILD COMMIT REVISION: "):
-                    revid = l.split(":", 1)[1].strip()
-                elif l.startswith("BUILD REVISION: "):
-                    revid = l.split(":", 1)[1].strip()
-                elif l.startswith("BUILD COMMIT TIME"):
-                    timestamp = l.split(":", 1)[1].strip()
-        finally:
-            f.close()
-
+        (revid, timestamp) = super(CachingBuild, self).revision_details()
         if not self._store.readonly:
             util.FileSave("%s.revision" % cachef, "%s:%s" % (revid, timestamp or ""))
-
         return (revid, timestamp)
 
-    def status(self):
-        """get status of build
-
-        :return: string with build status
-        """
-        # FIXME: This should return a tuple
-
-        file = self._store.build_fname(self.tree, self.host, self.compiler, self.rev)
-        cachefile = self._store.cache_fname(self.tree, self.host, self.compiler, self.rev)+".status"
-        st1 = os.stat("%s.log" % file)
-
-        try:
-            st2 = os.stat(cachefile)
-        except OSError:
-            # No such file
-            st2 = None
-
-        if st2 and st1.st_ctime <= st2.st_mtime:
-            return util.FileLoad(cachefile)
-
-        log = self.read_log()
-        err = self.read_err()
-
-        ret = self._store.html_build_status_from_logs(log, err)
-
-        if not self._store.readonly:
-            util.FileSave(cachefile, ret)
-
-        return ret
-
     def err_count(self):
-        """get status of build"""
         file = self._store.build_fname(self.tree, self.host, self.compiler, self.rev)
         cachef = self._store.cache_fname(self.tree, self.host, self.compiler, self.rev)
-
         st1 = os.stat("%s.err" % file)
 
         try:
@@ -194,18 +194,35 @@ class Build(object):
         if st2 and st1.st_ctime <= st2.st_mtime:
             return util.FileLoad("%s.errcount" % cachef)
 
-        try:
-            err = util.FileLoad("%s.err" % file)
-        except OSError:
-            # File does not exist
-            return 0
-
-        ret = util.count_lines(err)
+        ret = super(CachingBuild, self).err_count()
 
         if not self._store.readonly:
             util.FileSave("%s.errcount" % cachef, str(ret))
 
         return ret
+
+    def status(self):
+        file = self._store.build_fname(self.tree, self.host, self.compiler, self.rev)
+        cachefile = self._store.cache_fname(self.tree, self.host, self.compiler, self.rev)+".status"
+
+        st1 = os.stat("%s.log" % file)
+
+        try:
+            st2 = os.stat(cachefile)
+        except OSError:
+            # No such file
+            st2 = None
+
+        if st2 and st1.st_ctime <= st2.st_mtime:
+            return util.FileLoad(cachefile)
+
+        ret = super(CachingBuild, self).status()
+
+        if not self._store.readonly:
+            util.FileSave(cachefile, ret)
+
+        return ret
+
 
 
 def read_trees_from_conf(path):
@@ -256,7 +273,7 @@ class BuildResultStore(object):
         logf = self.build_fname(tree, host, compiler, rev) + ".log"
         if not os.path.exists(logf):
             raise NoSuchBuildError(tree, host, compiler, rev)
-        return Build(self, tree, host, compiler, rev)
+        return CachingBuild(self, tree, host, compiler, rev)
 
     def cache_fname(self, tree, host, compiler, rev=None):
         if rev is not None:
