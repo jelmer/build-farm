@@ -124,6 +124,58 @@ class Build(object):
         """read full err file"""
         return util.FileLoad(self._store.build_fname(self.tree, self.host, self.compiler, self.rev)+".err")
 
+    def build_revision_details(self):
+        """get the revision of build
+        
+        :return: Tuple with revision id and timestamp (if available)
+        """
+        file = self._store.build_fname(self.tree, self.host, self.compiler, self.rev)
+        cachef = self._store.cache_fname(self.tree, self.host, self.compiler, self.rev)
+
+        # don't fast-path for trees with git repository:
+        # we get the timestamp as rev and want the details
+        if self.rev:
+            if self.tree not in self._store.trees:
+                return self.rev
+            if self.trees[self.tree].scm != "git":
+                return self.rev
+
+        st1 = os.stat("%s.log" % file)
+
+        try:
+            st2 = os.stat("%s.revision" % cachef)
+        except OSError:
+            # File does not exist
+            st2 = None
+
+        # the ctime/mtime asymmetry is needed so we don't get fooled by
+        # the mtime update from rsync
+        if st2 and st1.st_ctime <= st2.st_mtime:
+            (revid, timestamp) = util.FileLoad("%s.revision" % cachef).split(":", 1)
+            if timestamp == "":
+                return (revid, None)
+            else:
+                return (revid, timestamp)
+
+        revid = None
+        timestamp = None
+        f = open("%s.log" % file, 'r')
+        try:
+            for l in f.readlines():
+                if l.startswith("BUILD COMMIT REVISION: "):
+                    revid = l.split(":", 1)[1].strip()
+                elif l.startswith("BUILD REVISION: "):
+                    revid = l.split(":", 1)[1].strip()
+                elif l.startswith("BUILD COMMIT TIME"):
+                    timestamp = l.split(":", 1)[1].strip()
+        finally:
+            f.close()
+
+        if not self.readonly:
+            util.FileSave("%s.revision" % cachef, "%s:%s" % (revid, timestamp or ""))
+
+        return (revid, timestamp)
+
 
 def read_trees_from_conf(path):
     """Read trees from a configuration file."""
@@ -187,64 +239,14 @@ class BuildResultStore(object):
             return os.path.join(self.datadir, "oldrevs/build.%s.%s.%s-%s" % (tree, host, compiler, rev))
         return os.path.join(self.datadir, "upload/build.%s.%s.%s" % (tree, host, compiler))
 
-    def build_revision_details(self, tree, host, compiler, rev=None):
-        """get the revision of build"""
-        file = self.build_fname(tree, host, compiler, rev)
-        cachef = self.cache_fname(tree, host, compiler, rev)
-
-        # don't fast-path for trees with git repository:
-        # we get the timestamp as rev and want the details
-        if rev:
-            if tree not in self.trees:
-                return rev
-            if self.trees[tree].scm != "git":
-                return rev
-
-        try:
-            st1 = os.stat("%s.log" % file)
-        except OSError:
-            # File does not exist
-            raise NoSuchBuildError(tree, host, compiler, rev)
-
-        try:
-            st2 = os.stat("%s.revision" % cachef)
-        except OSError:
-            # File does not exist
-            st2 = None
-
-        # the ctime/mtime asymmetry is needed so we don't get fooled by
-        # the mtime update from rsync 
-        if st2 and st1.st_ctime <= st2.st_mtime:
-            return util.FileLoad("%s.revision" % cachef)
-
-        log = util.FileLoad("%s.log" % file)
-
-        m = re.search("BUILD COMMIT REVISION: (.*)", log)
-        if m:
-            ret = m.group(1)
-        else:
-            m = re.search("BUILD REVISION: (.*)", log)
-            if m:
-                ret = m.group(1)
-            else:
-                ret = ""
-
-        m = re.search("BUILD COMMIT TIME: (.*)", log)
-        if m:
-            ret += ":" + m.group(1)
-
-        if not self.readonly:
-            util.FileSave("%s.revision" % cachef, ret)
-
-        return ret
 
     def build_revision(self, tree, host, compiler, rev=None):
-        r = self.build_revision_details(tree, host, compiler, rev=rev)
-        return r.split(":")[0]
+        build = self.get_build(tree, host, compiler, rev)
+        return build.revision_details()[0]
 
     def build_revision_time(self, tree, host, compiler, rev=None):
-        r = self.build_revision_details(tree, host, compiler, rev)
-        return r.split(":", 1)[1]
+        build = self.get_build(tree, host, compiler, rev)
+        return build.revision_details()[1]
 
     def build_status_from_logs(self, log, err):
         """get status of build"""
@@ -402,7 +404,8 @@ class BuildResultStore(object):
 
         the 'value' gets one point for passing each stage
         """
-        rev = self.build_revision(tree, host, compiler, rev_seq)
+        build = self.get_build(tree, host, compiler, rev_seq)
+        rev, rev_time = build.revision_details()
         status_html = self.build_status(tree, host, compiler, rev_seq)
         return self.build_status_info_from_html(rev_seq, rev, status_html)
 

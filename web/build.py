@@ -250,8 +250,7 @@ def view_recent_builds(myself, tree, sort_by):
             else:
                 age_mtime = build.age_mtime()
                 age_ctime = build.age_ctime()
-                revision = db.build_revision(tree, host, compiler)
-                revision_time = db.build_revision_time(tree, host, compiler)
+                (revision, revision_time) = build.revision_details()
                 all_builds.append([age_ctime, hosts[host], "<a href='%s?function=View+Host;host=%s;tree=%s;compiler=%s#%s'>%s</a>" % (myself, host, tree, compiler, host, host), compiler, tree, status, revision_link(myself, revision, tree), revision_time])
 
     all_builds.sort(cmp_funcs[sort_by])
@@ -351,7 +350,7 @@ def view_build(myself, tree, host, compiler, rev, plain_logs=False):
     config = ""
     build = db.get_build(tree, host, compiler, rev)
     age_mtime = build.age_mtime()
-    revision = db.build_revision(tree, host, compiler, rev)
+    (revision, revision_time) = build.revision_details()
     status = build_status(myself, tree, host, compiler, rev)
 
     assert re.match("^[0-9a-fA-F]*$", rev)
@@ -458,12 +457,12 @@ def view_host(myself, output_type, *requested_hosts):
 
         for compiler in compilers:
             for tree in sorted(trees.keys()):
-                revision = db.build_revision(tree, host, compiler)
                 try:
                     build = db.get_build(tree, host, compiler)
                 except data.NoSuchBuildError:
                     pass
                 else:
+                    revision, revision_time = build.revision_details()
                     age_mtime = build.age_mtime()
                     age_ctime = build.age_ctime()
                     warnings = db.err_count(tree, host, compiler)
