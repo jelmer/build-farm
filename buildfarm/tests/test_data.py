@@ -78,3 +78,16 @@ class BuildResultStoreTests(BuildFarmTestCase):
     def test_build_age_ctime_nonexistant(self):
         self.assertRaises(data.NoSuchBuildError, self.x.build_age_ctime, "tdb",
             "charis", "cc")
+
+    def test_read_log(self):
+        path = self.create_mock_logfile("tdb", "charis", "cc",
+            contents="This is what a log file looks like.")
+        log = self.x.read_log("tdb", "charis", "cc")
+        self.assertEquals("This is what a log file looks like.", log)
+
+    def test_read_err(self):
+        path = self.create_mock_logfile("tdb", "charis", "cc",
+            kind="stderr",
+            contents="This is what an stderr file looks like.")
+        log = self.x.read_err("tdb", "charis", "cc")
+        self.assertEquals("This is what an stderr file looks like.", log)

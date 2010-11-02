@@ -25,17 +25,23 @@ class BuildFarmTestCase(TestCase):
     """Test case class that provides a build farm data directory and convenience methods.
     """
 
-    def create_mock_logfile(self, tree, host, compiler, rev=None):
+    def create_mock_logfile(self, tree, host, compiler, rev=None, 
+            kind="stdout", contents="FOO"):
         basename = "build.%s.%s.%s" % (tree, host, compiler)
         if rev:
             basename += "-%s" % rev
             path = os.path.join(self.path, "data", "oldrevs", basename + "-%s" % rev)
         else:
             path = os.path.join(self.path, "data", "upload", basename)
-        path += ".log"
+        if kind == "stdout":
+            path += ".log"
+        elif kind == "stderr":
+            path += ".err"
+        else:
+            raise ValueError("Unknown log kind %r" % kind)
         f = open(path, 'w+')
         try:
-            f.write("foo\n")
+            f.write(contents)
         finally:
             f.close()
         return path

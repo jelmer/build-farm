@@ -446,11 +446,15 @@ class BuildResultStore(object):
 
         return ret
 
-    def read_log(self, tree, host, compiler, rev):
+    def read_log(self, tree, host, compiler, rev=None):
         """read full log file"""
-        return util.FileLoad(self.build_fname(tree, host, compiler, rev)+".log")
+        f = open(self.build_fname(tree, host, compiler, rev)+".log", "r")
+        try:
+            return f.read()
+        finally:
+            f.close()
 
-    def read_err(self, tree, host, compiler, rev):
+    def read_err(self, tree, host, compiler, rev=None):
         """read full err file"""
         return util.FileLoad(self.build_fname(tree, host, compiler, rev)+".err")
 
