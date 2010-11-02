@@ -466,7 +466,7 @@ def view_host(myself, output_type, *requested_hosts):
                     revision, revision_time = build.revision_details()
                     age_mtime = build.age_mtime()
                     age_ctime = build.age_ctime()
-                    warnings = db.err_count(tree, host, compiler)
+                    warnings = build.err_count()
                     status = build_status(myself, tree, host, compiler)
                     if row == 0:
                         if output_type == 'text':

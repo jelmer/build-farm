@@ -178,6 +178,35 @@ class Build(object):
 
         return ret
 
+    def err_count(self):
+        """get status of build"""
+        file = self._store.build_fname(self.tree, self.host, self.compiler, self.rev)
+        cachef = self._store.cache_fname(self.tree, self.host, self.compiler, self.rev)
+
+        st1 = os.stat("%s.err" % file)
+
+        try:
+            st2 = os.stat("%s.errcount" % cachef)
+        except OSError:
+            # File does not exist
+            st2 = None
+
+        if st2 and st1.st_ctime <= st2.st_mtime:
+            return util.FileLoad("%s.errcount" % cachef)
+
+        try:
+            err = util.FileLoad("%s.err" % file)
+        except OSError:
+            # File does not exist
+            return 0
+
+        ret = util.count_lines(err)
+
+        if not self._store.readonly:
+            util.FileSave("%s.errcount" % cachef, str(ret))
+
+        return ret
+
 
 def read_trees_from_conf(path):
     """Read trees from a configuration file."""
@@ -396,38 +425,6 @@ class BuildResultStore(object):
             ret = ""
         if self.readonly:
             util.FileSave(cachefile, ret)
-        return ret
-
-    def err_count(self, tree, host, compiler, rev):
-        """get status of build"""
-        file = self.build_fname(tree, host, compiler, rev)
-        cachef = self.cache_fname(tree, host, compiler, rev)
-
-        try:
-            st1 = os.stat("%s.err" % file)
-        except OSError:
-            # File does not exist
-            return 0
-        try:
-            st2 = os.stat("%s.errcount" % cachef)
-        except OSError:
-            # File does not exist
-            st2 = None
-
-        if st2 and st1.st_ctime <= st2.st_mtime:
-            return util.FileLoad("%s.errcount" % cachef)
-
-        try:
-            err = util.FileLoad("%s.err" % file)
-        except OSError:
-            # File does not exist
-            return 0
-
-        ret = util.count_lines(err)
-
-        if not self.readonly:
-            util.FileSave("%s.errcount" % cachef, str(ret))
-
         return ret
 
     def get_old_revs(self, tree, host, compiler):

@@ -109,3 +109,11 @@ BLA
 """)
         build = self.x.get_build("tdb", "charis", "cc")
         self.assertEquals(("42", None), build.revision_details())
+
+    def test_err_count(self):
+        self.create_mock_logfile("tdb", "charis", "cc")
+        self.create_mock_logfile("tdb", "charis", "cc", kind="stderr", contents="""error1
+error2
+error3""")
+        build = self.x.get_build("tdb", "charis", "cc")
+        self.assertEquals(3, build.err_count())
