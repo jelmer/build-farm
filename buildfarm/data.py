@@ -171,7 +171,7 @@ class Build(object):
         log = self.read_log()
         err = self.read_err()
 
-        ret = self._store.build_status_from_logs(log, err)
+        ret = self._store.html_build_status_from_logs(log, err)
 
         if not self._store.readonly:
             util.FileSave(cachefile, ret)
@@ -270,69 +270,79 @@ class BuildResultStore(object):
             return os.path.join(self.datadir, "oldrevs/build.%s.%s.%s-%s" % (tree, host, compiler, rev))
         return os.path.join(self.datadir, "upload/build.%s.%s.%s" % (tree, host, compiler))
 
-    def build_status_from_logs(self, log, err):
-        """get status of build"""
+    def html_build_status_from_logs(self, log, err):
         def span_status(st):
-            if st == 0:
+            if st is None:
+                return span("status unknown", "?")
+            elif st == 0:
                 return span("status passed", "ok")
             else:
                 return span("status failed", st)
+        (cstatus, bstatus, istatus, tstatus, sstatus, other_failures) = self.build_status_from_logs(log, err)
+        ostatus = ""
+        if "panic" in other_failures:
+            ostatus += "/"+span("status panic", "PANIC")
+        if "disk full" in other_failures:
+            ostatus += "/"+span("status failed", "disk full")
+        if "timeout" in other_failures:
+            ostatus += "/"+span("status failed", "timeout")
+        if sstatus is not None:
+            ostatus += "/".span("status checker", sstatus)
+        return "%s/%s/%s/%s%s" % (span_status(cstatus), span_status(bstatus), span_status(istatus), span_status(tstatus), ostatus)
 
+    def build_status_from_logs(self, log, err):
+        """get status of build"""
         m = re.search("TEST STATUS:(.*)", log)
         if m:
-            tstatus = span_status(m.group(1))
+            tstatus = m.group(1)
         else:
             m = re.search("ACTION (PASSED|FAILED): test", log)
             if m:
                 test_failures = len(re.findall("testsuite-(failure|error): ", log))
                 test_successes = len(re.findall("testsuite-success: ", log))
                 if test_successes > 0:
-                    tstatus = span_status(test_failures)
+                    tstatus = test_failures
                 else:
-                    tstatus = span_status(255)
+                    tstatus = 255
             else:
-                tstatus = span("status unknown", "?")
+                tstatus = None
 
         m = re.search("INSTALL STATUS:(.*)", log)
         if m:
-            istatus = span_status(m.group(1))
+            istatus = m.group(1)
         else:
-            istatus = span("status unknown", "?")
+            istatus = None
 
         m = re.search("BUILD STATUS:(.*)", log)
         if m:
-            bstatus = span_status(m.group(1))
+            bstatus = m.group(1)
         else:
-            bstatus = span("status unknown", "?")
+            bstatus = None
 
         m = re.search("CONFIGURE STATUS:(.*)", log)
         if m:
-            cstatus = span_status(m.group(1))
+            cstatus = m.group(1)
         else:
-            cstatus = span("status unknown", "?")
+            cstatus = None
 
+        other_failures = set()
         m = re.search("(PANIC|INTERNAL ERROR):.*", log)
         if m:
-            sstatus = "/"+span("status panic", "PANIC")
-        else:
-            sstatus = ""
+            other_failures.add("panic")
 
         if "No space left on device" in err or "No space left on device" in log:
-            dstatus = "/"+span("status failed", "disk full")
-        else:
-            dstatus = ""
+            other_failures.add("disk full")
 
         if "maximum runtime exceeded" in log:
-            tostatus = "/"+span("status failed", "timeout")
-        else:
-            tostatus = ""
+            other_failures.add("timeout")
 
         m = re.search("CC_CHECKER STATUS: (.*)", log)
-        if m and int(m.group(1)) > 0:
-            sstatus += "/".span("status checker", m.group(1))
+        if m:
+            sstatus = m.group(1)
+        else:
+            sstatus = None
 
-        return "%s/%s/%s/%s%s%s%s" % (
-                cstatus, bstatus, istatus, tstatus, sstatus, dstatus, tostatus)
+        return (cstatus, bstatus, istatus, tstatus, sstatus, other_failures)
 
     def build_status_info_from_string(self, rev_seq, rev, status_raw):
         """find the build status as an object
