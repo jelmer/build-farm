@@ -48,26 +48,6 @@ class NoSuchBuildError(Exception):
         self.rev = rev
 
 
-def status_info_cmp(self, s1, s2):
-    a1 = s1["array"]
-    a2 = s2["array"]
-    c1 = 0
-    c2 = 0
-
-    i = 0
-    while True:
-        if i >= len(a1) or i >= len(a2):
-            break
-
-        if c1 != c2:
-            return c2 - c1
-
-        if a1[i] != a2[i]:
-            return a2[i] - a1[i]
-
-    return s2["value"] - s1["value"]
-
-
 class Tree(object):
     """A tree to build."""
 
@@ -259,9 +239,9 @@ class BuildResultStore(object):
 
     def cache_fname(self, tree, host, compiler, rev=None):
         if rev is not None:
-            return os.path.join(self.cachedir, "build.%s.%s.%s-%s" % (tree,host,compiler,rev))
+            return os.path.join(self.cachedir, "build.%s.%s.%s-%s" % (tree, host, compiler, rev))
         else:
-            return os.path.join(self.cachedir, "build.%s.%s.%s" % (tree,host,compiler))
+            return os.path.join(self.cachedir, "build.%s.%s.%s" % (tree, host, compiler))
 
     def build_fname(self, tree, host, compiler, rev=None):
         """get the name of the build file"""
@@ -343,7 +323,7 @@ class BuildResultStore(object):
                 cstatus, bstatus, istatus, tstatus, sstatus, dstatus, tostatus)
 
     def build_status_info_from_string(self, rev_seq, rev, status_raw):
-        """find the build status as an perl object
+        """find the build status as an object
 
         the 'value' gets one point for passing each stage"""
         status_split = status_raw.split("/")
@@ -488,15 +468,13 @@ class BuildResultStore(object):
 
     def host_age(self, host):
         """get the overall age of a host"""
-        ret = -1
+        ret = None
         for compiler in self.compilers:
             for tree in self.trees:
                 try:
                     build = self.get_build(tree, host, compiler)
-                    age = build.age_mtime()
                 except NoSuchBuildError:
                     pass
                 else:
-                    if (age < ret or ret == -1):
-                        ret = age
+                    ret = min(ret, build.age_mtime())
         return ret
