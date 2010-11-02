@@ -90,3 +90,22 @@ class BuildResultStoreTests(BuildFarmTestCase):
             contents="This is what an stderr file looks like.")
         build = self.x.get_build("tdb", "charis", "cc")
         self.assertEquals("This is what an stderr file looks like.", build.read_err())
+
+    def test_revision_details(self):
+        self.create_mock_logfile("tdb", "charis", "cc", contents="""
+BUILD COMMIT REVISION: 43
+bla
+BUILD REVISION: 42
+BUILD COMMIT TIME: 3 August 2010
+""")
+        build = self.x.get_build("tdb", "charis", "cc")
+        self.assertEquals(("42", "3 August 2010"), build.revision_details())
+
+    def test_revision_details_no_timestamp(self):
+        self.create_mock_logfile("tdb", "charis", "cc", contents="""
+BUILD COMMIT REVISION: 43
+BUILD REVISION: 42
+BLA
+""")
+        build = self.x.get_build("tdb", "charis", "cc")
+        self.assertEquals(("42", None), build.revision_details())

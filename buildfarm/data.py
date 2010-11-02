@@ -104,21 +104,13 @@ class Build(object):
         """read full err file"""
         return util.FileLoad(self._store.build_fname(self.tree, self.host, self.compiler, self.rev)+".err")
 
-    def build_revision_details(self):
+    def revision_details(self):
         """get the revision of build
-        
+
         :return: Tuple with revision id and timestamp (if available)
         """
         file = self._store.build_fname(self.tree, self.host, self.compiler, self.rev)
         cachef = self._store.cache_fname(self.tree, self.host, self.compiler, self.rev)
-
-        # don't fast-path for trees with git repository:
-        # we get the timestamp as rev and want the details
-        if self.rev:
-            if self.tree not in self._store.trees:
-                return self.rev
-            if self.trees[self.tree].scm != "git":
-                return self.rev
 
         st1 = os.stat("%s.log" % file)
 
@@ -151,7 +143,7 @@ class Build(object):
         finally:
             f.close()
 
-        if not self.readonly:
+        if not self._store.readonly:
             util.FileSave("%s.revision" % cachef, "%s:%s" % (revid, timestamp or ""))
 
         return (revid, timestamp)
@@ -181,7 +173,7 @@ class Build(object):
 
         ret = self._store.build_status_from_logs(log, err)
 
-        if not self.readonly:
+        if not self._store.readonly:
             util.FileSave(cachefile, ret)
 
         return ret
