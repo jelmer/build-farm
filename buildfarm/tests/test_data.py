@@ -15,6 +15,8 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+import os
+import time
 import unittest
 
 from buildfarm import data
@@ -26,19 +28,19 @@ class NonexistantTests(unittest.TestCase):
 
     def test_nonexistant(self):
         self.assertRaises(
-            Exception, data.BuildfarmDatabase, "somedirthatdoesn'texist", None)
+            Exception, data.BuildResultStore, "somedirthatdoesn'texist", None)
 
 
-class BuildfarmDatabaseTests(BuildFarmTestCase):
+class BuildResultStoreTests(BuildFarmTestCase):
 
     def setUp(self):
-        super(BuildfarmDatabaseTests, self).setUp()
+        super(BuildResultStoreTests, self).setUp()
 
         self.write_compilers(["cc"])
         self.write_hosts(["gwenhwyvar", "charis"])
         self.write_trees({"tdb": {"scm": "git", "repo": "tdb", "branch": "master"}})
 
-        self.x = data.BuildfarmDatabase(self.path)
+        self.x = data.BuildResultStore(self.path)
 
     def test_build_fname(self):
         self.assertEquals(
@@ -55,3 +57,24 @@ class BuildfarmDatabaseTests(BuildFarmTestCase):
         self.assertEquals(
             self.x.cache_fname("mytree", "myhost", "cc"),
             "%s/cache/build.mytree.myhost.cc" % self.path)
+
+    def test_build_age_mtime(self):
+        path = self.create_mock_logfile("tdb", "charis", "cc")
+        # Set mtime to something in the past
+        os.utime(path, (time.time(), time.time() - 990))
+        age = self.x.build_age_mtime("tdb", "charis", "cc")
+        self.assertTrue(age >= 990 and age <= 1000, "age was %d" % age)
+
+    def test_build_age_mtime_nonexistant(self):
+        self.assertRaises(data.NoSuchBuildError, self.x.build_age_mtime, "tdb",
+            "charis", "cc")
+
+    def test_build_age_ctime(self):
+        path = self.create_mock_logfile("tdb", "charis", "cc")
+        # Set mtime to something in the past
+        age = self.x.build_age_ctime("tdb", "charis", "cc")
+        self.assertTrue(age >= 0 and age <= 10, "age was %d" % age)
+
+    def test_build_age_ctime_nonexistant(self):
+        self.assertRaises(data.NoSuchBuildError, self.x.build_age_ctime, "tdb",
+            "charis", "cc")

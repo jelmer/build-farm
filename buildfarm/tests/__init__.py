@@ -25,6 +25,21 @@ class BuildFarmTestCase(TestCase):
     """Test case class that provides a build farm data directory and convenience methods.
     """
 
+    def create_mock_logfile(self, tree, host, compiler, rev=None):
+        basename = "build.%s.%s.%s" % (tree, host, compiler)
+        if rev:
+            basename += "-%s" % rev
+            path = os.path.join(self.path, "data", "oldrevs", basename + "-%s" % rev)
+        else:
+            path = os.path.join(self.path, "data", "upload", basename)
+        path += ".log"
+        f = open(path, 'w+')
+        try:
+            f.write("foo\n")
+        finally:
+            f.close()
+        return path
+
     def write_hosts(self, hosts):
         f = open(os.path.join(self.path, "web", "hosts.list"), "w")
         try:
@@ -56,7 +71,7 @@ class BuildFarmTestCase(TestCase):
         super(BuildFarmTestCase, self).setUp()
         self.path = tempfile.mkdtemp()
 
-        for subdir in ["data", "cache", "web", "lcov", "lcov/data"]:
+        for subdir in ["data", "data/upload", "data/oldrevs", "cache", "web", "lcov", "lcov/data"]:
             os.mkdir(os.path.join(self.path, subdir))
 
     def tearDown(self):

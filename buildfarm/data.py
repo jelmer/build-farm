@@ -38,6 +38,15 @@ def check_dir_exists(kind, path):
         raise Exception("%s directory %s does not exist" % (kind, path))
 
 
+class NoSuchBuildError(Exception):
+    """The build with the specified name does not exist."""
+
+    def __init__(self, tree, host, compiler, rev=None):
+        self.tree = tree
+        self.host = host
+        self.compiler = compiler
+        self.rev = rev
+
 
 def status_info_cmp(self, s1, s2):
     a1 = s1["array"]
@@ -74,6 +83,7 @@ class Tree(object):
 
 
 def read_trees_from_conf(path):
+    """Read trees from a configuration file."""
     ret = {}
     cfp = ConfigParser.ConfigParser()
     cfp.readfp(open(path))
@@ -82,7 +92,7 @@ def read_trees_from_conf(path):
     return s
 
 
-class BuildfarmDatabase(object):
+class BuildResultStore(object):
     """The build farm build result database."""
 
     OLDAGE = 60*60*4,
@@ -133,30 +143,30 @@ class BuildfarmDatabase(object):
     # on a host.
     # the ctime age is used to determine when the last real build happened
 
-    def build_age_mtime(self, host, tree, compiler, rev):
+    def build_age_mtime(self, tree, host, compiler, rev=None):
         """get the age of build from mtime"""
-        file = self.build_fname(tree, host, compiler, rev)
+        file = self.build_fname(tree, host, compiler, rev=rev)
 
         try:
             st = os.stat("%s.log" % file)
         except OSError:
             # File does not exist
-            return -1
+            raise NoSuchBuildError(tree, host, compiler, rev)
         else:
             return time.time() - st.st_mtime
 
-    def build_age_ctime(self, host, tree, compiler, rev):
+    def build_age_ctime(self, tree, host, compiler, rev=None):
         """get the age of build from ctime"""
-        file = self.build_fname(tree, host, compiler, rev)
+        file = self.build_fname(tree, host, compiler, rev=rev)
 
         try:
             st = os.stat("%s.log" % file)
         except OSError:
-            return -1
+            raise NoSuchBuildError(tree, host, compiler, rev)
         else:
             return time.time() - st.st_ctime
 
-    def build_revision_details(self, host, tree, compiler, rev=None):
+    def build_revision_details(self, tree, host, compiler, rev=None):
         """get the svn revision of build"""
         file = self.build_fname(tree, host, compiler, rev)
         cachef = self.cache_fname(tree, host, compiler, rev)
@@ -207,12 +217,12 @@ class BuildfarmDatabase(object):
 
         return ret
 
-    def build_revision(self, host, tree, compiler, rev):
-        r = self.build_revision_details(host, tree, compiler, rev)
+    def build_revision(self, tree, host, compiler, rev=None):
+        r = self.build_revision_details(tree, host, compiler, rev=rev)
         return r.split(":")[0]
 
-    def build_revision_time(self, host, tree, compiler, rev):
-        r = self.build_revision_details(host, tree, compiler, rev)
+    def build_revision_time(self, tree, host, compiler, rev=None):
+        r = self.build_revision_details(tree, host, compiler, rev)
         return r.split(":", 1)[1]
 
     def build_status_from_logs(self, log, err):
@@ -279,11 +289,11 @@ class BuildfarmDatabase(object):
         return "%s/%s/%s/%s%s%s%s" % (
                 cstatus, bstatus, istatus, tstatus, sstatus, dstatus, tostatus)
 
-    def build_status(self, host, tree, compiler, rev):
+    def build_status(self, tree, host, compiler, rev=None):
         """get status of build
 
-        :param host: Host name
         :param tree: Tree name
+        :param host: Host name
         :param compiler: Compiler name
         :param rev: Revision
         :return: string with build status
@@ -366,18 +376,19 @@ class BuildfarmDatabase(object):
         status_raw = util.strip_html(status_html)
         return self.build_status_info_from_string(rev_seq, rev, status_raw)
 
-    def build_status_info(self, host, tree, compiler, rev_seq):
-        """find the build status as an perl object
+    def build_status_info(self, tree, host, compiler, rev_seq):
+        """find the build status as an object
 
         the 'value' gets one point for passing each stage
         """
-        rev = self.build_revision(host, tree, compiler, rev_seq)
-        status_html = self.build_status(host, tree, compiler, rev_seq)
+        rev = self.build_revision(tree, host, compiler, rev_seq)
+        status_html = self.build_status(tree, host, compiler, rev_seq)
         return self.build_status_info_from_html(rev_seq, rev, status_html)
 
     def lcov_status(self, tree):
         """get status of build"""
-        cachefile = os.path.join(self.cachedir, "lcov.%s.%s.status" % (self.LCOVHOST, tree))
+        cachefile = os.path.join(self.cachedir, "lcov.%s.%s.status" % (
+            self.LCOVHOST, tree))
         file = os.path.join(self.lcovdir, self.LCOVHOST, tree, "index.html")
         try:
             st1 = os.stat(file)
@@ -403,7 +414,7 @@ class BuildfarmDatabase(object):
             util.FileSave(cachefile, ret)
         return ret
 
-    def err_count(self, host, tree, compiler, rev):
+    def err_count(self, tree, host, compiler, rev):
         """get status of build"""
         file = self.build_fname(tree, host, compiler, rev)
         cachef = self.cache_fname(tree, host, compiler, rev)
@@ -445,6 +456,7 @@ class BuildfarmDatabase(object):
 
     def get_old_revs(self, tree, host, compiler):
         """get a list of old builds and their status."""
+        ret = []
         directory = os.path.join(self.datadir, "oldrevs")
         logfiles = [d for d in os.listdir(directory) if d.startswith("build.%s.%s.%s-" % (tree, host, compiler)) and d.endswith(".log")]
         for l in logfiles:
@@ -456,7 +468,7 @@ class BuildfarmDatabase(object):
                 if stat.st_nlink == 2:
                     continue
                 r = {
-                    "STATUS": self.build_status(host, tree, compiler, rev),
+                    "STATUS": self.build_status(tree, host, compiler, rev),
                     "REVISION": rev,
                     "TIMESTAMP": stat.st_ctime
                     }
@@ -468,3 +480,17 @@ class BuildfarmDatabase(object):
 
     def has_host(self, host):
         return host in os.listdir(os.path.join(self.datadir, "upload"))
+
+    def host_age(self, host):
+        """get the overall age of a host"""
+        ret = -1
+        for compiler in self.compilers:
+            for tree in self.trees:
+                try:
+                    age = self.db.build_age_mtime(tree, host, compiler)
+                except NoSuchBuildError:
+                    pass
+                else:
+                    if (age < ret or ret == -1):
+                        ret = age
+        return ret

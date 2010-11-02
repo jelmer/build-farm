@@ -39,7 +39,7 @@ import wsgiref.util
 webdir = os.path.dirname(__file__)
 basedir = os.path.abspath(os.path.join(webdir, ".."))
 
-db = data.BuildfarmDatabase(basedir)
+db = data.BuildResultStore(basedir)
 history = history.History(db)
 
 compilers = db.compilers
@@ -69,28 +69,18 @@ def get_param(form, param):
     return result[0]
 
 
-def build_link(myself, host, tree, compiler, rev, status):
+def build_link(myself, tree, host, compiler, rev, status):
     if rev:
         opt_rev = ';revision=%s' % rev
     else:
         opt_rev = ''
-    return "<a href='%s?function=View+Build;host=%s;tree=%s;compiler=%s%s'>%s</a>" % (myself, host, tree, compiler, opt_rev, status)
+    return "<a href='%s?function=View+Build;host=%s;tree=%s;compiler=%s%s'>%s</a>" % (
+        myself, tree, host, compiler, opt_rev, status)
 
 
-def build_status(myself, host, tree, compiler, rev):
-    status = db.build_status(host, tree, compiler, rev)
-    return build_link(myself, host, tree, compiler, rev, status)
-
-
-def host_age(host):
-    """get the overall age of a host"""
-    ret = -1
-    for compiler in compilers:
-        for tree in trees:
-            age = db.build_age_mtime(host, tree, compiler, "")
-            if age != -1 and (age < ret or ret == -1):
-                ret = age
-    return ret
+def build_status(myself, tree, host, compiler, rev):
+    status = db.build_status(tree, host, compiler, rev)
+    return build_link(myself, tree, host, compiler, rev, status)
 
 
 def red_age(age):
@@ -139,12 +129,14 @@ def view_summary(myself, output_type):
     for host in hosts:
         for compiler in compilers:
             for tree in trees:
-                status = build_status(myself, host, tree, compiler, "")
+                status = build_status(myself, tree, host, compiler, "")
                 if status.startswith("Unknown Build"):
                     continue
-                age_mtime = db.build_age_mtime(host, tree, compiler, "")
-
-                if age_mtime != -1:
+                try:
+                    age_mtime = db.build_age_mtime(tree, host, compiler)
+                except data.NoSuchBuildError:
+                    pass
+                else:
                     host_count[tree]+=1
 
                 if "status failed" in status:
@@ -248,12 +240,15 @@ def view_recent_builds(myself, tree, sort_by):
 
     for host in hosts:
         for compiler in compilers:
-            status = build_status(myself, host, tree, compiler, "")
-            age_mtime = db.build_age_mtime(host, tree, compiler, "")
-            age_ctime = db.build_age_ctime(host, tree, compiler, "")
-            revision = db.build_revision(host, tree, compiler, "")
-            revision_time = db.build_revision_time(host, tree, compiler, "")
-            if age_mtime != -1:
+            status = build_status(myself, tree, host, compiler)
+            try:
+                age_mtime = db.build_age_mtime(tree, host, compiler)
+            except data.NoSuchBuildError:
+                pass
+            else:
+                age_ctime = db.build_age_ctime(tree, host, compiler)
+                revision = db.build_revision(tree, host, compiler)
+                revision_time = db.build_revision_time(tree, host, compiler)
                 all_builds.append([age_ctime, hosts[host], "<a href='%s?function=View+Host;host=%s;tree=%s;compiler=%s#%s'>%s</a>" % (myself, host, tree, compiler, host, host), compiler, tree, status, revision_link(myself, revision, tree), revision_time])
 
     all_builds.sort(cmp_funcs[sort_by])
@@ -306,7 +301,7 @@ def draw_dead_hosts(output_type, *deadhosts):
     yield "<tbody>"
 
     for host in deadhosts:
-        age_ctime = host_age(host)
+        age_ctime = db.host_age(host)
         yield "<tr><td>%s</td><td>%s</td><td>%s</td></tr>" % (host, hosts[host], util.dhm_time(age_ctime))
 
     yield "</tbody></table>"
@@ -334,7 +329,7 @@ def show_oldrevs(myself, tree, host, compiler):
         if s == lastrev:
             continue
         lastrev = s
-        ret+= "<tr><td>%s</td><td>%s</td></tr>" % (revision_link(myself, revision, tree), build_link(myself, host, tree, compiler, rev["REVISION"], rev["STATUS"]))
+        ret+= "<tr><td>%s</td><td>%s</td></tr>" % (revision_link(myself, revision, tree), build_link(myself, tree, host, compiler, rev["REVISION"], rev["STATUS"]))
 
     if lastrev != "":
         # Only print table if there was any actual data
@@ -351,9 +346,9 @@ def view_build(myself, tree, host, compiler, rev, plain_logs=False):
     uname = ""
     cflags = ""
     config = ""
-    age_mtime = db.build_age_mtime(host, tree, compiler, rev)
-    revision = db.build_revision(host, tree, compiler, rev)
-    status = build_status(myself, host, tree, compiler, rev)
+    age_mtime = db.build_age_mtime(tree, host, compiler, rev)
+    revision = db.build_revision(tree, host, compiler, rev)
+    status = build_status(myself, tree, host, compiler, rev)
 
     assert re.match("^[0-9a-fA-F]*$", rev)
 
@@ -459,12 +454,15 @@ def view_host(myself, output_type, *requested_hosts):
 
         for compiler in compilers:
             for tree in sorted(trees.keys()):
-                revision = db.build_revision(host, tree, compiler, "")
-                age_mtime = db.build_age_mtime(host, tree, compiler, "")
-                age_ctime = db.build_age_ctime(host, tree, compiler, "")
-                warnings = db.err_count(host, tree, compiler, "")
-                if age_ctime != -1:
-                    status = build_status(myself, host, tree, compiler, "")
+                revision = db.build_revision(tree, host, compiler)
+                try:
+                    age_mtime = db.build_age_mtime(tree, host, compiler)
+                except data.NoSuchBuildError:
+                    pass
+                else:
+                    age_ctime = db.build_age_ctime(tree, host, compiler)
+                    warnings = db.err_count(tree, host, compiler)
+                    status = build_status(myself, tree, host, compiler, "")
                     if row == 0:
                         if output_type == 'text':
                             yield "%-12s %-10s %-10s %-10s %-10s\n" % (
@@ -486,7 +484,7 @@ def view_host(myself, output_type, *requested_hosts):
                         yield "<td><span class='tree'>" + tree_link(myself, tree) +"</span>/" + compiler + "</td>"
                         yield "<td>" + revision_link(myself, revision, tree) + "</td>"
                         yield "<td><div class='age'>" + red_age(age_mtime) + "</div></td>"
-                        yield "<td><div class='status'>" + status + "</div></td>"
+                        yield "<td><div class='status'>%s</div></td>" % status
                         yield "<td>%s</td>" % warnings
                         yield "</tr>"
                     row+=1
@@ -521,7 +519,6 @@ def subunit_to_buildfarm_result(subunit_result):
 
 def format_subunit_reason(reason):
     reason = re.sub("^\[\n+(.*?)\n+\]$", "\\1", reason)
-
     return "<div class=\"reason\">%s</div>" % reason
 
 
@@ -592,12 +589,14 @@ def print_log_cc_checker(input):
     output = ""
 
     # for now, we only handle the IBM Checker's output style
-    if not m.search("^BEAM_VERSION", input):
+    if not re.search("^BEAM_VERSION", input):
         return "here"
         return input
 
     content = ""
     inEntry = 0
+    title = None
+    status = None
 
     for line in input.splitlines():
         # for each line, check if the line is a new entry,
