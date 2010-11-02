@@ -830,7 +830,7 @@ per_run_hook() {
 	rm -f build.log
     fi
 
-    old_trees="samba_3_2 samba_3_2_test samba4 samba_4_0_waf samba_3_X_test samba_3_X_devel samba_3_X_devel"
+    old_trees="popt smb-build lorikeet-heimdal samba_3_2 samba_3_2_test samba4 samba_4_0_waf samba_3_X_test samba_3_X_devel samba_3_X_devel"
     for d in old_trees; do
 	delete_old_tree $d
     done
