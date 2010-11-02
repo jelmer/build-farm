@@ -356,8 +356,8 @@ def view_build(myself, tree, host, compiler, rev, plain_logs=False):
 
     assert re.match("^[0-9a-fA-F]*$", rev)
 
-    log = db.read_log(tree, host, compiler, rev)
-    err = db.read_err(tree, host, compiler, rev)
+    log = build.read_log()
+    err = build.read_err()
 
     if log:
         log = cgi.escape(log)

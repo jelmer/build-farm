@@ -112,6 +112,18 @@ class Build(object):
         st = os.stat("%s.log" % file)
         return time.time() - st.st_ctime
 
+    def read_log(self):
+        """read full log file"""
+        f = open(self._store.build_fname(self.tree, self.host, self.compiler, self.rev)+".log", "r")
+        try:
+            return f.read()
+        finally:
+            f.close()
+
+    def read_err(self):
+        """read full err file"""
+        return util.FileLoad(self._store.build_fname(self.tree, self.host, self.compiler, self.rev)+".err")
+
 
 def read_trees_from_conf(path):
     """Read trees from a configuration file."""
@@ -454,18 +466,6 @@ class BuildResultStore(object):
             util.FileSave("%s.errcount" % cachef, str(ret))
 
         return ret
-
-    def read_log(self, tree, host, compiler, rev=None):
-        """read full log file"""
-        f = open(self.build_fname(tree, host, compiler, rev)+".log", "r")
-        try:
-            return f.read()
-        finally:
-            f.close()
-
-    def read_err(self, tree, host, compiler, rev=None):
-        """read full err file"""
-        return util.FileLoad(self.build_fname(tree, host, compiler, rev)+".err")
 
     def get_old_revs(self, tree, host, compiler):
         """get a list of old builds and their status."""
