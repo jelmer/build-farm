@@ -93,11 +93,24 @@ class Build(object):
         self.compiler = compiler
         self.rev = rev
 
+    ###################
+    # the mtime age is used to determine if builds are still happening
+    # on a host.
+    # the ctime age is used to determine when the last real build happened
+
     def age_mtime(self):
-        return self._store.build_age_mtime(self.tree, self.host, self.compiler, self.rev)
+        """get the age of build from mtime"""
+        file = self._store.build_fname(self.tree, self.host, self.compiler, self.rev)
+
+        st = os.stat("%s.log" % file)
+        return time.time() - st.st_mtime
 
     def age_ctime(self):
-        return self._store.build_age_ctime(self.tree, self.host, self.compiler, self.rev)
+        """get the age of build from ctime"""
+        file = self._store.build_fname(self.tree, self.host, self.compiler, self.rev)
+
+        st = os.stat("%s.log" % file)
+        return time.time() - st.st_ctime
 
 
 def read_trees_from_conf(path):
@@ -161,34 +174,6 @@ class BuildResultStore(object):
         if rev is not None:
             return os.path.join(self.datadir, "oldrevs/build.%s.%s.%s-%s" % (tree, host, compiler, rev))
         return os.path.join(self.datadir, "upload/build.%s.%s.%s" % (tree, host, compiler))
-
-    ###################
-    # the mtime age is used to determine if builds are still happening
-    # on a host.
-    # the ctime age is used to determine when the last real build happened
-
-    def build_age_mtime(self, tree, host, compiler, rev=None):
-        """get the age of build from mtime"""
-        file = self.build_fname(tree, host, compiler, rev=rev)
-
-        try:
-            st = os.stat("%s.log" % file)
-        except OSError:
-            # File does not exist
-            raise NoSuchBuildError(tree, host, compiler, rev)
-        else:
-            return time.time() - st.st_mtime
-
-    def build_age_ctime(self, tree, host, compiler, rev=None):
-        """get the age of build from ctime"""
-        file = self.build_fname(tree, host, compiler, rev=rev)
-
-        try:
-            st = os.stat("%s.log" % file)
-        except OSError:
-            raise NoSuchBuildError(tree, host, compiler, rev)
-        else:
-            return time.time() - st.st_ctime
 
     def build_revision_details(self, tree, host, compiler, rev=None):
         """get the revision of build"""
