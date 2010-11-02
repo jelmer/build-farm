@@ -29,10 +29,6 @@ import time
 import util
 
 
-def span(classname, contents):
-    return "<span class=\"%s\">%s</span>" % (classname, contents)
-
-
 def check_dir_exists(kind, path):
     if not os.path.isdir(path):
         raise Exception("%s directory %s does not exist" % (kind, path))
@@ -137,7 +133,7 @@ class Build(object):
         log = self.read_log()
         err = self.read_err()
 
-        return self._store.html_build_status_from_logs(log, err)
+        return self._store.build_status_from_logs(log, err)
 
     def err_count(self):
         """get status of build"""
@@ -287,26 +283,6 @@ class BuildResultStore(object):
             return os.path.join(self.datadir, "oldrevs/build.%s.%s.%s-%s" % (tree, host, compiler, rev))
         return os.path.join(self.datadir, "upload/build.%s.%s.%s" % (tree, host, compiler))
 
-    def html_build_status_from_logs(self, log, err):
-        def span_status(st):
-            if st is None:
-                return span("status unknown", "?")
-            elif st == 0:
-                return span("status passed", "ok")
-            else:
-                return span("status failed", st)
-        (cstatus, bstatus, istatus, tstatus, sstatus, other_failures) = self.build_status_from_logs(log, err)
-        ostatus = ""
-        if "panic" in other_failures:
-            ostatus += "/"+span("status panic", "PANIC")
-        if "disk full" in other_failures:
-            ostatus += "/"+span("status failed", "disk full")
-        if "timeout" in other_failures:
-            ostatus += "/"+span("status failed", "timeout")
-        if sstatus is not None:
-            ostatus += "/".span("status checker", sstatus)
-        return "%s/%s/%s/%s%s" % (span_status(cstatus), span_status(bstatus), span_status(istatus), span_status(tstatus), ostatus)
-
     def build_status_from_logs(self, log, err):
         """get status of build"""
         m = re.search("TEST STATUS:(.*)", log)
@@ -360,61 +336,6 @@ class BuildResultStore(object):
             sstatus = None
 
         return (cstatus, bstatus, istatus, tstatus, sstatus, other_failures)
-
-    def build_status_info_from_string(self, rev_seq, rev, status_raw):
-        """find the build status as an object
-
-        the 'value' gets one point for passing each stage"""
-        status_split = status_raw.split("/")
-        status_str = ""
-        status_arr = []
-        status_val = 0
-
-        for r in status_split:
-            r = r.strip()
-
-            if r == "ok":
-                e = 0
-            elif r.isdigit():
-                e = int(r)
-                if e < 0:
-                    e = 1
-            else:
-                e = 1
-
-            if status_str != "":
-                status_str += "/"
-            status_str += "%d" % r
-
-            status_val += e
-
-            status_arr.append(e)
-
-        return {
-            "rev": rev,
-            "rev_seq": rev_seq,
-            "array": status_arr,
-            "string": status_str,
-            "value": status_val,
-            }
-
-    def build_status_info_from_html(self, rev_seq, rev, status_html):
-        """find the build status as an perl object
-
-        the 'value' gets one point for passing each stage
-        """
-        status_raw = util.strip_html(status_html)
-        return self.build_status_info_from_string(rev_seq, rev, status_raw)
-
-    def build_status_info(self, tree, host, compiler, rev_seq):
-        """find the build status as an object
-
-        the 'value' gets one point for passing each stage
-        """
-        build = self.get_build(tree, host, compiler, rev_seq)
-        rev, rev_time = build.revision_details()
-        status_html = build.status()
-        return self.build_status_info_from_html(rev_seq, rev, status_html)
 
     def lcov_status(self, tree):
         """get status of build"""

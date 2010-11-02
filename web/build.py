@@ -78,9 +78,33 @@ def build_link(myself, tree, host, compiler, rev, status):
         myself, tree, host, compiler, opt_rev, status)
 
 
+def html_build_status(status):
+    (cstatus, bstatus, istatus, tstatus, sstatus, other_failures) = status
+    def span(classname, contents):
+        return "<span class=\"%s\">%s</span>" % (classname, contents)
+
+    def span_status(st):
+        if st is None:
+            return span("status unknown", "?")
+        elif st == 0:
+            return span("status passed", "ok")
+        else:
+            return span("status failed", st)
+    ostatus = ""
+    if "panic" in other_failures:
+        ostatus += "/"+span("status panic", "PANIC")
+    if "disk full" in other_failures:
+        ostatus += "/"+span("status failed", "disk full")
+    if "timeout" in other_failures:
+        ostatus += "/"+span("status failed", "timeout")
+    if sstatus is not None:
+        ostatus += "/".span("status checker", sstatus)
+    return "%s/%s/%s/%s%s" % (span_status(cstatus), span_status(bstatus), span_status(istatus), span_status(tstatus), ostatus)
+
+
 def build_status(myself, tree, host, compiler, rev):
     build = db.get_build(tree, host, compiler, rev)
-    status = build.build_status()
+    status = html_build_status(build.status())
     return build_link(myself, tree, host, compiler, rev, status)
 
 
@@ -326,13 +350,13 @@ def show_oldrevs(myself, tree, host, compiler):
 
     lastrev = ""
     for rev in revs:
-        s = rev["STATUS"]
+        s = html_build_status(rev["STATUS"])
         revision = rev["REVISION"]
         s = s.replace(revision, "0")
         if s == lastrev:
             continue
         lastrev = s
-        ret+= "<tr><td>%s</td><td>%s</td></tr>" % (revision_link(myself, revision, tree), build_link(myself, tree, host, compiler, rev["REVISION"], rev["STATUS"]))
+        ret+= "<tr><td>%s</td><td>%s</td></tr>" % (revision_link(myself, revision, tree), build_link(myself, tree, host, compiler, rev["REVISION"], html_build_status(rev["STATUS"])))
 
     if lastrev != "":
         # Only print table if there was any actual data
