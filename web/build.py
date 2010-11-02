@@ -130,10 +130,11 @@ def view_summary(myself, output_type):
         for compiler in compilers:
             for tree in trees:
                 try:
+                    build = db.get_build(tree, host, compiler)
                     status = build_status(myself, tree, host, compiler)
                 except data.NoSuchBuildError:
                     continue
-                age_mtime = db.build_age_mtime(tree, host, compiler)
+                age_mtime = build.age_mtime()
                 host_count[tree]+=1
 
                 if "status failed" in status:
@@ -243,11 +244,12 @@ def view_recent_builds(myself, tree, sort_by):
         for compiler in compilers:
             try:
                 status = build_status(myself, tree, host, compiler)
+                build = db.get_build(tree, host, compiler)
             except data.NoSuchBuildError:
                 pass
             else:
-                age_mtime = db.build_age_mtime(tree, host, compiler)
-                age_ctime = db.build_age_ctime(tree, host, compiler)
+                age_mtime = build.age_mtime()
+                age_ctime = build.age_ctime()
                 revision = db.build_revision(tree, host, compiler)
                 revision_time = db.build_revision_time(tree, host, compiler)
                 all_builds.append([age_ctime, hosts[host], "<a href='%s?function=View+Host;host=%s;tree=%s;compiler=%s#%s'>%s</a>" % (myself, host, tree, compiler, host, host), compiler, tree, status, revision_link(myself, revision, tree), revision_time])
@@ -347,7 +349,8 @@ def view_build(myself, tree, host, compiler, rev, plain_logs=False):
     uname = ""
     cflags = ""
     config = ""
-    age_mtime = db.build_age_mtime(tree, host, compiler, rev)
+    build = db.get_build(tree, host, compiler, rev)
+    age_mtime = build.age_mtime()
     revision = db.build_revision(tree, host, compiler, rev)
     status = build_status(myself, tree, host, compiler, rev)
 
@@ -457,11 +460,12 @@ def view_host(myself, output_type, *requested_hosts):
             for tree in sorted(trees.keys()):
                 revision = db.build_revision(tree, host, compiler)
                 try:
-                    age_mtime = db.build_age_mtime(tree, host, compiler)
+                    build = db.get_build(tree, host, compiler)
                 except data.NoSuchBuildError:
                     pass
                 else:
-                    age_ctime = db.build_age_ctime(tree, host, compiler)
+                    age_mtime = build.age_mtime()
+                    age_ctime = build.age_ctime()
                     warnings = db.err_count(tree, host, compiler)
                     status = build_status(myself, tree, host, compiler)
                     if row == 0:

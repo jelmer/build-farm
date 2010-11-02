@@ -62,22 +62,20 @@ class BuildResultStoreTests(BuildFarmTestCase):
         path = self.create_mock_logfile("tdb", "charis", "cc")
         # Set mtime to something in the past
         os.utime(path, (time.time(), time.time() - 990))
-        age = self.x.build_age_mtime("tdb", "charis", "cc")
+        build = self.x.get_build("tdb", "charis", "cc")
+        age = build.age_mtime()
         self.assertTrue(age >= 990 and age <= 1000, "age was %d" % age)
 
-    def test_build_age_mtime_nonexistant(self):
-        self.assertRaises(data.NoSuchBuildError, self.x.build_age_mtime, "tdb",
+    def test_get_build_nonexistant(self):
+        self.assertRaises(data.NoSuchBuildError, self.x.get_build, "tdb",
             "charis", "cc")
 
     def test_build_age_ctime(self):
         path = self.create_mock_logfile("tdb", "charis", "cc")
         # Set mtime to something in the past
-        age = self.x.build_age_ctime("tdb", "charis", "cc")
+        build = self.x.get_build("tdb", "charis", "cc")
+        age = build.age_ctime()
         self.assertTrue(age >= 0 and age <= 10, "age was %d" % age)
-
-    def test_build_age_ctime_nonexistant(self):
-        self.assertRaises(data.NoSuchBuildError, self.x.build_age_ctime, "tdb",
-            "charis", "cc")
 
     def test_read_log(self):
         path = self.create_mock_logfile("tdb", "charis", "cc",

@@ -82,6 +82,24 @@ class Tree(object):
         return "<%s %r>" % (self.__class__.__name__, self.name)
 
 
+class Build(object):
+    """A single build of a tree on a particular host using a particular compiler.
+    """
+
+    def __init__(self, store, tree, host, compiler, rev=None):
+        self._store = store
+        self.tree = tree
+        self.host = host
+        self.compiler = compiler
+        self.rev = rev
+
+    def age_mtime(self):
+        return self._store.build_age_mtime(self.tree, self.host, self.compiler, self.rev)
+
+    def age_ctime(self):
+        return self._store.build_age_ctime(self.tree, self.host, self.compiler, self.rev)
+
+
 def read_trees_from_conf(path):
     """Read trees from a configuration file."""
     ret = {}
@@ -125,6 +143,12 @@ class BuildResultStore(object):
         self.hosts = util.load_hash(os.path.join(self.webdir, "hosts.list"))
 
         self.trees = read_trees_from_conf(os.path.join(self.webdir, "trees.conf"))
+
+    def get_build(self, tree, host, compiler, rev=None):
+        logf = self.build_fname(tree, host, compiler, rev) + ".log"
+        if not os.path.exists(logf):
+            raise NoSuchBuildError(tree, host, compiler, rev)
+        return Build(self, tree, host, compiler, rev)
 
     def cache_fname(self, tree, host, compiler, rev=None):
         if rev is not None:
@@ -491,7 +515,8 @@ class BuildResultStore(object):
         for compiler in self.compilers:
             for tree in self.trees:
                 try:
-                    age = self.db.build_age_mtime(tree, host, compiler)
+                    build = self.get_build(tree, host, compiler)
+                    age = build.age_mtime()
                 except NoSuchBuildError:
                     pass
                 else:
