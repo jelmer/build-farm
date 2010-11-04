@@ -142,8 +142,8 @@ fetch_revinfo() {
 		echo "skipping .revinfo.$scm transfer"
 	else
 	if [ -r $test_root/$tree.$scm ]; then
-		rm -f $test_root/$tree.$scm.old
-		mv $test_root/$tree.$scm $test_root/$tree.$scm.old
+		[ -f $test_root/$tree.$scm.old ] && rm -f $test_root/$tree.$scm.old
+		[ -f $test_root/$tree.$scm ] && mv $test_root/$tree.$scm $test_root/$tree.$scm.old
 	fi
 	rsync -q --timeout=200 -clz --ignore-errors \
 		samba.org::ftp/unpacked/$tree/.revinfo.$scm $test_root/$tree.$scm
@@ -562,15 +562,18 @@ test_tree() {
 			fi
 		fi
 		done
-		rm -f $test_root/$tree.$compiler.$scm.old
-		mv $test_root/$tree.$compiler.$scm $test_root/$tree.$compiler.$scm.old
-		cp $test_root/$tree.$scm $test_root/$tree.$compiler.$scm
-		if cmp $test_root/$tree.$compiler.$scm $test_root/$tree.$compiler.$scm.old > /dev/null; then
-		echo "skip: $tree.$compiler nothing changed in $scm"
-		cd $test_root
-		send_logs_skip "$log" "$err"
-		unlock_file "$lck"
-		return
+		[ -f $test_root/$tree.$compiler.$scm ] && rm -f $test_root/$tree.$compiler.$scm.old
+		[ -f $test_root/$tree.$compiler.$scm ] && mv $test_root/$tree.$compiler.$scm $test_root/$tree.$compiler.$scm.old
+		[ -f $test_root/$tree.$scm ] && cp $test_root/$tree.$scm $test_root/$tree.$compiler.$scm
+
+		if [ -f $test_root/$tree.$compiler.$scm.old ] && \
+				cmp $test_root/$tree.$compiler.$scm $test_root/$tree.$compiler.$scm.old > /dev/null; then
+
+			echo "skip: $tree.$compiler nothing changed in $scm"
+			cd $test_root
+			send_logs_skip "$log" "$err"
+			unlock_file "$lck"
+			return
 		fi
 	fi
 
@@ -668,7 +671,7 @@ test_tree() {
 	sum_tree $test_root $tree $sum $scm
 	echo "CFLAGS=$CFLAGS $config_and_prefix" >> $sum
 
-	if cmp "$sum" "$sum.old" > /dev/null; then
+	if [ -f "$sum.old" ] && cmp "$sum" "$sum.old" > /dev/null; then
 		echo "skip: $tree.$compiler nothing changed"
 		cd $test_root
 		send_logs_skip "$log" "$err"
