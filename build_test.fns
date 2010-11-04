@@ -1,4 +1,4 @@
-#!/bin/sh -*- mode: shell-script; sh-indentation: 8; indent-tabs-mode: t; -*-
+#!/bin/sh -*- mode: shell-script; -*-
 
 # build_farm -- distributed build/test architecture for samba, rsync, etc
 
@@ -17,11 +17,22 @@ deptrees="";
 
 build_test_fns_id='$Id$'
 
+copy_dir() {
+	Tsrc=$1
+	Tdst=$2
+	pwd
+	echo rsync -a --delete $Tsrc/ $Tdst
+	rsync -a --delete $Tsrc/ $Tdst || return 1
+	return 0
+}
+
 #############################
 # build a signature of a tree, used to see if we
 # need to rebuild 
+#############################
+
 sum_tree() {
-        sum_tree_test_root=$1
+	sum_tree_test_root=$1
 	sum_tree_tree=$2
 	sum_tree_sum=$3
 	sum_tree_scm=$4
@@ -29,25 +40,27 @@ sum_tree() {
 	sum build_test build_test.fns >> $sum_tree_sum
 
 	if [ -f "$host.fns" ]; then
-	    sum $host.fns >> $sum_tree_sum
+		sum $host.fns >> $sum_tree_sum
 	else
-            sum generic.fns >> $sum_tree_sum
+		sum generic.fns >> $sum_tree_sum
 	fi
 
 	if [ -f "$test_root/$tree.$scm" ]; then
-	    sum "$test_root/$tree.$scm" >> $sum_tree_sum
+		sum "$test_root/$tree.$scm" >> $sum_tree_sum
 	fi
 
 	for d in $deptrees; do
-	    dscm=`choose_scm "$d"`
-	    if [ -f "$test_root/$d.$dscm" ]; then
+		dscm=`choose_scm "$d"`
+		if [ -f "$test_root/$d.$dscm" ]; then
 		sum "$test_root/$d.$dscm" >> $sum_tree_sum
-	    fi
+		fi
 	done
 }
 
 #############################
 # send the logs to the master site
+#############################
+
 send_logs() {
 	if [ "$nologreturn" = "yes" ]; then
 		echo "skipping log transfer"
@@ -76,7 +89,7 @@ send_logs() {
 		find $err -size +40000 | $XARGS_I sh -c 'dd if={} bs=1024 count=20000 of={}.tmp && mv {}.tmp {} &&  echo "\n***LOG TRUNCATED***" >> {}'
 
 		rsync $* -c -q --password-file=.password -z --timeout=200 \
-		    "$log" "$err" $host@build.samba.org::build_farm_data/
+			"$log" "$err" $host@build.samba.org::build_farm_data/
 	fi
 }
 
@@ -85,13 +98,17 @@ send_logs() {
 # the aim is to just update the servers timestamp.
 # sending with a very large rsync block size does this
 # with minimal network traffic
+#############################
+
 send_logs_skip() {
-    touch "$1" "$2"
-    send_logs "$1" "$2" -B 10000000
+	touch "$1" "$2"
+	send_logs "$1" "$2" -B 10000000
 }
 
 ############################
 # fetch the latest copy of the tree
+############################
+
 fetch_tree() {
 	if [ "$norsync" = "yes" ]; then
 		echo "skipping tree transfer"
@@ -111,40 +128,44 @@ fetch_tree() {
 
 ############################
 # fetch the latest copy of the rev meta info
+############################
+
 fetch_revinfo() {
-    tree=$1
-    scm=$2
+	tree=$1
+	scm=$2
 
-    test -z "$scm" && return 1
-    test x"$scm" = x"unknown" && return 1
-    test x"$scm" = x"cvs" && return 1
+	test -z "$scm" && return 1
+	test x"$scm" = x"unknown" && return 1
+	test x"$scm" = x"cvs" && return 1
 
-    if [ "$norsync" = "yes" ]; then
-	echo "skipping .revinfo.$scm transfer"
-    else
+	if [ "$norsync" = "yes" ]; then
+		echo "skipping .revinfo.$scm transfer"
+	else
 	if [ -r $test_root/$tree.$scm ]; then
 		rm -f $test_root/$tree.$scm.old
-	    mv $test_root/$tree.$scm $test_root/$tree.$scm.old
+		mv $test_root/$tree.$scm $test_root/$tree.$scm.old
 	fi
 	rsync -q --timeout=200 -clz --ignore-errors \
-	    samba.org::ftp/unpacked/$tree/.revinfo.$scm $test_root/$tree.$scm
-    fi
-    if [ -r $test_root/$tree.$scm ]; then
-	return 0;
-    fi
-    return 1
+		samba.org::ftp/unpacked/$tree/.revinfo.$scm $test_root/$tree.$scm
+	fi
+	if [ -r $test_root/$tree.$scm ]; then
+		return 0;
+	fi
+	return 1
 }
 
 ############################
 # choose the scm that is used for the given project
+############################
+
 choose_scm() {
 	tree=$1
 
 	case "$tree" in
-    		samba* | rsync | libreplace | talloc | tdb | ldb | pidl | ccache*)
+			samba* | rsync | libreplace | talloc | tdb | ldb | pidl | ccache*)
 			echo "git"
-        		return 0
-        	;;
+				return 0
+			;;
 	esac
 
 	echo "svn"
@@ -156,188 +177,203 @@ locknesting=0
 ############################
 # grab a lock file. Not atomic, but close :)
 # tries to cope with NFS
+############################
+
 lock_file() {
-        if [ -z "$lock_root" ]; then
-	  lock_root=`pwd`;
-        fi
-        lckf="$lock_root/$1"
-        machine=`cat "$lckf" 2> /dev/null | cut -d: -f1`
-        pid=`cat "$lckf" 2> /dev/null | cut -d: -f2`
+		if [ -z "$lock_root" ]; then
+			lock_root=`pwd`;
+		fi
 
-        if [ "$pid" = "$$" ]; then
-            locknesting=`expr $locknesting + 1`
-            echo "lock nesting now $locknesting"
-            return 0
-        fi
+		lckf="$lock_root/$1"
+		machine=`cat "$lckf" 2> /dev/null | cut -d: -f1`
+		pid=`cat "$lckf" 2> /dev/null | cut -d: -f2`
 
-        if test -f "$lckf"; then
-            test $machine = $host || {
-                echo "lock file $lckf is valid for other machine $machine"
-                return 1		 
-	    }
-	    kill -0 $pid && {
-                echo "lock file $lckf is valid for process $pid"
-                return 1
-	    }
-            echo "stale lock file $lckf for $machine:$pid"
-            cat "$lckf"
-            /bin/rm -f "$lckf"
-        fi
-        echo "$host:$$" > "$lckf"
-        return 0
+		if [ "$pid" = "$$" ]; then
+			locknesting=`expr $locknesting + 1`
+			echo "lock nesting now $locknesting"
+			return 0
+		fi
+
+		if test -f "$lckf"; then
+			test $machine = $host || {
+				echo "lock file $lckf is valid for other machine $machine"
+				return 1
+			}
+
+			kill -0 $pid && {
+				echo "lock file $lckf is valid for process $pid"
+				return 1
+			}
+
+			echo "stale lock file $lckf for $machine:$pid"
+			cat "$lckf"
+			/bin/rm -f "$lckf"
+		fi
+		echo "$host:$$" > "$lckf"
+		return 0
 }
 
 ############################
 # unlock a lock file
+############################
+
 unlock_file() {
-        if [ -z "$lock_root" ]; then
-	  lock_root=`pwd`;
-        fi
+	if [ -z "$lock_root" ]; then
+		lock_root=`pwd`;
+	fi
 	if [ "$locknesting" != "0" ]; then
-	    locknesting=`expr $locknesting - 1`
-	    echo "lock nesting now $locknesting"
+		locknesting=`expr $locknesting - 1`
+		echo "lock nesting now $locknesting"
 	else 
-	    lckf="$lock_root/$1"
-	    /bin/rm -f "$lckf"
+		lckf="$lock_root/$1"
+		/bin/rm -f "$lckf"
 	fi
 }
 
 ############################
 # run make, and print trace
+############################
+
 do_make() {
+	if [ x"$MAKE" = x ]; then
+		MAKE=make
+	fi
 
-  if [ x"$MAKE" = x ] 
-  then
-    MAKE=make
-  fi 
-
-  MMTIME=$MAXTIME
-  # some trees don't need as much time
-  case "$tree" in
-	rsync | tdb | talloc | libreplace | ccache*)
-	  if [ "$compiler" != "checker" ]; then
-	      MMTIME=`expr $MMTIME / 5`
-	  fi
-	  ;;
-  esac
-  
-    
-  for t in $*; do
-    if [ x"$BUILD_FARM_NUM_JOBS" = x ]; then
-      echo "$MAKE $t"
-      $builddir/timelimit $MMTIME "$MAKE" "$t"
-      status=$?
-    else
-      # we can parallelize everything and all targets
-      if [ x"$t" = xeverything ] || [ x"$t" = xall]; then
-        echo "$MAKE" "-j$BUILD_FARM_NUM_JOBS"  "$t"
-        $builddir/timelimit $MMTIME "$MAKE" "-j$BUILD_FARM_NUM_JOBS"  "$t"
-        status=$?
-      else
-        echo "$MAKE $t"
-        $builddir/timelimit $MMTIME "$MAKE" "$t"
-        status=$?
-      fi
-    fi
-
-    if [ $status != 0 ]; then
-	case "$t" in
-	    test | check | installcheck)
-		;;
-	    *)
-      		# run again with V=1, so we see failed commands
-		$builddir/timelimit $MMTIME "$MAKE" "$t" V=1
-		status=$?
+	MMTIME=$MAXTIME
+	# some trees don't need as much time
+	case "$tree" in
+		rsync | tdb | talloc | libreplace | ccache*)
+			if [ "$compiler" != "checker" ]; then
+				MMTIME=`expr $MMTIME / 5`
+			fi
 		;;
 	esac
-    fi
 
-    if [ $status != 0 ]; then
-      return $status;
-    fi
 
-  done
+	for t in $*; do
+		if [ x"$BUILD_FARM_NUM_JOBS" = x ]; then
+			echo "$MAKE $t"
+			$builddir/timelimit $MMTIME "$MAKE" "$t"
+			status=$?
+		else
+			# we can parallelize everything and all targets
+			if [ x"$t" = xeverything ] || [ x"$t" = xall]; then
+				echo "$MAKE" "-j$BUILD_FARM_NUM_JOBS"  "$t"
+				$builddir/timelimit $MMTIME "$MAKE" "-j$BUILD_FARM_NUM_JOBS"  "$t"
+				status=$?
+			else
+				echo "$MAKE $t"
+				$builddir/timelimit $MMTIME "$MAKE" "$t"
+				status=$?
+			fi
+		fi
 
-  return 0
-}      
+		if [ $status != 0 ]; then
+			case "$t" in
+				test|check|installcheck)
+					;;
+				*)
+					#run again with V=1, so we see failed commands
+					$builddir/timelimit $MMTIME "$MAKE" "$t" V=1
+					status=$?
+					;;
+			esac
+		fi
+
+		if [ $status != 0 ]; then
+			return $status;
+		fi
+
+	done
+
+	return 0
+}
 
 ############################
 # configure the tree
+############################
+
 action_configure() {
+
 	if [ ! -x $srcdir/configure -a -r $srcdir/Makefile.PL ]; then
 		perl $srcdir/Makefile.PL PREFIX="$prefix"
 		cstatus=$?
 		echo "CONFIGURE STATUS: $cstatus"
 		return $cstatus;
 	fi
-        if [ ! -x $srcdir/configure ]; then
-	    ls -l $srcdir/configure
-	    echo "$srcdir/configure is missing"
-	    cstatus=255
-	    echo "CONFIGURE STATUS: $cstatus"
-	    return $cstatus;
+
+	if [ ! -x $srcdir/configure ]; then
+		ls -l $srcdir/configure
+		echo "$srcdir/configure is missing"
+		cstatus=255
+		echo "CONFIGURE STATUS: $cstatus"
+		return $cstatus;
 	fi
+
 	echo "CFLAGS=$CFLAGS"
 	echo configure options: $config_and_prefix
 	echo CC="$CCACHE $compiler" $srcdir/configure $config_and_prefix
+
 	CC="$CCACHE $compiler"
 	export CC
 	$builddir/timelimit $MAXTIME $srcdir/configure $config_and_prefix
 	cstatus=$?
+
 	if [ x"$cstatus" != x"0" ]; then
-	        if [ -f config.log ]; then
+		if [ -f config.log ]; then
 			echo "contents of config.log:"
 			cat config.log
 		fi
-	        if [ -f bin/config.log ]; then
+
+		# Waf style
+		if [ -f bin/config.log ]; then
 			echo "contents of config.log:"
 			cat bin/config.log
 		fi
 	fi
 	echo "CONFIGURE STATUS: $cstatus"
-	return $cstatus;
+	return $cstatus
 }
 
 ############################
 # show the configure log
+############################
+
 action_config_log() {
-    log_files="config.log bin/config.log"
-    for f in $log_files; do
-        if [ -f $f ]; then
-	    echo "contents of config.log:"
-	    cat $f
-	    return 0;
-	fi
-    done
-    return 0
+
+	log_files="config.log bin/config.log"
+	for f in $log_files; do
+		if [ -f $f ]; then
+			echo "contents of config.log:"
+			cat $f
+			return 0
+		fi
+	done
+	return 0
 }
 
 ############################
 # show the config.h
-action_config_header() {
-    hdr_files="config.h include/config.h bin/default/config.h bin/default/source4/include/config.h bin/default/source3/include/config.h"
-    for h in $hdr_files; do
-	if [ -f $h ]; then
-	    echo "contents of $h:"
-	    cat $h
-	    return 0;
-	fi
-    done
-    return 0;
-}
+############################
 
-copy_dir() {
-	Tsrc=$1
-	Tdst=$2
-	pwd
-	echo rsync -a --delete $Tsrc/ $Tdst
-	rsync -a --delete $Tsrc/ $Tdst || return 1
+action_config_header() {
+	hdr_files="config.h include/config.h bin/default/config.h bin/default/source4/include/config.h bin/default/source3/include/config.h"
+	for h in $hdr_files; do
+		if [ -f $h ]; then
+			echo "contents of $h:"
+			cat $h
+			return 0
+		fi
+	done
+
 	return 0
 }
 
 
+
 ############################
 # build the tree
+############################
 action_build() {
 	case "$tree" in
 	samba_4*)
@@ -361,10 +397,12 @@ action_build() {
 
 ############################
 # show static analysis results
+############################
+
 action_cc_checker() {
 
 	# default to passing the cc_checker
-        cccstatus=0
+	cccstatus=0
 
 	if [ -f ibm_checker.out ]; then
 		cat ibm_checker.out
@@ -377,10 +415,12 @@ action_cc_checker() {
 
 ############################
 # install the tree
+############################
+
 action_install() {
 	if [ -d $prefix ]; then
 		if [ "$noclean" != "yes" ]; then
-		    rm -rf $prefix
+			rm -rf $prefix
 		fi
 	fi
 
@@ -395,16 +435,18 @@ action_install() {
 action_test_samba() {
 	do_make test
 	totalstatus=$?
+
 	# if we produced a test summary then show it
 	[ -f st/summary ] && {
-	    echo "TEST SUMMARY"
-	    cat st/summary
+		echo "TEST SUMMARY"
+		cat st/summary
 	}
+
 	return "$totalstatus"
 }
 
 action_test_generic() {
-        CC="$compiler"
+	CC="$compiler"
 	export CC
 	do_make installcheck
 	totalstatus=$?
@@ -413,15 +455,15 @@ action_test_generic() {
 }
 
 action_test_lorikeet_heimdal() {
-        CC="$compiler"
+	CC="$compiler"
 	export CC
 	SOCKET_WRAPPER_DIR=`pwd`/sw
 	mkdir $SOCKET_WRAPPER_DIR
- 	export SOCKET_WRAPPER_DIR
+	export SOCKET_WRAPPER_DIR
 	do_make check
 	totalstatus=$?
 	SOCKET_WRAPPER_DIR=
- 	export SOCKET_WRAPPER_DIR
+	export SOCKET_WRAPPER_DIR
 	echo "TEST STATUS: $totalstatus"
 	return "$totalstatus"
 }
@@ -430,6 +472,7 @@ action_test_lorikeet_heimdal() {
 #############################
 # attempt some basic tests of functionaility
 # starting as basic as possible, and getting incresingly complex
+#############################
 
 action_test() {
 	# Samba needs crufty code of its own for backward
@@ -437,19 +480,23 @@ action_test() {
 	# is to just call 'make installcheck'.
 	case "$tree" in
 	samba*|smb-build|pidl)
-	    action_test_samba
-	    ;;
+		action_test_samba
+		;;
 	lorikeet-heimdal*)
-	    action_test_lorikeet_heimdal
-	    ;;
+		action_test_lorikeet_heimdal
+		;;
 	*)
-	    action_test_generic
-	    ;;
+		action_test_generic
+		;;
 	esac
 }
 
 ###########################
 # do a test build of a particular tree
+# This is the master function called by generic.fns or
+# host.fns
+###########################
+
 test_tree() {
 	tree=$1
 	source=$2
@@ -458,10 +505,10 @@ test_tree() {
 	shift
 	shift
 	if [ "$compiler" = "gcc" ] && [ "$tree" != "ccache" ] && [ "$tree" != "ccache-maint" ] && ccache -V > /dev/null; then
-	    CCACHE="ccache"
-	    export CCACHE
+		CCACHE="ccache"
+		export CCACHE
 	else
-	    CCACHE=""
+		CCACHE=""
 	fi
 
 	# limit our resource usage
@@ -489,7 +536,7 @@ test_tree() {
 	err="build.$tree.$host.$compiler.err"
 	sum="build.$tree.$host.$compiler.sum"
 	lck="build.$tree.lck"
-        srcdir="$test_root/$tree/$source"
+		srcdir="$test_root/$tree/$source"
 
 	lock_file "$lck" || {
 		return
@@ -498,7 +545,7 @@ test_tree() {
 	# work out what other trees this package depends on
 	deptrees=""
 	case "$tree" in
-	    samba-gtk)
+		samba-gtk)
 		deptrees="samba_4_0_test"
 		;;
 	esac
@@ -507,34 +554,34 @@ test_tree() {
 
 	# pull the entries, if any
 	if fetch_revinfo "$tree" "$scm"; then
-	    for d in $deptrees; do
-	    	dscm=`choose_scm "$d"`
+		for d in $deptrees; do
+			dscm=`choose_scm "$d"`
 		if [ -f "$test_root/$d.$dscm" ]; then
-		    if [ "$d" != "$tree" ]; then
+			if [ "$d" != "$tree" ]; then
 			cat "$test_root/$d.$dscm" >> $test_root/$tree.$scm
-		    fi
+			fi
 		fi
-	    done
-	    rm -f $test_root/$tree.$compiler.$scm.old
-	    mv $test_root/$tree.$compiler.$scm $test_root/$tree.$compiler.$scm.old
-	    cp $test_root/$tree.$scm $test_root/$tree.$compiler.$scm
-	    if cmp $test_root/$tree.$compiler.$scm $test_root/$tree.$compiler.$scm.old > /dev/null; then
+		done
+		rm -f $test_root/$tree.$compiler.$scm.old
+		mv $test_root/$tree.$compiler.$scm $test_root/$tree.$compiler.$scm.old
+		cp $test_root/$tree.$scm $test_root/$tree.$compiler.$scm
+		if cmp $test_root/$tree.$compiler.$scm $test_root/$tree.$compiler.$scm.old > /dev/null; then
 		echo "skip: $tree.$compiler nothing changed in $scm"
 		cd $test_root
 		send_logs_skip "$log" "$err"
 		unlock_file "$lck"
 		return
-	    fi
+		fi
 	fi
 
 	# pull the tree
 	fetch_tree "$tree" || {
-	    cd $test_root
-	    unlock_file "$lck"
-	    return
+		cd $test_root
+		unlock_file "$lck"
+		return
 	}
 
-        if [ ! -x $srcdir/configure ] && [ "$tree" != "pidl" ]; then
+		if [ ! -x $srcdir/configure ] && [ "$tree" != "pidl" ]; then
 		echo "skip: $tree.$compiler configure not present, try again next time!"
 		cd $test_root
 		unlock_file "$lck"
@@ -544,39 +591,39 @@ test_tree() {
 	echo "Starting build of $tree.$compiler in process $$ at `date`"
 
 	case "$tree" in
-	    libreplace)
+		libreplace)
 		builddir="$test_root/tmp.$tree.$compiler"
 		usingtmpbuild=1
 		if [ -d $builddir ]; then
-		    rm -rf $builddir
+			rm -rf $builddir
 		fi
 		mkdir -p $builddir
 		export builddir
-	    ;;
-	    *)
+		;;
+		*)
 		builddir=$srcdir
 		usingtmpbuild=0
 		export builddir
-	    ;;
+		;;
 	esac
 	
 	if [ ! x$USER = x"" ]; then
-	    whoami=$USER
+		whoami=$USER
 	else 
-	    if [ ! x$LOGNAME = x"" ]; then
+		if [ ! x$LOGNAME = x"" ]; then
 		whoami=$LOGNAME
-	    else
+		else
 		whoami=build
-	    fi
+		fi
 	fi
 
-        # build the timelimit utility
+		# build the timelimit utility
 	echo "Building timelimit"
 	mkdir -p $builddir
 	echo $compiler $TIMELIMIT_FLAGS -o $builddir/timelimit $test_root/timelimit.c
 	$compiler $TIMELIMIT_FLAGS -o $builddir/timelimit $test_root/timelimit.c || exit 1
 
-        # build the killbysubdir utility
+		# build the killbysubdir utility
 	echo "Building killbysubdir"
 	echo $compiler -o $builddir/killbysubdir $test_root/killbysubdir.c
 	$compiler -o $builddir/killbysubdir $test_root/killbysubdir.c
@@ -609,10 +656,10 @@ test_tree() {
 	esac
 
 	if [ "$LCOV_REPORT" = "yes" ]; then
-	    GCOV_FLAGS="--coverage"
-	    CFLAGS="$CFLAGS $GCOV_FLAGS" 
-	    LDFLAGS="$LDFLAGS $GCOV_FLAGS" 
-	    export CFLAGS LDFLAGS
+		GCOV_FLAGS="--coverage"
+		CFLAGS="$CFLAGS $GCOV_FLAGS" 
+		LDFLAGS="$LDFLAGS $GCOV_FLAGS" 
+		export CFLAGS LDFLAGS
 	fi
 
 	config_and_prefix="$sw_config --prefix=$prefix"
@@ -631,13 +678,13 @@ test_tree() {
 	fi
 
 	# we do need to rebuild - save the old sum
-	/bin/rm -f $sum.old
+	[ -f $sum.old ] && /bin/rm -f $sum.old
 	mv $sum $sum.old
 
 	actions="$*"
 	
 	if [ "$actions" = "" ]; then
-	    actions="configure config_log config_header build install test"
+		actions="configure config_log config_header build install test"
 	fi
 
 	# start the build
@@ -650,16 +697,16 @@ test_tree() {
 		uname -a
 
 		echo ""
-		echo "build_test          : $build_test_id"
-		echo "build_test.fns      : $build_test_fns_id"
+		echo "build_test		  : $build_test_id"
+		echo "build_test.fns	  : $build_test_fns_id"
 		echo "local settings file : $build_test_settings_local_file"
 		echo "local functions file: $build_test_fns_local_file"
-		echo "used .fns file      : $build_test_used_fns_file"
+		echo "used .fns file	  : $build_test_used_fns_file"
 		echo ""
 
-                # we need to be able to see if a build farm machine is accumulating
-                # stuck processes. We do this in two ways, as we don't know what style
-                # of ps it will have
+				# we need to be able to see if a build farm machine is accumulating
+				# stuck processes. We do this in two ways, as we don't know what style
+				# of ps it will have
 		ps xfuw 2> /dev/null
 		ps -fu $USER 2> /dev/null
 
@@ -672,89 +719,89 @@ test_tree() {
 
 		# the following is for non-samba builds only
 		if [ "$scm" = "svn" -a -r $test_root/$tree.svn ]; then
-		  h_rev=`grep 'Revision: ' $test_root/$tree.svn | cut -d ':' -f2 | cut -d ' ' -f2 | sed 1q`
-		  if [ -n "$h_rev" ]; then
-			echo "HIGHEST SVN REVISION: $h_rev"
-		  fi
-		  rev=`grep 'Last Changed Rev: ' $test_root/$tree.svn | cut -d ':' -f2 | cut -d ' ' -f2 | sed 1q`
-		  if [ -n "$rev" ]; then
+			h_rev=`grep 'Revision: ' $test_root/$tree.svn | cut -d ':' -f2 | cut -d ' ' -f2 | sed 1q`
+			if [ -n "$h_rev" ]; then
+				echo "HIGHEST SVN REVISION: $h_rev"
+			fi
+			rev=`grep 'Last Changed Rev: ' $test_root/$tree.svn | cut -d ':' -f2 | cut -d ' ' -f2 | sed 1q`
+			if [ -n "$rev" ]; then
 			echo "BUILD REVISION: $rev"
-		  fi
+			fi
 		elif [ "$scm" = "git" -a -r $test_root/$tree.git ]; then
-		  csha1=`cat $test_root/$tree.git |head -3 | tail -1`
-		  if [ -n "$csha1" ]; then
-		    echo "BUILD COMMIT REVISION: $csha1"
-		  fi
-		  cdate=`cat $test_root/$tree.git |head -4 | tail -1`
-		  if [ -n "$cdate" ]; then
-		    echo "BUILD COMMIT DATE: $cdate"
-		  fi
-		  ctime=`cat $test_root/$tree.git |head -2 | tail -1`
-		  if [ -n "$ctime" ]; then
-		    echo "BUILD COMMIT TIME: $ctime"
+			csha1=`cat $test_root/$tree.git |head -3 | tail -1`
+			if [ -n "$csha1" ]; then
+				echo "BUILD COMMIT REVISION: $csha1"
+			fi
+			cdate=`cat $test_root/$tree.git |head -4 | tail -1`
+			if [ -n "$cdate" ]; then
+				echo "BUILD COMMIT DATE: $cdate"
+			fi
+			ctime=`cat $test_root/$tree.git |head -2 | tail -1`
+			if [ -n "$ctime" ]; then
+				echo "BUILD COMMIT TIME: $ctime"
 		  fi
 		fi
 
 		if [ -x $builddir/killbysubdir ]; then
-		    echo "$builddir/killbysubdir $builddir in `pwd`"
-		    $builddir/killbysubdir $builddir
+			echo "$builddir/killbysubdir $builddir in `pwd`"
+			$builddir/killbysubdir $builddir
 		fi
 
 		for action in $actions; do
 
-		    echo Running action $action
+			echo Running action $action
 
-		    date
+			date
 
-		    cd $builddir || exit 1
-		    export srcdir
-		    df .
-		    mount
-		    vmstat
+			cd $builddir || exit 1
+			export srcdir
+			df .
+			mount
+			vmstat
 
-		    ( action_$action )
-		    action_status=$?
+			( action_$action )
+			action_status=$?
 
-		    df .
+			df .
 
-		    if [ $action_status != 0 ]; then
+			if [ $action_status != 0 ]; then
 			echo "ACTION FAILED: $action";
-		    else
+			else
 			echo "ACTION PASSED: $action";
-		    fi
-		    
-		    if [ $action_status != 0 ]; then 
+			fi
+			
+			if [ $action_status != 0 ]; then 
 			break;
-		    fi
+			fi
 
 		done
 
 		if [ "$LCOV_REPORT" = "yes" ]; then
-		    case "$tree" in
+			case "$tree" in
 			lorikeet-heimdal*)
-			    lcov --directory $builddir --capture --output-file $builddir/$tree.lcov.info
-			    ;;
+				lcov --directory $builddir --capture --output-file $builddir/$tree.lcov.info
+				;;
 			samba_3_master*)
-			    lcov --base-directory $builddir --directory $builddir/.. --capture --output-file $builddir/$tree.lcov.info
-			    ;;
+				lcov --base-directory $builddir --directory $builddir/.. --capture --output-file $builddir/$tree.lcov.info
+				;;
 			samba_4*)
-			    # ugly hack for s4, as lcov is otherwise not able to find 
-			    # these files
-			    rm -f heimdal/lib/*/{lex,parse,sel-lex}.{gcda,gcno}
-			    lcov --base-directory $builddir --directory $builddir/.. --capture --output-file $builddir/$tree.lcov.info
-			    ;;
+				# ugly hack for s4, as lcov is otherwise not able to find 
+				# these files
+				rm -f heimdal/lib/*/{lex,parse,sel-lex}.{gcda,gcno}
+				lcov --base-directory $builddir --directory $builddir/.. --capture --output-file $builddir/$tree.lcov.info
+				;;
 			*)
-			    lcov --base-directory $builddir --directory $builddir --capture --output-file $builddir/$tree.lcov.info
-			    ;;
-		    esac
-		    genhtml -o $builddir/coverage $builddir/$tree.lcov.info
+				lcov --base-directory $builddir --directory $builddir --capture --output-file $builddir/$tree.lcov.info
+				;;
+			esac
+			genhtml -o $builddir/coverage $builddir/$tree.lcov.info
 		fi
 
 		if [ "$noclean" = "yes" ]; then
-		    echo cleanup skipped!
+			echo cleanup skipped!
 		else
-		    echo cleaning up
-		    do_make clean
+			echo cleaning up
+			do_make clean
 		fi
 		date
 	} 3>&2 2>&1 1>&3 | tee "$err"
@@ -763,20 +810,20 @@ test_tree() {
 	# stdout/stderr merge
 
 	if [ "$LCOV_REPORT" = "yes" ]; then
-	    chmod u=rwX,g=rX,o=rX -R $builddir/coverage
-	    rsync -rct -q --password-file=.password -z --timeout=200 \
+		chmod u=rwX,g=rX,o=rX -R $builddir/coverage
+		rsync -rct -q --password-file=.password -z --timeout=200 \
 		$builddir/coverage/ $host@build.samba.org::lcov_data/$host/$tree/
 	fi
 
 	cd $test_root
 
-        /bin/rm -rf $prefix
+		/bin/rm -rf $prefix
 	if [ "$usingtmpbuild" = "1" ]; then
-	    if [ "$noclean" = "yes" ]; then
+		if [ "$noclean" = "yes" ]; then
 		echo builddir cleanup skipped!
-	    else
+		else
 		/bin/rm -rf $builddir
-	    fi
+		fi
 	fi
 	# send the logs to the master site
 	send_logs "$log" "$err"
@@ -790,18 +837,20 @@ test_tree() {
 # if you want to build only one project at a time
 # add 'global_lock' after 'per_run_hook' and
 # 'global_unlock' to the end of the file
+#########################################################
+
 global_lock() {
-    lock_file "global.lck" || {
-        exit 0
-    }
+	lock_file "global.lck" || {
+		exit 0
+	}
 }
+
 global_unlock() {
-    unlock_file "global.lck"
+	unlock_file "global.lck"
 }
 
 delete_old_tree() {
 	otree=$1
-
 	test -z "$otree" && return 0;
 
 	rm -rf $otree
@@ -816,34 +865,37 @@ delete_old_tree() {
 # farm that we want to do to the build farm. never leave it empty. instead,
 # use ":" as the fn body.
 per_run_hook() {
-    # kill old processes on systems with a known problem
-    case $host in
+	# kill old processes on systems with a known problem
+	case $host in
 	nohost)
-	    echo "just a placeholder";
-	    ;;
+		echo "just a placeholder";
+		;;
 	deckchair)
-	    rm -f deckchair.fns
-	    ;;
-    esac
-    # trim the log if too large
-    if [ "`wc -c < build.log`" -gt 2000000 ]; then
-	rm -f build.log
-    fi
+		rm -f deckchair.fns
+		;;
+	esac
 
-    old_trees="web popt distcc samba-gtk smb-build lorikeet-heimdal samba_3_2 samba_3_2_test samba4 samba_4_0_waf samba_4_0_waf.metze samba_3_X_test samba_3_X_devel samba_3_X_devel"
-    for d in $old_trees; do
-	delete_old_tree $d
-    done
+	# trim the log if too large
+	if [ "`wc -c < build.log`" -gt 2000000 ]; then
+	rm -f build.log
+	fi
+
+	old_trees="web popt distcc samba-gtk smb-build lorikeet-heimdal samba_3_2"
+	old_trees="$old_tree samba_3_2_test samba4 samba_4_0_waf samba_4_0_waf.metze"
+	old_trees="$old_tree samba_3_X_test samba_3_X_devel samba_3_X_devel"
+	for d in $old_trees; do
+		delete_old_tree $d
+	done
 }
 
 
 ######################################################
 # main code that is run on each call to the build code
+######################################################
 rsync --timeout=200 -q -az build.samba.org::build_farm/*.c .
 
 
 # build.log can grow to an excessive size, trim it beyond 50M
 if [ -f build.log ]; then
-  find build.log -size +100000 -exec /bin/rm '{}' \;
+	find build.log -size +100000 -exec /bin/rm '{}' \;
 fi
-
