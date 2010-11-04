@@ -504,7 +504,7 @@ test_tree() {
 	shift
 	shift
 	shift
-	if [ "$compiler" = "gcc" ] && [ "$tree" != "ccache" ] && [ "$tree" != "ccache-maint" ] && ccache -V > /dev/null; then
+	if [ "$compiler" = "gcc" ] && [ "$tree" != "ccache" ] && [ "$tree" != "ccache-maint" ] && ccache -V > /dev/null 2>/dev/null; then
 		CCACHE="ccache"
 		export CCACHE
 	else
