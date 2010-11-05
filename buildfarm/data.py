@@ -116,6 +116,7 @@ class Tree(object):
         self.branch = branch
         self.subdir = subdir
         self.srcdir = srcdir
+        self.scm = scm
 
     def __repr__(self):
         return "<%s %r>" % (self.__class__.__name__, self.name)
