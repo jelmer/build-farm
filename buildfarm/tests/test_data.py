@@ -30,6 +30,19 @@ class NonexistantTests(unittest.TestCase):
         self.assertRaises(
             Exception, data.BuildResultStore, "somedirthatdoesn'texist", None)
 
+class MiscTests(unittest.TestCase):
+    def test_read_trees_from_conf_ko(self):
+        name = "%s/testtree.conf" % os.path.dirname(__file__)
+        self.assertRaises(
+            Exception, data.read_trees_from_conf, name, None)
+
+    def test_read_trees_from_conf(self):
+        name = "%s/testtree2.conf" % os.path.dirname(__file__)
+        t = data.read_trees_from_conf(name)
+        self.assertEquals(
+            t["pidl"].scm,
+            "git")
+
 
 class BuildResultStoreTests(BuildFarmTestCase):
 

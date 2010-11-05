@@ -16,6 +16,7 @@
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import unittest
+import os
 from buildfarm import util
 
 class CountLinesTests(unittest.TestCase):
@@ -43,6 +44,13 @@ class DhmTimeTests(unittest.TestCase):
         self.assertEquals("1d 3h 1m", util.dhm_time(97265))
         self.assertEquals("3h 1m", util.dhm_time(10865))
 
+class LoadTests(unittest.TestCase):
+
+    def test_simple(self):
+        name = "%s/testlist" % os.path.dirname(__file__)
+        l = util.load_list(name)
+        self.assertEquals(4, len(l))
+        self.assertEquals("three", l[2])
 
 class StripHtmlTests(unittest.TestCase):
 
