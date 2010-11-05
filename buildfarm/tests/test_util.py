@@ -44,6 +44,7 @@ class DhmTimeTests(unittest.TestCase):
         self.assertEquals("1d 3h 1m", util.dhm_time(97265))
         self.assertEquals("3h 1m", util.dhm_time(10865))
 
+
 class LoadTests(unittest.TestCase):
 
     def test_simple(self):
@@ -51,6 +52,7 @@ class LoadTests(unittest.TestCase):
         l = util.load_list(name)
         self.assertEquals(4, len(l))
         self.assertEquals("three", l[2])
+
 
 class StripHtmlTests(unittest.TestCase):
 
