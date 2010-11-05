@@ -34,6 +34,69 @@ def check_dir_exists(kind, path):
         raise Exception("%s directory %s does not exist" % (kind, path))
 
 
+def build_status_from_logs(log, err):
+    """get status of build"""
+    m = re.search("TEST STATUS:(.*)", log)
+    if m:
+        tstatus = m.group(1)
+    else:
+        m = re.search("ACTION (PASSED|FAILED): test", log)
+        if m:
+            test_failures = len(re.findall("testsuite-(failure|error): ", log))
+            test_successes = len(re.findall("testsuite-success: ", log))
+            if test_successes > 0:
+                tstatus = test_failures
+            else:
+                tstatus = 255
+        else:
+            tstatus = None
+
+    m = re.search("INSTALL STATUS:(.*)", log)
+    if m:
+        istatus = m.group(1)
+    else:
+        istatus = None
+
+    m = re.search("BUILD STATUS:(.*)", log)
+    if m:
+        bstatus = m.group(1)
+    else:
+        bstatus = None
+
+    m = re.search("CONFIGURE STATUS:(.*)", log)
+    if m:
+        cstatus = m.group(1)
+    else:
+        cstatus = None
+
+    other_failures = set()
+    m = re.search("(PANIC|INTERNAL ERROR):.*", log)
+    if m:
+        other_failures.add("panic")
+
+    if "No space left on device" in err or "No space left on device" in log:
+        other_failures.add("disk full")
+
+    if "maximum runtime exceeded" in log:
+        other_failures.add("timeout")
+
+    m = re.search("CC_CHECKER STATUS: (.*)", log)
+    if m:
+        sstatus = m.group(1)
+    else:
+        sstatus = None
+
+    return ((cstatus, bstatus, istatus, tstatus, sstatus), other_failures)
+
+
+def lcov_extract_percentage(text):
+    m = re.search('\<td class="headerItem".*?\>Code\&nbsp\;covered\:\<\/td\>.*?\n.*?\<td class="headerValue".*?\>([0-9.]+) \%', text)
+    if m:
+        return m.group(1)
+    else:
+        return None
+
+
 class NoSuchBuildError(Exception):
     """The build with the specified name does not exist."""
 
@@ -126,14 +189,13 @@ class Build(object):
     def status(self):
         """get status of build
 
-        :return: string with build status
+        :return: tuple with build status
         """
-        # FIXME: This should return a tuple
 
         log = self.read_log()
         err = self.read_err()
 
-        return self._store.build_status_from_logs(log, err)
+        return build_status_from_logs(log, err)
 
     def err_count(self):
         """get status of build"""
@@ -283,60 +345,6 @@ class BuildResultStore(object):
             return os.path.join(self.datadir, "oldrevs/build.%s.%s.%s-%s" % (tree, host, compiler, rev))
         return os.path.join(self.datadir, "upload/build.%s.%s.%s" % (tree, host, compiler))
 
-    def build_status_from_logs(self, log, err):
-        """get status of build"""
-        m = re.search("TEST STATUS:(.*)", log)
-        if m:
-            tstatus = m.group(1)
-        else:
-            m = re.search("ACTION (PASSED|FAILED): test", log)
-            if m:
-                test_failures = len(re.findall("testsuite-(failure|error): ", log))
-                test_successes = len(re.findall("testsuite-success: ", log))
-                if test_successes > 0:
-                    tstatus = test_failures
-                else:
-                    tstatus = 255
-            else:
-                tstatus = None
-
-        m = re.search("INSTALL STATUS:(.*)", log)
-        if m:
-            istatus = m.group(1)
-        else:
-            istatus = None
-
-        m = re.search("BUILD STATUS:(.*)", log)
-        if m:
-            bstatus = m.group(1)
-        else:
-            bstatus = None
-
-        m = re.search("CONFIGURE STATUS:(.*)", log)
-        if m:
-            cstatus = m.group(1)
-        else:
-            cstatus = None
-
-        other_failures = set()
-        m = re.search("(PANIC|INTERNAL ERROR):.*", log)
-        if m:
-            other_failures.add("panic")
-
-        if "No space left on device" in err or "No space left on device" in log:
-            other_failures.add("disk full")
-
-        if "maximum runtime exceeded" in log:
-            other_failures.add("timeout")
-
-        m = re.search("CC_CHECKER STATUS: (.*)", log)
-        if m:
-            sstatus = m.group(1)
-        else:
-            sstatus = None
-
-        return ((cstatus, bstatus, istatus, tstatus, sstatus), other_failures)
-
     def lcov_status(self, tree):
         """get status of build"""
         cachefile = os.path.join(self.cachedir, "lcov.%s.%s.status" % (
@@ -357,9 +365,9 @@ class BuildResultStore(object):
             return util.FileLoad(cachefile)
 
         lcov_html = util.FileLoad(file)
-        m = re.search('\<td class="headerItem".*?\>Code\&nbsp\;covered\:\<\/td\>.*?\n.*?\<td class="headerValue".*?\>([0-9.]+) \%', lcov_html)
-        if m:
-            ret = "<a href=\"/lcov/data/%s/%s\">%s %%</a>" % (self.LCOVHOST, tree, m.group(1))
+        perc = lcov_extract_percentage(lcov_html)
+        if perc:
+            ret = "<a href=\"/lcov/data/%s/%s\">%s %%</a>" % (self.LCOVHOST, tree, perc)
         else:
             ret = ""
         if self.readonly:
@@ -383,7 +391,7 @@ class BuildResultStore(object):
                 r = {
                     "STATUS": build.status(),
                     "REVISION": rev,
-                    "TIMESTAMP": stat.st_ctime
+                    "TIMESTAMP": build.age_ctime(),
                     }
                 ret.append(r)
 
