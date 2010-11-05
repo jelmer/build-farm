@@ -141,12 +141,12 @@ fetch_revinfo() {
 	if [ "$norsync" = "yes" ]; then
 		echo "skipping .revinfo.$scm transfer"
 	else
-	if [ -r $test_root/$tree.$scm ]; then
-		[ -f $test_root/$tree.$scm.old ] && rm -f $test_root/$tree.$scm.old
-		[ -f $test_root/$tree.$scm ] && mv $test_root/$tree.$scm $test_root/$tree.$scm.old
-	fi
-	rsync -q --timeout=200 -clz --ignore-errors \
-		samba.org::ftp/unpacked/$tree/.revinfo.$scm $test_root/$tree.$scm
+		if [ -r $test_root/$tree.$scm ]; then
+			[ -f $test_root/$tree.$scm.old ] && rm -f $test_root/$tree.$scm.old
+			[ -f $test_root/$tree.$scm ] && mv $test_root/$tree.$scm $test_root/$tree.$scm.old
+		fi
+		rsync -q --timeout=200 -clz --ignore-errors \
+			samba.org::ftp/unpacked/$tree/.revinfo.$scm $test_root/$tree.$scm
 	fi
 	if [ -r $test_root/$tree.$scm ]; then
 		return 0;
@@ -504,6 +504,7 @@ test_tree() {
 	shift
 	shift
 	shift
+	echo "Starting to deal with tree $tree with compiler $compiler"
 	if [ "$compiler" = "gcc" ] && [ "$tree" != "ccache" ] && [ "$tree" != "ccache-maint" ] && ccache -V > /dev/null 2>/dev/null; then
 		CCACHE="ccache"
 		export CCACHE
@@ -556,11 +557,11 @@ test_tree() {
 	if fetch_revinfo "$tree" "$scm"; then
 		for d in $deptrees; do
 			dscm=`choose_scm "$d"`
-		if [ -f "$test_root/$d.$dscm" ]; then
-			if [ "$d" != "$tree" ]; then
-			cat "$test_root/$d.$dscm" >> $test_root/$tree.$scm
+			if [ -f "$test_root/$d.$dscm" ]; then
+				if [ "$d" != "$tree" ]; then
+					cat "$test_root/$d.$dscm" >> $test_root/$tree.$scm
+				fi
 			fi
-		fi
 		done
 		[ -f $test_root/$tree.$compiler.$scm ] && rm -f $test_root/$tree.$compiler.$scm.old
 		[ -f $test_root/$tree.$compiler.$scm ] && mv $test_root/$tree.$compiler.$scm $test_root/$tree.$compiler.$scm.old
@@ -584,7 +585,7 @@ test_tree() {
 		return
 	}
 
-		if [ ! -x $srcdir/configure ] && [ "$tree" != "pidl" ]; then
+	if [ ! -x $srcdir/configure ] && [ "$tree" != "pidl" ]; then
 		echo "skip: $tree.$compiler configure not present, try again next time!"
 		cd $test_root
 		unlock_file "$lck"
@@ -593,40 +594,43 @@ test_tree() {
 
 	echo "Starting build of $tree.$compiler in process $$ at `date`"
 
+
+	# Parameters for the build depending on the tree
 	case "$tree" in
 		libreplace)
-		builddir="$test_root/tmp.$tree.$compiler"
-		usingtmpbuild=1
-		if [ -d $builddir ]; then
-			rm -rf $builddir
-		fi
-		mkdir -p $builddir
-		export builddir
-		;;
+			builddir="$test_root/tmp.$tree.$compiler"
+			usingtmpbuild=1
+			if [ -d $builddir ]; then
+				rm -rf $builddir
+			fi
+			mkdir -p $builddir
+			export builddir
+			;;
 		*)
-		builddir=$srcdir
-		usingtmpbuild=0
-		export builddir
-		;;
+			builddir=$srcdir
+			usingtmpbuild=0
+			export builddir
+			;;
 	esac
-	
+
+	#Fix the user
 	if [ ! x$USER = x"" ]; then
 		whoami=$USER
 	else 
 		if [ ! x$LOGNAME = x"" ]; then
-		whoami=$LOGNAME
+			whoami=$LOGNAME
 		else
-		whoami=build
+			whoami=build
 		fi
 	fi
 
-		# build the timelimit utility
+	# build the timelimit utility
 	echo "Building timelimit"
 	mkdir -p $builddir
 	echo $compiler $TIMELIMIT_FLAGS -o $builddir/timelimit $test_root/timelimit.c
 	$compiler $TIMELIMIT_FLAGS -o $builddir/timelimit $test_root/timelimit.c || exit 1
 
-		# build the killbysubdir utility
+	# build the killbysubdir utility
 	echo "Building killbysubdir"
 	echo $compiler -o $builddir/killbysubdir $test_root/killbysubdir.c
 	$compiler -o $builddir/killbysubdir $test_root/killbysubdir.c
@@ -634,6 +638,7 @@ test_tree() {
 	prefix="$test_root/prefix/$tree.$compiler"
 	mkdir -p "$prefix"
 
+	# This can be defined in <host>.fns files
 	sw_config=$config
 
 	case "$tree" in
@@ -684,8 +689,9 @@ test_tree() {
 	[ -f $sum.old ] && /bin/rm -f $sum.old
 	mv $sum $sum.old
 
+	#Action == what to do ie. configure config_log ...
 	actions="$*"
-	
+
 	if [ "$actions" = "" ]; then
 		actions="configure config_log config_header build install test"
 	fi
@@ -707,9 +713,9 @@ test_tree() {
 		echo "used .fns file	  : $build_test_used_fns_file"
 		echo ""
 
-				# we need to be able to see if a build farm machine is accumulating
-				# stuck processes. We do this in two ways, as we don't know what style
-				# of ps it will have
+		# we need to be able to see if a build farm machine is accumulating
+		# stuck processes. We do this in two ways, as we don't know what style
+		# of ps it will have
 		ps xfuw 2> /dev/null
 		ps -fu $USER 2> /dev/null
 
@@ -768,15 +774,14 @@ test_tree() {
 			df .
 
 			if [ $action_status != 0 ]; then
-			echo "ACTION FAILED: $action";
+				echo "ACTION FAILED: $action";
 			else
-			echo "ACTION PASSED: $action";
-			fi
-			
-			if [ $action_status != 0 ]; then 
-			break;
+				echo "ACTION PASSED: $action";
 			fi
 
+			if [ $action_status != 0 ]; then 
+				break;
+			fi
 		done
 
 		if [ "$LCOV_REPORT" = "yes" ]; then
@@ -820,12 +825,12 @@ test_tree() {
 
 	cd $test_root
 
-		/bin/rm -rf $prefix
+	/bin/rm -rf $prefix
 	if [ "$usingtmpbuild" = "1" ]; then
 		if [ "$noclean" = "yes" ]; then
-		echo builddir cleanup skipped!
+			echo builddir cleanup skipped!
 		else
-		/bin/rm -rf $builddir
+			/bin/rm -rf $builddir
 		fi
 	fi
 	# send the logs to the master site
