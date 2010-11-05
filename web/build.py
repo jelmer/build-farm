@@ -192,10 +192,14 @@ def view_summary(myself, output_type):
                     yield "<td>"
             yield "%d</td>" % panic_count[tree]
             try:
-                lcov_data = db.lcov_status(tree)
+                lcov_status = db.lcov_status(tree)
             except data.NoSuchBuildError:
-                lcov_data = ""
-            yield "<td>%s</td>" % lcov_data
+                yield "<td></td>"
+            else:
+                if lcov_status is not None:
+                    yield "<td><a href=\"/lcov/data/%s/%s\">%s %%</a></td>" % (db.LCOVHOST, tree, lcov_status)
+                else:
+                    yield "<td></td>"
             yield "</tr>"
 
     if output_type == 'text':

@@ -362,17 +362,20 @@ class BuildResultStore(object):
             st2 = None
 
         if st2 and st1.st_ctime <= st2.st_mtime:
-            return util.FileLoad(cachefile)
+            ret = util.FileLoad(cachefile)
+            if ret == "":
+                return None
+            return ret
 
         lcov_html = util.FileLoad(file)
         perc = lcov_extract_percentage(lcov_html)
-        if perc:
-            ret = "<a href=\"/lcov/data/%s/%s\">%s %%</a>" % (self.LCOVHOST, tree, perc)
-        else:
+        if perc is None:
             ret = ""
+        else:
+            ret = perc
         if self.readonly:
             util.FileSave(cachefile, ret)
-        return ret
+        return perc
 
     def get_old_revs(self, tree, host, compiler):
         """get a list of old builds and their status."""
