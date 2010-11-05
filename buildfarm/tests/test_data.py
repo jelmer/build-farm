@@ -135,3 +135,25 @@ error3""")
         self.assertFalse(self.x.has_host("charis"))
         self.create_mock_logfile("tdb", "charis", "cc")
         self.assertTrue(self.x.has_host("charis"))
+
+
+
+class LogParserTests(unittest.TestCase):
+
+    def test_nothing(self):
+        self.assertEquals(((None, None, None, None, None), set()),
+            data.build_status_from_logs("", ""))
+
+    def test_disk_full(self):
+        self.assertEquals(((None, None, None, None, None), set(["disk full"])),
+            data.build_status_from_logs("foo\nbar\nNo space left on device\nla\n",
+                ""))
+        self.assertEquals(((None, None, None, None, None), set(["disk full"])),
+            data.build_status_from_logs(
+                "", "foo\nbar\nNo space left on device\nla\n"))
+
+    def test_timeout(self):
+        self.assertEquals(((None, None, None, None, None), set(["timeout"])),
+            data.build_status_from_logs("foo\nbar\nmaximum runtime exceeded\nla\n",
+                ""))
+
