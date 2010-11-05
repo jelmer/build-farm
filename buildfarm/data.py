@@ -113,6 +113,7 @@ class Tree(object):
     def __init__(self, name, scm, repo, branch, subdir="", srcdir=""):
         self.name = name
         self.repo = repo
+        self.scm = scm
         self.branch = branch
         self.subdir = subdir
         self.srcdir = srcdir
@@ -291,7 +292,7 @@ def read_trees_from_conf(path):
     cfp.readfp(open(path))
     for s in cfp.sections():
         ret[s] = Tree(name=s, **dict(cfp.items(s)))
-    return s
+    return ret
 
 
 class BuildResultStore(object):

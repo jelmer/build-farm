@@ -26,7 +26,9 @@ def load_list(fname):
     try:
         for l in f.readlines():
             if l[0] != "#":
-                ret.append(l)
+                l = l.strip('\r\n')
+                if len(l) > 0:
+                    ret.append(l)
     finally:
         f.close()
     return ret

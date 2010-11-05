@@ -35,7 +35,7 @@ import re
 import time
 
 import wsgiref.util
-
+standalone = 0
 webdir = os.path.dirname(__file__)
 basedir = os.path.abspath(os.path.join(webdir, ".."))
 
@@ -102,7 +102,7 @@ def html_build_status(status):
     return "%s/%s/%s/%s%s" % (span_status(cstatus), span_status(bstatus), span_status(istatus), span_status(tstatus), ostatus)
 
 
-def build_status(myself, tree, host, compiler, rev):
+def build_status(myself, tree, host, compiler, rev=None):
     build = db.get_build(tree, host, compiler, rev)
     status = html_build_status(build.status())
     return build_link(myself, tree, host, compiler, rev, status)
@@ -227,7 +227,7 @@ def tree_link(myself, tree):
     # return a link to a particular tree
     branch = ""
     if tree in trees:
-        branch = ":%s" % trees[tree]["branch"]
+        branch = ":%s" % trees[tree].branch
 
     return "<a href='%s?function=Recent+Builds;tree=%s' title='View recent builds for %s'>%s%s</a>" % (myself, tree, tree, tree, branch)
 
@@ -864,6 +864,21 @@ def buildApp(environ, start_response):
     fn_name = get_param(form, 'function') or ''
     myself = wsgiref.util.application_uri(environ)
 
+    if standalone and environ['PATH_INFO']:
+        dir = os.path.join(os.path.dirname(__file__))
+        static_file = "%s/%s" % (dir, environ['PATH_INFO'])
+        if os.path.exists(static_file):
+            tab = environ['PATH_INFO'].split('.')
+            if len(tab) > 1:
+                extension = tab[-1]
+                import mimetypes
+                mimetypes.init()
+                type = mimetypes.types_map[".%s" % extension]
+                start_response('200 OK', [('Content-type', type)])
+                data = open(static_file, 'rb').read()
+                yield data
+                return
+
     if fn_name == 'text_diff':
         start_response('200 OK', [('Content-type', 'application/x-diff')])
         (title, entry, tree, diffs) = history.diff(get_param(form, 'author'),
@@ -895,7 +910,6 @@ def buildApp(environ, start_response):
         yield util.FileLoad(os.path.join(webdir, "header2.html"))
         yield "".join(main_menu())
         yield util.FileLoad(os.path.join(webdir, "header3.html"))
-
         if fn_name == "View_Build":
             plain_logs = (get_param(form, "plain") is not None and get_param(form, "plain").lower() in ("yes", "1", "on", "true", "y"))
             yield "".join(view_build(myself, get_param(form, "tree"), get_param(form, "host"),
@@ -953,6 +967,7 @@ if __name__ == '__main__':
     parser.add_option("--standalone", help="Run as standalone server (useful for debugging)", action="store_true")
     opts, args = parser.parse_args()
     if opts.standalone:
+        standalone = 1
         from wsgiref.simple_server import make_server
         httpd = make_server('', 8000, buildApp)
         print "Serving on port 8000..."
