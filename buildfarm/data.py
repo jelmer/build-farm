@@ -86,7 +86,8 @@ def build_status_from_logs(log, err):
     else:
         sstatus = None
 
-    return ((cstatus, bstatus, istatus, tstatus, sstatus), other_failures)
+    return {"config": cstatus, "build": bstatus, "install": istatus,\
+            "test": tstatus, "checker": sstatus, "other": other_failures}
 
 
 def lcov_extract_percentage(text):
@@ -261,6 +262,34 @@ class CachingBuild(Build):
 
         return ret
 
+    def unmarshall_status(self, cnt):
+        tab = cnt.split('\n')
+        hash = {}
+        for l in tab:
+            tab2 = l.split(':', 1)
+            if tab2[0] == "other":
+                tab3 = []
+                if len(tab2) > 1:
+                    tab3 = tab2[1].split('%')
+                hash[tab2[0]] = tab3
+            else:
+                if tab2[1] == "None":
+                    hash[tab2[0]] = tab2[1]
+                else:
+                    hash[tab2[0]] = None
+
+        return hash
+
+    def marshall_status(self, val):
+        tab = []
+        for k in val.keys():
+            if k != "other":
+                tab.append("%s:%s" % (k, val[k]))
+            else:
+                tab.append("%s:%s" % (k, "%".join(val[k])))
+
+        return "\n".join(tab)
+
     def status(self):
         file = self._store.build_fname(self.tree, self.host, self.compiler, self.rev)
         cachefile = self._store.cache_fname(self.tree, self.host, self.compiler, self.rev)+".status"
@@ -274,12 +303,14 @@ class CachingBuild(Build):
             st2 = None
 
         if st2 and st1.st_ctime <= st2.st_mtime:
-            return util.FileLoad(cachefile)
+             cnt = util.FileLoad(cachefile)
+             return self.unmarshall_status(cnt)
 
         ret = super(CachingBuild, self).status()
 
         if not self._store.readonly:
-            util.FileSave(cachefile, ret)
+            cnt = self.marshall_status(ret)
+            util.FileSave(cachefile, cnt)
 
         return ret
 

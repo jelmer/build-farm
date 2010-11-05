@@ -79,7 +79,12 @@ def build_link(myself, tree, host, compiler, rev, status):
 
 
 def html_build_status(status):
-    ((cstatus, bstatus, istatus, tstatus, sstatus), other_failures) = status
+    cstatus = status.get("config")
+    bstatus = status.get("build")
+    istatus = status.get("install")
+    tstatus = status.get("test")
+    sstatus = status.get("checker")
+    other_failures = status.get("other")
     def span(classname, contents):
         return "<span class=\"%s\">%s</span>" % (classname, contents)
 
