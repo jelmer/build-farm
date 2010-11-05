@@ -103,7 +103,7 @@ def html_build_status(status):
     if "timeout" in other_failures:
         ostatus += "/"+span("status failed", "timeout")
     if sstatus is not None:
-        ostatus += "/".span("status checker", sstatus)
+        ostatus += "/"+span("status checker", sstatus)
     return "%s/%s/%s/%s%s" % (span_status(cstatus), span_status(bstatus), span_status(istatus), span_status(tstatus), ostatus)
 
 
