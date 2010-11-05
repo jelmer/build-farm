@@ -554,8 +554,14 @@ test_tree() {
 	scm=`choose_scm "$tree"`
 
 	# pull the entries, if any
+	# Remove old .svn or .git files
+	# Move the current .svn org .git to .svn.old or
+	# .git.old then fetch the new from rsync
 	if fetch_revinfo "$tree" "$scm"; then
 		for d in $deptrees; do
+			# If there is dependency substree(s) we add info
+			# from the dependency tree so that we
+			# can rebuild in case one of them has changed
 			dscm=`choose_scm "$d"`
 			if [ -f "$test_root/$d.$dscm" ]; then
 				if [ "$d" != "$tree" ]; then
@@ -563,7 +569,7 @@ test_tree() {
 				fi
 			fi
 		done
-		[ -f $test_root/$tree.$compiler.$scm ] && rm -f $test_root/$tree.$compiler.$scm.old
+		[ -f $test_root/$tree.$compiler.$scm.old ] && rm -f $test_root/$tree.$compiler.$scm.old
 		[ -f $test_root/$tree.$compiler.$scm ] && mv $test_root/$tree.$compiler.$scm $test_root/$tree.$compiler.$scm.old
 		[ -f $test_root/$tree.$scm ] && cp $test_root/$tree.$scm $test_root/$tree.$compiler.$scm
 
