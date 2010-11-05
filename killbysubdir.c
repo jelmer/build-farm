@@ -7,6 +7,9 @@
 #include <string.h>
 #include <signal.h>
 #include <ctype.h>
+#ifndef PATH_MAX
+#define PATH_MAX 1024
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -26,11 +29,18 @@ int main(int argc, char *argv[])
 	/* make it absolute */
 	if (directory[0] != '/') {
 		char *cwd = getcwd(buf, sizeof(buf));
+		char *dir;
+		int len;
 		if (cwd == NULL) {
 			perror("cwd");
 			exit(1);
 		}
-		asprintf(&directory, "%s/%s", cwd, directory);
+		/* Add 2 for / + \0 */
+		len = strlen(cwd) + strlen(directory) +2;
+		dir = (char*)malloc(len * sizeof(char));
+		sprintf(dir, "%s/%s", cwd, directory);
+		dir[len-1] = '\0';
+		directory = dir;
 	}
 
 	/* resolve links etc */
@@ -54,15 +64,26 @@ int main(int argc, char *argv[])
 		char *cwd_path, *real_cwd;
 		char cwd[PATH_MAX], buf2[PATH_MAX];
 		ssize_t link_size;
+		int len;
 
 		if (!isdigit(name[0])) continue;
-		asprintf(&cwd_path, "/proc/%s/cwd", name);
+		#ifdef __sun
+		len = strlen(name) + strlen("/proc//path/cwd") + 1;
+		cwd_path = (char*)malloc(len * sizeof(char));
+		sprintf(cwd_path, "/proc/%s/path/cwd", name);
+		#else
+		len = strlen(name) + strlen("/proc//cwd") + 1;
+		cwd_path = (char*)malloc(len * sizeof(char));
+		sprintf(cwd_path, "/proc/%s/cwd", name);
+		#endif
+		cwd_path[len - 1] = '\0';
 		link_size = readlink(cwd_path, cwd, sizeof(cwd));
 		free(cwd_path);
 		if (link_size == -1 || link_size >= sizeof(cwd)) {
 			continue;
 		}
 
+		cwd[link_size] = '\0';
 		real_cwd = realpath(cwd, buf2);
 		if (real_cwd == NULL) {
 			continue;
