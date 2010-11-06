@@ -80,7 +80,6 @@ def build_link(myself, tree, host, compiler, rev, status):
 
 
 def html_build_status(status):
-    ((cstatus, bstatus, istatus, tstatus, sstatus), other_failures) = status
     def span(classname, contents):
         return "<span class=\"%s\">%s</span>" % (classname, contents)
 
@@ -92,15 +91,14 @@ def html_build_status(status):
         else:
             return span("status failed", st)
     ostatus = ""
-    if "panic" in other_failures:
+    if "panic" in status.other_failures:
         ostatus += "/"+span("status panic", "PANIC")
-    if "disk full" in other_failures:
+    if "disk full" in status.other_failures:
         ostatus += "/"+span("status failed", "disk full")
-    if "timeout" in other_failures:
+    if "timeout" in status.other_failures:
         ostatus += "/"+span("status failed", "timeout")
-    if sstatus is not None:
-        ostatus += "/"+span("status checker", sstatus)
-    return "%s/%s/%s/%s%s" % (span_status(cstatus), span_status(bstatus), span_status(istatus), span_status(tstatus), ostatus)
+    bstatus = "/".join([span_status(s) for s in status.stages])
+    return bstatus + ostatus
 
 
 def build_status(myself, tree, host, compiler, rev=None):

@@ -175,48 +175,49 @@ error3""")
 class BuildStatusFromLogs(testtools.TestCase):
 
     def test_nothing(self):
-        self.assertEquals(((None, None, None, None, None), set()),
-            data.build_status_from_logs("", ""))
+        s = data.build_status_from_logs("", "")
+        self.assertEquals((None, None, None, None, None), s.stages)
+        self.assertEquals(set(), s.other_failures)
 
     def test_disk_full(self):
-        self.assertEquals(((None, None, None, None, None), set(["disk full"])),
+        self.assertEquals(set(["disk full"]),
             data.build_status_from_logs("foo\nbar\nNo space left on device\nla\n",
-                ""))
-        self.assertEquals(((None, None, None, None, None), set(["disk full"])),
+                "").other_failures)
+        self.assertEquals(set(["disk full"]),
             data.build_status_from_logs(
-                "", "foo\nbar\nNo space left on device\nla\n"))
+                "", "foo\nbar\nNo space left on device\nla\n").other_failures)
 
     def test_timeout(self):
-        self.assertEquals(((None, None, None, None, None), set(["timeout"])),
+        self.assertEquals(set(["timeout"]),
             data.build_status_from_logs("foo\nbar\nmaximum runtime exceeded\nla\n",
-                ""))
+                "").other_failures)
 
     def test_status(self):
         log = """
 TEST STATUS:1
 """
         res = data.build_status_from_logs(log, "")
-        self.assertEquals(res[0][3], 1)
+        self.assertEquals(res.stages[3], 1)
         log = """
 TEST STATUS:  1
 """
         res = data.build_status_from_logs(log, "")
-        self.assertEquals(res[0][3], 1)
+        self.assertEquals(res.stages[3], 1)
         log = """
 CONFIGURE STATUS: 2
 TEST STATUS:  1
 CC_CHECKER STATUS:	2
 """
         res = data.build_status_from_logs(log, "")
-        self.assertEquals(res[0][4], 2)
+        self.assertEquals(res.stages[4], 2)
         log = """
 CONFIGURE STATUS: 2
 ACTION PASSED: test
 CC_CHECKER STATUS:	2
 """
         res = data.build_status_from_logs(log, "")
-        self.assertEquals(res[0][4], 2)
-        self.assertEquals(res[0][3], 255)
+        self.assertEquals(res.stages[4], 2)
+        self.assertEquals(res.stages[3], 255)
         log = """
 CONFIGURE STATUS: 2
 ACTION PASSED: test
@@ -227,7 +228,7 @@ testsuite-failure: biz
 CC_CHECKER STATUS:	2
 """
         res = data.build_status_from_logs(log, "")
-        self.assertEquals(res[0][0], 2)
-        self.assertEquals(res[0][3], 3)
+        self.assertEquals(res.stages[0], 2)
+        self.assertEquals(res.stages[3], 3)
 
 

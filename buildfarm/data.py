@@ -29,6 +29,16 @@ import time
 import util
 
 
+class BuildStatus(object):
+
+    def __init__(self, stages, other_failures):
+        self.stages = stages
+        self.other_failures = other_failures
+
+    def __str__(self):
+        return repr((self.stages, self.other_failures))
+
+
 def check_dir_exists(kind, path):
     if not os.path.isdir(path):
         raise Exception("%s directory %s does not exist" % (kind, path))
@@ -86,7 +96,7 @@ def build_status_from_logs(log, err):
     else:
         sstatus = None
 
-    return ((cstatus, bstatus, istatus, tstatus, sstatus), other_failures)
+    return BuildStatus((cstatus, bstatus, istatus, tstatus, sstatus), other_failures)
 
 
 def lcov_extract_percentage(text):
@@ -274,12 +284,12 @@ class CachingBuild(Build):
             st2 = None
 
         if st2 and st1.st_ctime <= st2.st_mtime:
-            return eval(util.FileLoad(cachefile))
+            return BuildStatus(*eval(util.FileLoad(cachefile)))
 
         ret = super(CachingBuild, self).status()
 
         if not self._store.readonly:
-            util.FileSave(cachefile, repr(ret))
+            util.FileSave(cachefile, str(ret))
 
         return ret
 
