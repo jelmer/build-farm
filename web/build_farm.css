@@ -38,6 +38,8 @@
 #log .unit.xfailed .output {	display: none;}
 #log .unit.errorlog .output {	display: none;}
 #log div.status.errorlog {	display: none;}
+img + div.action.title {margin-left: 0.5em;}
+a + div.action.status {margin-left: 0.5em;}
 
 #log div.output-stderr-0 {
 	display: none;
