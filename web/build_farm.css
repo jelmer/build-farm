@@ -36,6 +36,8 @@
 #log .unit.mistake .output {	display: none;}
 #log .unit.warning .output {	display: none;}
 #log .unit.xfailed .output {	display: none;}
+#log .unit.errorlog .output {	display: none;}
+#log div.status.errorlog {	display: none;}
 
 #log div.output-stderr-0 {
 	display: none;
