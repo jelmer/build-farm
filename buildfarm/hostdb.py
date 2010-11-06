@@ -23,10 +23,27 @@ import sqlite3
 import time
 
 
+class HostAlreadyExists(Exception):
+    """The specified host already exists."""
+
+    def __init__(self, name):
+        super(HostAlreadyExists, self).__init__()
+        self.name = name
+
+
+class NoSuchHost(Exception):
+    """The specified host did not exist."""
+
+    def __init__(self, name):
+        super(NoSuchHost, self).__init__()
+        self.name = name
+
+
 class Host(object):
     """A host in the buildfarm."""
 
-    def __init__(self, name, owner=None, owner_email=None, password=None, platform=None):
+    def __init__(self, name, owner=None, owner_email=None, password=None, platform=None,
+                 ssh_access=False, last_update=None, fqdn=None):
         self.name = name
         if owner:
             self.owner = (owner, owner_email)
@@ -34,9 +51,16 @@ class Host(object):
             self.owner = None
         self.password = password
         self.platform = platform
+        self.ssh_access = ssh_access
+        self.last_update = last_update
+        self.fqdn = fqdn
+
+    def __cmp__(self, other):
+        return cmp(self.name, other.name)
 
 
 class HostDatabase(object):
+    """Host database."""
 
     def __init__(self, filename=None):
         if filename is None:
@@ -53,30 +77,35 @@ class HostDatabase(object):
             """)
         self.db.commit()
 
-    def createhost(self, name, platform, owner, owner_email, password, permission):
-        self.db.execute("INSERT INTO host (name, platform, owner, owner_email, password, permission, join_time) VALUES (?,?,?,?,?,?,?)",
-                (name, platform, owner, owner_email, password, permission, time.time()))
+    def createhost(self, name, platform=None, owner=None, owner_email=None, password=None, permission=None):
+        try:
+            self.db.execute("INSERT INTO host (name, platform, owner, owner_email, password, permission, join_time) VALUES (?,?,?,?,?,?,?)",
+                    (name, platform, owner, owner_email, password, permission, time.time()))
+        except sqlite3.IntegrityError:
+            raise HostAlreadyExists(name)
         self.db.commit()
 
     def deletehost(self, name):
-        self.db.execute("DELETE FROM host WHERE name = ?", name)
+        cursor = self.db.execute("DELETE FROM host WHERE name = ?", (name,))
+        if cursor.rowcount == 0:
+            raise NoSuchHost(name)
         self.db.commit()
 
     def hosts(self):
-        cursor = self.db.execute("SELECT name, owner, owner_email, password, platform FROM host ORDER BY name")
+        cursor = self.db.execute("SELECT name, owner, owner_email, password, platform, ssh_access, fqdn FROM host ORDER BY name")
         for row in cursor.fetchall():
-            yield Host(name=row[0], owner=row[1], owner_email=row[2], password=row[3], platform=row[4])
+            yield Host(name=row[0], owner=row[1], owner_email=row[2], password=row[3], platform=row[4], ssh_access=bool(row[5]), fqdn=row[6])
 
     def dead_hosts(self, age):
         dead_time = time.time() - age
         cursor = self.db.execute("SELECT host.name AS host, host.owner AS owner, host.owner_email AS owner_email, MAX(age) AS last_update FROM host LEFT JOIN build ON ( host.name == build.host) WHERE ifnull(last_dead_mail, 0) < %d AND ifnull(join_time, 0) < %d GROUP BY host.name having ifnull(MAX(age),0) < %d" % (dead_time, dead_time, dead_time))
         for row in cursor.fetchall():
-            yield row[0]
+            yield Host(row[0], owner=row[1], owner_email=row[2], last_update=row[3])
 
     def host_ages(self):
         cursor = self.db.execute("SELECT host.name AS host, host.owner AS owner, host.owner_email AS owner_email, MAX(age) AS last_update FROM host LEFT JOIN build ON ( host.name == build.host) GROUP BY host.name ORDER BY age")
         for row in cursor.fetchall():
-            yield (row[0], row[1], row[2], row[3])
+            yield Host(row[0], owner=row[1], owner_email=row[2], last_update=row[3])
 
     def sent_dead_mail(self, host):
         self.db.execute("UPDATE host SET last_dead_mail = ? WHERE name = ?", time.time(), host)
@@ -86,16 +115,20 @@ class HostDatabase(object):
         for host in self.hosts():
             if host.name == name:
                 return host
-
         return None
 
     def update_platform(self, name, new_platform):
-        self.db.execute("UPDATE host SET platform = ? WHERE name = ?", new_platform, name)
+        cursor = self.db.execute("UPDATE host SET platform = ? WHERE name = ?", (new_platform, name))
+        if cursor.rowcount == 0:
+            raise NoSuchHost(name)
         self.db.commit()
 
     def update_owner(self, name, new_owner, new_owner_email):
-        self.db.execute("UPDATE host SET owner = ?, owner_email = ? WHERE name = ?",
-                           new_owner, new_owner_email, name)
+        cursor = self.db.execute(
+            "UPDATE host SET owner = ?, owner_email = ? WHERE name = ?", (new_owner,
+            new_owner_email, name))
+        if cursor.rowcount == 0:
+            raise NoSuchHost(name)
         self.db.commit()
 
     def create_rsync_secrets(self):
@@ -109,7 +142,7 @@ class HostDatabase(object):
             else:
                 yield "# %s, owner unknown\n" % (host.name,);
             if host.password:
-                yield "# %s:%s\n\n" % (host.name, host.password)
+                yield "%s:%s\n\n" % (host.name, host.password)
             else:
                 yield "# %s password is unknown\n\n" % host.name
 
