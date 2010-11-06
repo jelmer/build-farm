@@ -6,6 +6,7 @@
 # Copyright (C) Vance Lankhaar  <vance@samba.org>      2002-2005
 # Copyright (C) Martin Pool <mbp@samba.org>            2001
 # Copyright (C) Jelmer Vernooij <jelmer@samba.org>     2007-2010
+# Copyright (C) Matthieu Patou <mat@matws.net>         2010-2010
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
