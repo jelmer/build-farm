@@ -85,7 +85,6 @@ class BuildResultStoreTests(BuildFarmTestCase):
         super(BuildResultStoreTests, self).setUp()
 
         self.write_compilers(["cc"])
-        self.write_hosts(["gwenhwyvar", "charis"])
         self.write_trees({"tdb": {"scm": "git", "repo": "tdb", "branch": "master"}})
 
         self.x = data.BuildResultStore(self.path)

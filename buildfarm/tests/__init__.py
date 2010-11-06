@@ -46,14 +46,6 @@ class BuildFarmTestCase(TestCase):
             f.close()
         return path
 
-    def write_hosts(self, hosts):
-        f = open(os.path.join(self.path, "web", "hosts.list"), "w")
-        try:
-            for host in hosts:
-                f.write("%s\n" % host)
-        finally:
-            f.close()
-
     def write_compilers(self, compilers):
         f = open(os.path.join(self.path, "web", "compilers.list"), "w")
         try:

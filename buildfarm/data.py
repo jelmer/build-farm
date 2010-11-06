@@ -335,7 +335,6 @@ class BuildResultStore(object):
         check_dir_exists("lcov", self.lcovdir)
 
         self.compilers = util.load_list(os.path.join(self.webdir, "compilers.list"))
-        self.hosts = util.load_hash(os.path.join(self.webdir, "hosts.list"))
 
         self.trees = read_trees_from_conf(os.path.join(self.webdir, "trees.conf"))
 

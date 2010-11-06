@@ -29,7 +29,12 @@ import os
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from buildfarm import data, util, history
+from buildfarm import (
+    data,
+    history,
+    hostdb,
+    util,
+    )
 
 import cgi
 import re
@@ -42,9 +47,10 @@ basedir = os.path.abspath(os.path.join(webdir, ".."))
 
 db = data.BuildResultStore(basedir)
 history = history.History(db)
+hostsdb = hostdb.HostDatabase(os.path.join(os.path.dirname(__file__), "..", "hosts.sqlite"))
 
 compilers = db.compilers
-hosts = db.hosts
+hosts = hostsdb.hosts()
 trees = db.trees
 OLDAGE = db.OLDAGE
 
