@@ -75,7 +75,7 @@ def build_link(myself, tree, host, compiler, rev, status):
     else:
         opt_rev = ''
     return "<a href='%s?function=View+Build;host=%s;tree=%s;compiler=%s%s'>%s</a>" % (
-           myself, tree, host, compiler, opt_rev, status)
+           myself, host, tree, compiler, opt_rev, status)
 
 
 def html_build_status(status):
