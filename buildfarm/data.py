@@ -36,9 +36,9 @@ def check_dir_exists(kind, path):
 
 def build_status_from_logs(log, err):
     """get status of build"""
-    m = re.search("TEST STATUS:(.*)", log)
+    m = re.search("TEST STATUS:(\s*\d+)", log)
     if m:
-        tstatus = m.group(1)
+        tstatus = int(m.group(1).strip())
     else:
         m = re.search("ACTION (PASSED|FAILED): test", log)
         if m:
@@ -51,21 +51,21 @@ def build_status_from_logs(log, err):
         else:
             tstatus = None
 
-    m = re.search("INSTALL STATUS:(.*)", log)
+    m = re.search("INSTALL STATUS:(\s*\d+)", log)
     if m:
-        istatus = m.group(1)
+        istatus = int(m.group(1).strip())
     else:
         istatus = None
 
-    m = re.search("BUILD STATUS:(.*)", log)
+    m = re.search("BUILD STATUS:(\s*\d+)", log)
     if m:
-        bstatus = m.group(1)
+        bstatus = int(m.group(1).strip())
     else:
         bstatus = None
 
-    m = re.search("CONFIGURE STATUS:(.*)", log)
+    m = re.search("CONFIGURE STATUS:(\s*\d+)", log)
     if m:
-        cstatus = m.group(1)
+        cstatus = int(m.group(1).strip())
     else:
         cstatus = None
 
@@ -80,9 +80,9 @@ def build_status_from_logs(log, err):
     if "maximum runtime exceeded" in log:
         other_failures.add("timeout")
 
-    m = re.search("CC_CHECKER STATUS: (.*)", log)
+    m = re.search("CC_CHECKER STATUS:(\s*\d+)", log)
     if m:
-        sstatus = m.group(1)
+        sstatus = int(m.group(1).strip())
     else:
         sstatus = None
 
