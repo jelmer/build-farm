@@ -382,7 +382,8 @@ def view_build(myself, tree, host, compiler, rev, plain_logs=False):
     (revision, revision_time) = build.revision_details()
     status = build_status(myself, tree, host, compiler, rev)
 
-    assert re.match("^[0-9a-fA-F]*$", rev)
+    if rev:
+        assert re.match("^[0-9a-fA-F]*$", rev)
 
     log = build.read_log()
     err = build.read_err()
@@ -402,12 +403,13 @@ def view_build(myself, tree, host, compiler, rev, plain_logs=False):
 
     if err:
         err = cgi.escape(err)
-
     yield '<h2>Host information:</h2>'
 
-    yield util.FileLoad("../web/%s.html" % host)
+    host_web_file = "../web/%s.html" % host
+    if os.path.exists(host_web_file):
+        yield util.FileLoad(host_web_file)
 
-    yield "<table clas='real'>"
+    yield "<table class='real'>"
     yield "<tr><td>Host:</td><td><a href='%s?function=View+Host;host=%s;tree=%s;"\
           "compiler=%s#'>%s</a> - %s</td></tr>" % (myself, host, tree, compiler, host, hosts[host])
     yield "<tr><td>Uname:</td><td>%s</td></tr>" % uname
@@ -419,7 +421,7 @@ def view_build(myself, tree, host, compiler, rev, plain_logs=False):
     yield "<tr><td>CFLAGS:</td><td>%s</td></tr>" % cflags
     yield "<tr><td>configure options:</td><td>%s</td></tr>" % config
 
-    yield show_oldrevs(tree, host, compiler)
+    yield show_oldrevs(myself, tree, host, compiler) or ""
 
     # check the head of the output for our magic string
     rev_var = ""
@@ -562,6 +564,8 @@ def format_subunit_reason(reason):
 
 def print_log_pretty(log):
     # prints the log in a visually appealing manner
+    global indice
+    indice = 0
 
     # do some pretty printing for the actions
     def pretty_print(m):
@@ -572,17 +576,16 @@ def print_log_pretty(log):
         if actionName == 'cc_checker':
              output = print_log_cc_checker(output)
 
-        id+=1
-        make_collapsible_html('action', actionName, output, id, status)
+        indice +=1
+        make_collapsible_html('action', actionName, output, indice, status)
         return output
-    id = 1
     log = re.sub("(Running\ action\s+([\w\-]+) .*? ACTION\ (PASSED|FAILED):\ ([\w\-]+))",
                  pretty_print, log)
 
     # log is already CGI-escaped, so handle '>' in test name by handling &gt
     def format_stage(m):
-        id += 1
-        return make_collapsible_html('test', m.group(1), m.group(2), id, m.group(3))
+        indice += 1
+        return make_collapsible_html('test', m.group(1), m.group(2), indice, m.group(3))
     log = re.sub("""
           --==--==--==--==--==--==--==--==--==--==--.*?
           Running\ test\ ([\w\-=,_:\ /.&;]+).*?
@@ -594,8 +597,9 @@ def print_log_pretty(log):
         """, format_stage, log)
 
     def format_skip_testsuite(m):
-        id += 1
-        return make_collapsible_html('test', m.group(1), '', id, 'skipped'),
+        global indice
+        indice += 1
+        return make_collapsible_html('test', m.group(1), '', indice, 'skipped')
 
     log = re.sub("skip-testsuite: ([\w\-=,_:\ /.&; \(\)]+).*?",
             format_skip_testsuite, log)
@@ -918,7 +922,7 @@ def buildApp(environ, start_response):
         if fn_name == "View_Build":
             plain_logs = (get_param(form, "plain") is not None and get_param(form, "plain").lower() in ("yes", "1", "on", "true", "y"))
             yield "".join(view_build(myself, get_param(form, "tree"), get_param(form, "host"),
-                get_param(form, "compiler"), get_param(form, 'revision'), plain_logs))
+                get_param(form, "compiler"), get_param(form, "revision"), plain_logs))
         elif fn_name == "View_Host":
             yield "".join(view_host(myself, "html", get_param(form, 'host')))
         elif fn_name == "Recent_Builds":
