@@ -12,12 +12,12 @@
 #   it under the terms of the GNU General Public License as published by
 #   the Free Software Foundation; either version 3 of the License, or
 #   (at your option) any later version.
-#   
+#
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
-#   
+#
 #   You should have received a copy of the GNU General Public License
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -345,11 +345,11 @@ def show_oldrevs(myself, tree, host, compiler):
     if len(revs) == 0:
         return
 
-    ret = "<h2>Older builds:</h2>"
+    yield "<h2>Older builds:</h2>"
 
-    ret += "<table class='real'>"
-    ret += "<thead><tr><th>Revision</th><th>Status</th></tr></thead>"
-    ret += "<tbody>"
+    yield "<table class='real'>"
+    yield "<thead><tr><th>Revision</th><th>Status</th></tr></thead>"
+    yield "<tbody>"
 
     lastrev = ""
     for rev in revs:
@@ -359,11 +359,11 @@ def show_oldrevs(myself, tree, host, compiler):
         if s == lastrev:
             continue
         lastrev = s
-        ret+= "<tr><td>%s</td><td>%s</td></tr>" % (revision_link(myself, revision, tree), build_link(myself, tree, host, compiler, rev["REVISION"], html_build_status(rev["STATUS"])))
+        yield "<tr><td>%s</td><td>%s</td></tr>" % (revision_link(myself, revision, tree), build_link(myself, tree, host, compiler, rev["REVISION"], html_build_status(rev["STATUS"])))
 
     if lastrev != "":
         # Only print table if there was any actual data
-        return ret + "</tbody></table>"
+        yield "</tbody></table>"
 
 
 def view_build(myself, tree, host, compiler, rev, plain_logs=False):
@@ -420,7 +420,7 @@ def view_build(myself, tree, host, compiler, rev, plain_logs=False):
     yield "<tr><td>CFLAGS:</td><td>%s</td></tr>" % cflags
     yield "<tr><td>configure options:</td><td>%s</td></tr>" % config
 
-    yield show_oldrevs(myself, tree, host, compiler) or ""
+    yield "".join(show_oldrevs(myself, tree, host, compiler))
 
     # check the head of the output for our magic string
     rev_var = ""
@@ -435,7 +435,7 @@ def view_build(myself, tree, host, compiler, rev, plain_logs=False):
               " unstyled view'>Plain View</a></p>" % (myself, host, tree, compiler, rev_var)
 
         yield "<div id='actionList'>"
-        # These can be pretty wide -- perhaps we need to 
+        # These can be pretty wide -- perhaps we need to
         # allow them to wrap in some way?
         if err == "":
             yield "<h2>No error log available</h2>"
@@ -516,7 +516,7 @@ def view_host(myself, output_type, *requested_hosts):
 
                     if output_type == 'text':
                         yield "%-12s %-10s %-10s %-10s %-10s\n" % (
-                                tree, compiler, util.dhm_time(age_mtime), 
+                                tree, compiler, util.dhm_time(age_mtime),
                                 util.strip_html(status), warnings)
                     else:
                         yield "<tr>"
@@ -635,7 +635,7 @@ def print_log_cc_checker(input):
         return input
 
     content = ""
-    inEntry = 0
+    inEntry = False
     title = None
     status = None
 
@@ -651,7 +651,7 @@ def print_log_cc_checker(input):
                 output += content
 
             # clear maintenance vars
-            (inEntry, content) = (1, "")
+            (inEntry, content) = (True, "")
 
             # parse the line
             m = re.match("^-- ((ERROR|WARNING|MISTAKE).*?)\s+&gt;&gt;&gt;([a-zA-Z0-9]+_(\w+)_[a-zA-Z0-9]+)", line)
@@ -662,7 +662,7 @@ def print_log_cc_checker(input):
             if inEntry:
                 output += make_collapsible_html('cc_checker', title, content, id, status)
 
-            inEntry = 0
+            inEntry = False
             content = ""
 
         # not a new entry, so part of the current entry's output
