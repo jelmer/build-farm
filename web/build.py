@@ -75,16 +75,11 @@ def build_link(myself, tree, host, compiler, rev, status):
     else:
         opt_rev = ''
     return "<a href='%s?function=View+Build;host=%s;tree=%s;compiler=%s%s'>%s</a>" % (
-        myself, tree, host, compiler, opt_rev, status)
+           myself, tree, host, compiler, opt_rev, status)
 
 
 def html_build_status(status):
-    cstatus = status.get("config")
-    bstatus = status.get("build")
-    istatus = status.get("install")
-    tstatus = status.get("test")
-    sstatus = status.get("checker")
-    other_failures = status.get("other")
+    ((cstatus, bstatus, istatus, tstatus, sstatus), other_failures) = status
     def span(classname, contents):
         return "<span class=\"%s\">%s</span>" % (classname, contents)
 
@@ -375,9 +370,9 @@ def show_oldrevs(myself, tree, host, compiler):
 def view_build(myself, tree, host, compiler, rev, plain_logs=False):
     """view one build in detail"""
     # ensure the params are valid before using them
-    assert host in hosts, "unknown host"
-    assert compiler in compilers, "unknown compiler"
-    assert tree in trees, "not a build tree"
+    assert host in hosts, "unknown host %s" % host
+    assert compiler in compilers, "unknown compiler %s" % compiler
+    assert tree in trees, "not a build tree %s" % tree
 
     uname = ""
     cflags = ""
@@ -413,7 +408,8 @@ def view_build(myself, tree, host, compiler, rev, plain_logs=False):
     yield util.FileLoad("../web/%s.html" % host)
 
     yield "<table clas='real'>"
-    yield "<tr><td>Host:</td><td><a href='%s?function=View+Host;host=%s;tree=%s;compiler=%s#'>%s</a> - %s</td></tr>" % (myself, host, tree, compiler, host, hosts[host])
+    yield "<tr><td>Host:</td><td><a href='%s?function=View+Host;host=%s;tree=%s;"\
+          "compiler=%s#'>%s</a> - %s</td></tr>" % (myself, host, tree, compiler, host, hosts[host])
     yield "<tr><td>Uname:</td><td>%s</td></tr>" % uname
     yield "<tr><td>Tree:</td><td>%s</td></tr>" % tree_link(myself, tree)
     yield "<tr><td>Build Revision:</td><td>%s</td></tr>" % revision_link(myself, revision, tree)
@@ -433,7 +429,9 @@ def view_build(myself, tree, host, compiler, rev, plain_logs=False):
     yield "<div id='log'>"
 
     if not plain_logs:
-        yield "<p>Switch to the <a href='%s?function=View+Build;host=%s;tree=%s;compiler=%s%s;plain=true' title='Switch to bland, non-javascript, unstyled view'>Plain View</a></p>" % (myself, host, tree, compiler, rev_var)
+        yield "<p>Switch to the <a href='%s?function=View+Build;host=%s;tree=%s"\
+              ";compiler=%s%s;plain=true' title='Switch to bland, non-javascript,"\
+              " unstyled view'>Plain View</a></p>" % (myself, host, tree, compiler, rev_var)
 
         yield "<div id='actionList'>"
         # These can be pretty wide -- perhaps we need to 
@@ -453,7 +451,9 @@ def view_build(myself, tree, host, compiler, rev, plain_logs=False):
         yield "<p><small>Some of the above icons derived from the <a href='http://www.gnome.org'>Gnome Project</a>'s stock icons.</small></p>"
         yield "</div>"
     else:
-        yield "<p>Switch to the <a href='%s?function=View+Build;host=%s;tree=%s;compiler=%s%s' title='Switch to colourful, javascript-enabled, styled view'>Enhanced View</a></p>" % (myself, host, tree, compiler, rev_var)
+        yield "<p>Switch to the <a href='%s?function=View+Build;host=%s;tree=%s;"\
+              "compiler=%s%s' title='Switch to colourful, javascript-enabled, styled"\
+              " view'>Enhanced View</a></p>" % (myself, host, tree, compiler, rev_var)
         if err == "":
             yield "<h2>No error log available</h2>"
         else:
