@@ -32,6 +32,47 @@ class NonexistantTests(unittest.TestCase):
         self.assertRaises(
             Exception, data.BuildResultStore, "somedirthatdoesn'texist", None)
 
+class BuildStatusFromLogs(testtools.TestCase):
+
+
+    def test_build_status_from_logs(self):
+        log = """
+TEST STATUS:1
+"""
+        res = data.build_status_from_logs(log, "")
+        self.assertEquals(res[0][3], 1)
+        log = """
+TEST STATUS:  1
+"""
+        res = data.build_status_from_logs(log, "")
+        self.assertEquals(res[0][3], 1)
+        log = """
+CONFIGURE STATUS: 2
+TEST STATUS:  1
+CC_CHECKER STATUS:	2
+"""
+        res = data.build_status_from_logs(log, "")
+        self.assertEquals(res[0][4], 2)
+        log = """
+CONFIGURE STATUS: 2
+ACTION PASSED: test
+CC_CHECKER STATUS:	2
+"""
+        res = data.build_status_from_logs(log, "")
+        self.assertEquals(res[0][4], 2)
+        self.assertEquals(res[0][3], 255)
+        log = """
+CONFIGURE STATUS: 2
+ACTION PASSED: test
+testsuite-success: toto
+testsuite-failure: foo
+testsuite-failure: bar
+testsuite-failure: biz
+CC_CHECKER STATUS:	2
+"""
+        res = data.build_status_from_logs(log, "")
+        self.assertEquals(res[0][0], 2)
+        self.assertEquals(res[0][3], 3)
 
 class ReadTreesFromConfTests(testtools.TestCase):
 
