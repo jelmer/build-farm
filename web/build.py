@@ -414,17 +414,18 @@ def view_build(myself, tree, host, compiler, rev, plain_logs=False):
     if os.path.exists(host_web_file):
         yield util.FileLoad(host_web_file)
 
-    yield "<table class='real'>"
+    yield "<table class='real'>\n"
     yield "<tr><td>Host:</td><td><a href='%s?function=View+Host;host=%s;tree=%s;"\
-          "compiler=%s#'>%s</a> - %s</td></tr>" % (myself, host, tree, compiler, host, hosts[host])
-    yield "<tr><td>Uname:</td><td>%s</td></tr>" % uname
-    yield "<tr><td>Tree:</td><td>%s</td></tr>" % tree_link(myself, tree)
-    yield "<tr><td>Build Revision:</td><td>%s</td></tr>" % revision_link(myself, revision, tree)
-    yield "<tr><td>Build age:</td><td><div class='age'>%s</div></td></tr>" % red_age(age_mtime)
-    yield "<tr><td>Status:</td><td>%s</td></tr>" % status
-    yield "<tr><td>Compiler:</td><td>%s</td></tr>" % compiler
-    yield "<tr><td>CFLAGS:</td><td>%s</td></tr>" % cflags
-    yield "<tr><td>configure options:</td><td>%s</td></tr>" % config
+          "compiler=%s#'>%s</a> - %s</td></tr>\n" % (myself, host, tree, compiler, host, hosts[host])
+    yield "<tr><td>Uname:</td><td>%s</td></tr>\n" % uname
+    yield "<tr><td>Tree:</td><td>%s</td></tr>\n" % tree_link(myself, tree)
+    yield "<tr><td>Build Revision:</td><td>%s</td></tr>\n" % revision_link(myself, revision, tree)
+    yield "<tr><td>Build age:</td><td><div class='age'>%s</div></td></tr>\n" % red_age(age_mtime)
+    yield "<tr><td>Status:</td><td>%s</td></tr>\n" % status
+    yield "<tr><td>Compiler:</td><td>%s</td></tr>\n" % compiler
+    yield "<tr><td>CFLAGS:</td><td>%s</td></tr>\n" % cflags
+    yield "<tr><td>configure options:</td><td>%s</td></tr>\n" % config
+    yield "</table>\n"
 
     yield "".join(show_oldrevs(myself, tree, host, compiler))
 
@@ -444,15 +445,15 @@ def view_build(myself, tree, host, compiler, rev, plain_logs=False):
         # These can be pretty wide -- perhaps we need to
         # allow them to wrap in some way?
         if err == "":
-            yield "<h2>No error log available</h2>"
+            yield "<h2>No error log available</h2>\n"
         else:
             yield "<h2>Error log:</h2>"
-            yield make_collapsible_html('action', "Error Output", "\n%s" % err, "stderr-0")
+            yield make_collapsible_html('action', "Error Output", "\n%s" % err, "stderr-0", "errorlog")
 
         if log == "":
             yield "<h2>No build log available</h2>"
         else:
-            yield "<h2>Build log:</h2>"
+            yield "<h2>Build log:</h2>\n"
             yield print_log_pretty(log)
 
         yield "<p><small>Some of the above icons derived from the <a href='http://www.gnome.org'>Gnome Project</a>'s stock icons.</small></p>"
@@ -464,12 +465,12 @@ def view_build(myself, tree, host, compiler, rev, plain_logs=False):
         if err == "":
             yield "<h2>No error log available</h2>"
         else:
-            yield '<h2>Error log:</h2>'
+            yield '<h2>Error log:</h2>\n'
             yield '<div id="errorLog"><pre>%s</pre></div>' % err
         if log == "":
             yield '<h2>No build log available</h2>'
         else:
-            yield '<h2>Build log:</h2>'
+            yield '<h2>Build log:</h2>\n'
             yield '<div id="buildLog"><pre>%s</pre></div>' % log
 
     yield '</div>'
@@ -574,6 +575,7 @@ def print_log_pretty(log):
 
     # do some pretty printing for the actions
     def pretty_print(m):
+        global indice
         output = m.group(1)
         actionName = m.group(2)
         status = m.group(3)
@@ -581,16 +583,17 @@ def print_log_pretty(log):
         if actionName == 'cc_checker':
              output = print_log_cc_checker(output)
 
-        indice +=1
-        make_collapsible_html('action', actionName, output, indice, status)
-        return output
-    log = re.sub("(Running\ action\s+([\w\-]+) .*? ACTION\ (PASSED|FAILED):\ ([\w\-]+))",
-                 pretty_print, log)
+        indice += 1
+        return make_collapsible_html('action', actionName, output, indice, status)
+
+    pattern = re.compile("(Running action\s+([\w\-]+)$(?:\s^.*$)*?\sACTION\ (PASSED|FAILED):\ ([\w\-]+)$)", re.M)
+    log = pattern.sub(pretty_print, log)
 
     # log is already CGI-escaped, so handle '>' in test name by handling &gt
     def format_stage(m):
         indice += 1
         return make_collapsible_html('test', m.group(1), m.group(2), indice, m.group(3))
+
     log = re.sub("""
           --==--==--==--==--==--==--==--==--==--==--.*?
           Running\ test\ ([\w\-=,_:\ /.&;]+).*?
@@ -610,13 +613,19 @@ def print_log_pretty(log):
             format_skip_testsuite, log)
 
     def format_testsuite(m):
-        id += 1
-        return make_collapsible_html('test', m.group(1), m.group(2)+format_subunit_reason(m.group(4)), id, subunit_to_buildfarm_result(m.group(3)))
+        global indice
+        testName = m.group(1)
+        content = m.group(2)
+        status = subunit_to_buildfarm_result(m.group(3))
+        if m.group(4):
+            errorReason = format_subunit_reason(m.group(4))
+        else:
+            errorReason = ""
+        indice += 1
+        return make_collapsible_html('test', testName, content+errorReason, indice, status)
 
-    log = re.sub("""testsuite: ([\w\-=,_:\ /.&; \(\)\$]+).*?
-          (.*?)
-          testsuite-(.*?): [\w\-=,_:\ /.&; \(\)]+( \[.*?\])?.*?""",
-          format_testsuite, log)
+    pattern = re.compile("^testsuite: (.+)$\s((?:^.*$\s)*?)testsuite-(\w+): .*?(?:(\[$\s(?:^.*$\s)*?^\]$)|$)", re.M)
+    log = pattern.sub(format_testsuite, log)
 
     def format_test(m):
         id += 1
@@ -694,8 +703,7 @@ def make_collapsible_html(type, title, output, id, status=""):
     :param type: the logical type of it. e.g. "test" or "action"
     :param title: the title to be displayed
     """
-
-    if ((status == "" or "failed" in status.lower())):
+    if ((status == "" or "failed" == status.lower())):
         icon = 'icon_hide_16.png'
     else:
         icon = 'icon_unhide_16.png'
@@ -707,11 +715,14 @@ def make_collapsible_html(type, title, output, id, status=""):
     # in this html
     ret = "<div class='%s unit %s' id='%s-%s'>" % (type, status, type, id)
     ret += "<a href=\"javascript:handle('%s');\">" % id
-    ret += "<img id='img-%s' name='img-%s' alt='%s' src='%s'>" %(id, id, status, icon)
-    ret += "<div class='%s title'>%s</div>" % (type, title)
-    ret += " "
+    ret += "<img id='img-%s' name='img-%s' alt='%s' src='%s' />" %(id, id, status, icon)
+    ret += "<div class='%s title'>%s</div></a>" % (type, title)
+    #ret += " "
     ret += "<div class='%s status %s'>%s</div>" % (type, status, status)
-    ret += "<div class='%s output' id='output-%s'><pre>%s</pre></div>" % (type, id, output)
+    ret += "<div class='%s output' id='output-%s'>" % (type, id)
+    if output and len(output):
+        ret += "<pre>%s</pre>>" % (output)
+    ret += "</div></div>"
     return ret
 
 def main_menu():
@@ -916,7 +927,8 @@ def buildApp(environ, start_response):
         yield "    <meta name='description' contents='Home of the Samba Build Farm, the automated testing facility.'/>"
         yield "    <meta name='robots' contents='noindex'/>"
         yield "    <link rel='stylesheet' href='/build_farm.css' type='text/css' media='all'/>"
-        yield "    <link rel='stylesheet' href='http://master.samba.org/samba/style/common.css' type='text/css' media='all'/>"
+        #yield "    <link rel='stylesheet' href='http://master.samba.org/samba/style/common.css' type='text/css' media='all'/>"
+        yield "    <link rel='stylesheet' href='common.css' type='text/css' media='all'/>"
         yield "    <link rel='shortcut icon' href='http://www.samba.org/samba/images/favicon.ico'/>"
         yield "  </head>"
         yield "<body>"
