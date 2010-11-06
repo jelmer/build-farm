@@ -108,7 +108,7 @@ class HostDatabase(object):
             yield Host(row[0], owner=row[1], owner_email=row[2], last_update=row[3])
 
     def sent_dead_mail(self, host):
-        self.db.execute("UPDATE host SET last_dead_mail = ? WHERE name = ?", time.time(), host)
+        self.db.execute("UPDATE host SET last_dead_mail = ? WHERE name = ?", (int(time.time()), host))
         self.db.commit()
 
     def host(self, name):
