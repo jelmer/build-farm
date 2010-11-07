@@ -138,7 +138,8 @@ def build_status_vals(status):
     status = util.strip_html(status)
 
     status = status.replace("ok", "0")
-    status = status.replace("?", "0")
+    status = status.replace("-", "0")
+    status = status.replace("?", "0.1")
     status = status.replace("PANIC", "1")
 
     return status.split("/")
@@ -263,15 +264,23 @@ def view_recent_builds(myself, tree, sort_by):
         astat = build_status_vals(a)
 
         # handle panic
-        if len(bstat) > 4 and bstat[4]:
+        if len(bstat) > 5 and bstat[5]:
             return 1
-        elif len(astat) > 4 and astat[4]:
+        elif len(astat) > 5 and astat[5]:
             return -1
 
-        return (cmp(astat[0], bstat[0]) or # configure
-                cmp(astat[1], bstat[1]) or # compile
-                cmp(astat[2], bstat[2]) or # install
-                cmp(astat[3], bstat[3])) # test
+        # If we have ok/ok/ok/ok/- or ok/ok/ok/ok/ok then we want the line to be at the end
+        if len(bstat) == 5:
+            if bstat[0] == bstat[1] == bstat[2] == bstat[3] == "0":
+                return -1
+        if len(astat) == 5:
+            if astat[0] == astat[1] == astat[2] == astat[3] == "0":
+                return 1
+
+        # Give more weight to higher stage (ie. install error before test errors)
+        return (cmp((10000 * astat[3] + 1000*astat[2] + 100 * astat[1] + astat[0]),
+                    (10000 * bstat[3] + 1000*bstat[2] + 100 * bstat[1] + bstat[0])))
+
 
     cmp_funcs = {
         "revision": lambda a, b: cmp(a[7], b[7]),
