@@ -47,7 +47,7 @@ basedir = os.path.abspath(os.path.join(webdir, ".."))
 
 db = data.BuildResultStore(basedir)
 history = history.History(db)
-hostsdb = hostdb.HostDatabase(os.path.join(os.path.dirname(__file__), "..", "hosts.sqlite"))
+hostsdb = hostdb.HostDatabase(os.path.join(os.path.dirname(__file__), "..", "hostdb.sqlite"))
 
 compilers = db.compilers
 hosts = hostsdb.hosts()
