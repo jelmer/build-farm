@@ -403,8 +403,16 @@ def view_build(myself, tree, host, compiler, rev, plain_logs=False):
     if rev:
         assert re.match("^[0-9a-fA-F]*$", rev)
 
-    log = build.read_log()
-    err = build.read_err()
+    f = build.read_log()
+    try:
+        log = f.read()
+    finally:
+        f.close()
+    f = build.read_err()
+    try:
+        err = f.read()
+    finally:
+        f.close()
 
     if log:
         log = cgi.escape(log)

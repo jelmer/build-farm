@@ -172,7 +172,8 @@ class Build(object):
 
     def read_err(self):
         """read full err file"""
-        return util.FileLoad(self._store.build_fname(self.tree, self.host, self.compiler, self.rev)+".err")
+        return open(self._store.build_fname(self.tree, self.host, self.compiler, self.rev)+".err", 'r')
+
 
     def log_checksum(self):
         f = self.read_log()
@@ -215,7 +216,11 @@ class Build(object):
             log = f.read()
         finally:
             f.close()
-        err = self.read_err()
+        f = self.read_err()
+        try:
+            err = f.read()
+        finally:
+            f.close()
 
         return build_status_from_logs(log, err)
 

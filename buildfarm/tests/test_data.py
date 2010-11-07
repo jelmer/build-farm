@@ -136,7 +136,7 @@ class BuildResultStoreTests(BuildFarmTestCase):
             kind="stderr",
             contents="This is what an stderr file looks like.")
         build = self.x.get_build("tdb", "charis", "cc")
-        self.assertEquals("This is what an stderr file looks like.", build.read_err())
+        self.assertEquals("This is what an stderr file looks like.", build.read_err().read())
 
     def test_revision_details(self):
         self.create_mock_logfile("tdb", "charis", "cc", contents="""
