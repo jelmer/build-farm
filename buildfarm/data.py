@@ -191,7 +191,7 @@ class Build(object):
             for l in f.readlines():
                 if l.startswith("BUILD COMMIT REVISION: "):
                     revid = l.split(":", 1)[1].strip()
-                elif l.startswith("BUILD REVISION: "):
+                elif l.startswith("BUILD REVISION: ") and not revid:
                     revid = l.split(":", 1)[1].strip()
                 elif l.startswith("BUILD COMMIT TIME"):
                     timestamp = l.split(":", 1)[1].strip()
