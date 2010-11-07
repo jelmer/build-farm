@@ -4,10 +4,17 @@ global_lock
 
 #. install_python.fns
 
-action_mytest() {
+action_test() {
 	echo "PWD: "`pwd`
 	ls -lrt ../../*.fns
-    make test
+	case $tree in
+		samba_4*)
+		../buildtools/bin/waf test
+			;;
+		*)
+			do_make test
+			;;
+	esac
     totalstatus=$?
 
     # if we produced a test summary then show it
@@ -22,7 +29,7 @@ action_mytest() {
 for compiler in gcc;  do
 	. common.fns
 
-	test_tree samba_4_0_test source4 $compiler configure config_log config_header build install mytest
+	test_tree samba_4_0_test source4 $compiler
 
 	test_tree samba_3_current source $compiler
 	test_tree samba_3_next source $compiler
