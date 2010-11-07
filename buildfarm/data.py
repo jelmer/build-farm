@@ -23,6 +23,7 @@
 
 
 import ConfigParser
+import hashlib
 import os
 import re
 import time
@@ -181,6 +182,9 @@ class Build(object):
     def read_err(self):
         """read full err file"""
         return util.FileLoad(self._store.build_fname(self.tree, self.host, self.compiler, self.rev)+".err")
+
+    def log_checksum(self):
+        return hashlib.sha1(self.read_log()).hexdigest()
 
     def revision_details(self):
         """get the revision of build
