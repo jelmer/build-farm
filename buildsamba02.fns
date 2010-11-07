@@ -7,7 +7,7 @@ global_lock
 action_mytest() {
 	echo "PWD: "`pwd`
 	ls -lrt ../../*.fns
-    do_make test
+    make test
     totalstatus=$?
 
     # if we produced a test summary then show it
