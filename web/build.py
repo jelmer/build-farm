@@ -50,7 +50,7 @@ history = history.History(db)
 hostsdb = hostdb.HostDatabase(os.path.join(os.path.dirname(__file__), "..", "hostdb.sqlite"))
 
 compilers = db.compilers
-hosts = hostsdb.hosts()
+hostsiter = hostsdb.hosts()
 trees = db.trees
 OLDAGE = db.OLDAGE
 
@@ -61,6 +61,14 @@ GITWEB_BASE = "http://gitweb.samba.org"
 
 # this is automatically filled in
 deadhosts = []
+
+def get_hosts(hostiterator):
+    d = {}
+    for h in hostiterator:
+        d[str(h.name)] = str(h.platform)
+    return d
+
+hosts = get_hosts(hostsiter)
 
 def get_param(form, param):
     """get a param from the request, after sanitizing it"""
@@ -161,7 +169,7 @@ def view_summary(myself, output_type):
         t = time.gmtime()
         yield "Build status as of %s\n\n" % t
 
-    for host in hosts:
+    for host in hosts.keys():
         for compiler in compilers:
             for tree in trees:
                 try:
@@ -279,7 +287,7 @@ def view_recent_builds(myself, tree, sort_by):
 
     t = trees[tree]
 
-    for host in hosts:
+    for host in hosts.keys():
         for compiler in compilers:
             try:
                 status = build_status(myself, tree, host, compiler)
@@ -381,7 +389,7 @@ def show_oldrevs(myself, tree, host, compiler):
 def view_build(myself, tree, host, compiler, rev, plain_logs=False):
     """view one build in detail"""
     # ensure the params are valid before using them
-    assert host in hosts, "unknown host %s" % host
+    assert host in hosts.keys(), "unknown host %s" % host
     assert compiler in compilers, "unknown compiler %s" % compiler
     assert tree in trees, "not a build tree %s" % tree
 
@@ -492,7 +500,7 @@ def view_host(myself, output_type, *requested_hosts):
         yield '<h2>Host summary:</h2>'
 
     for host in requested_hosts:
-        assert host in hosts, "unknown host"
+        assert host in hosts.keys(), "unknown host"
 
     for host in requested_hosts:
         # make sure we have some data from it
@@ -738,15 +746,15 @@ def main_menu():
     yield "<div id='build-menu'>"
     yield "<select name='host'>"
     for host in hosts:
-        yield "<option value='%s'>%s -- %s</option>" % (host, hosts[host], host)
+        yield "<option value='%s'>%s -- %s</option>\n" % (host, hosts[host], host)
     yield "</select>"
     yield "<select name='tree'>"
     for tree, t in trees.iteritems():
-        yield "<option value='%s'>%s:%s</option>" % (tree, tree, t.branch)
+        yield "<option value='%s'>%s:%s</option>\n" % (tree, tree, t.branch)
     yield "</select>"
     yield "<select name='compiler'>"
     for compiler in compilers:
-        yield "<option>%s</option>" % compiler
+        yield "<option>%s</option>\n" % compiler
     yield "</select>"
     yield "<br/>"
     yield "<input type='submit' name='function' value='View Build'/>"
