@@ -92,6 +92,8 @@ def html_build_status(status):
     def span_status(st):
         if st is None:
             return span("status unknown", "?")
+        elif st == "-":
+            return span("status notapplicable", "-")
         elif st == 0:
             return span("status passed", "ok")
         else:
@@ -109,7 +111,10 @@ def html_build_status(status):
 
 def build_status(myself, tree, host, compiler, rev=None):
     build = db.get_build(tree, host, compiler, rev)
-    status = html_build_status(build.status())
+    rawstatus = build.status()
+    if not rawstatus.getcheckerstage() and compiler != "checker":
+        rawstatus.setcheckerstage("-")
+    status = html_build_status(rawstatus)
     return build_link(myself, tree, host, compiler, rev, status)
 
 
