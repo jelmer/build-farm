@@ -50,7 +50,7 @@ history = history.History(db)
 hostsdb = hostdb.HostDatabase(os.path.join(os.path.dirname(__file__), "..", "hostdb.sqlite"))
 
 compilers = db.compilers
-hostsiter = hostsdb.hosts()
+hosts = dict([(host.name, host) for host in hostsdb.hosts()])
 trees = db.trees
 OLDAGE = db.OLDAGE
 
@@ -61,14 +61,6 @@ GITWEB_BASE = "http://gitweb.samba.org"
 
 # this is automatically filled in
 deadhosts = []
-
-def get_hosts(hostiterator):
-    d = {}
-    for h in hostiterator:
-        d[str(h.name)] = str(h.platform)
-    return d
-
-hosts = get_hosts(hostsiter)
 
 def get_param(form, param):
     """get a param from the request, after sanitizing it"""
@@ -170,12 +162,12 @@ def view_summary(myself, output_type):
         t = time.gmtime()
         yield "Build status as of %s\n\n" % t
 
-    for host in hosts.keys():
+    for host in hosts.values():
         for compiler in compilers:
             for tree in trees:
                 try:
-                    build = db.get_build(tree, host, compiler)
-                    status = build_status(myself, tree, host, compiler)
+                    build = db.get_build(tree, host.name, compiler)
+                    status = build_status(myself, tree, host.name, compiler)
                 except data.NoSuchBuildError:
                     continue
                 age_mtime = build.age_mtime()
@@ -296,11 +288,11 @@ def view_recent_builds(myself, tree, sort_by):
 
     t = trees[tree]
 
-    for host in hosts.keys():
+    for host in hosts.values():
         for compiler in compilers:
             try:
-                status = build_status(myself, tree, host, compiler)
-                build = db.get_build(tree, host, compiler)
+                status = build_status(myself, tree, host.name, compiler)
+                build = db.get_build(tree, host.name, compiler)
             except data.NoSuchBuildError:
                 pass
             else:
@@ -308,7 +300,7 @@ def view_recent_builds(myself, tree, sort_by):
                 age_ctime = build.age_ctime()
                 (revision, revision_time) = build.revision_details()
                 if revision:
-                    all_builds.append([age_ctime, hosts[host], "<a href='%s?function=View+Host;host=%s;tree=%s;compiler=%s#%s'>%s</a>" % (myself, host, tree, compiler, host, host), compiler, tree, status, revision_link(myself, revision, tree), revision_time])
+                    all_builds.append([age_ctime, host.platform, "<a href='%s?function=View+Host;host=%s;tree=%s;compiler=%s#%s'>%s</a>" % (myself, host.name, tree, compiler, host.name, host.name), compiler, tree, status, revision_link(myself, revision, tree), revision_time])
 
     all_builds.sort(cmp_funcs[sort_by])
 
@@ -361,7 +353,7 @@ def draw_dead_hosts(output_type, *deadhosts):
 
     for host in deadhosts:
         age_ctime = db.host_age(host)
-        yield "<tr><td>%s</td><td>%s</td><td>%s</td></tr>" % (host, hosts[host], util.dhm_time(age_ctime))
+        yield "<tr><td>%s</td><td>%s</td><td>%s</td></tr>" % (host, hosts[host].platform, util.dhm_time(age_ctime))
 
     yield "</tbody></table>"
     yield "</div>"
@@ -398,7 +390,7 @@ def show_oldrevs(myself, tree, host, compiler):
 def view_build(myself, tree, host, compiler, rev, plain_logs=False):
     """view one build in detail"""
     # ensure the params are valid before using them
-    assert host in hosts.keys(), "unknown host %s" % host
+    assert host in hosts, "unknown host %s" % host
     assert compiler in compilers, "unknown compiler %s" % compiler
     assert tree in trees, "not a build tree %s" % tree
 
@@ -439,7 +431,7 @@ def view_build(myself, tree, host, compiler, rev, plain_logs=False):
 
     yield "<table class='real'>\n"
     yield "<tr><td>Host:</td><td><a href='%s?function=View+Host;host=%s;tree=%s;"\
-          "compiler=%s#'>%s</a> - %s</td></tr>\n" % (myself, host, tree, compiler, host, hosts[host])
+          "compiler=%s#'>%s</a> - %s</td></tr>\n" % (myself, host, tree, compiler, host, hosts[host].platform)
     yield "<tr><td>Uname:</td><td>%s</td></tr>\n" % uname
     yield "<tr><td>Tree:</td><td>%s</td></tr>\n" % tree_link(myself, tree)
     yield "<tr><td>Build Revision:</td><td>%s</td></tr>\n" % revision_link(myself, revision, tree)
@@ -509,7 +501,7 @@ def view_host(myself, output_type, *requested_hosts):
         yield '<h2>Host summary:</h2>'
 
     for host in requested_hosts:
-        assert host in hosts.keys(), "unknown host"
+        assert host in hosts, "unknown host"
 
     for host in requested_hosts:
         # make sure we have some data from it
@@ -539,7 +531,7 @@ def view_host(myself, output_type, *requested_hosts):
                         else:
                             yield "<div class='host summary'>"
                             yield "<a id='host' name='host'/>"
-                            yield "<h3>%s - %s</h3>" % (host, hosts[host])
+                            yield "<h3>%s - %s</h3>" % (host, hosts[host].platform)
                             yield "<table class='real'>"
                             yield "<thead><tr><th>Target</th><th>Build<br/>Revision</th><th>Build<br />Age</th><th>Status<br />config/build<br />install/test</th><th>Warnings</th></tr></thead>"
                             yield "<tbody>"
@@ -754,8 +746,8 @@ def main_menu():
     yield "<form method='GET'>"
     yield "<div id='build-menu'>"
     yield "<select name='host'>"
-    for host in hosts:
-        yield "<option value='%s'>%s -- %s</option>\n" % (host, hosts[host], host)
+    for name, host in hosts.iteritems():
+        yield "<option value='%s'>%s -- %s</option>\n" % (name, host.platform, name)
     yield "</select>"
     yield "<select name='tree'>"
     for tree, t in trees.iteritems():
