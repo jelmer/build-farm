@@ -36,7 +36,11 @@ for compiler in gcc cc icc; do
 	    CFLAGS="$CFLAGS_THIS_COMPILER $CFLAGS"
     fi
     export CFLAGS
+	TDB_NO_FSYNC=1
+	export TDB_NO_FSYNC
     test_tree samba_4_0_test source4 $compiler
+	TDB_NO_FSYNC=0
+	export TDB_NO_FSYNC
     if [ $compiler = gcc -o $isgcc = 0 ]; then
       . common.fns
       test_tree lorikeet-heimdal . $compiler
