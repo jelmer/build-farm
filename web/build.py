@@ -285,7 +285,8 @@ def view_recent_builds(myself, tree, sort_by):
                 age_mtime = build.age_mtime()
                 age_ctime = build.age_ctime()
                 (revision, revision_time) = build.revision_details()
-                all_builds.append([age_ctime, hosts[host], "<a href='%s?function=View+Host;host=%s;tree=%s;compiler=%s#%s'>%s</a>" % (myself, host, tree, compiler, host, host), compiler, tree, status, revision_link(myself, revision, tree), revision_time])
+                if revision:
+                    all_builds.append([age_ctime, hosts[host], "<a href='%s?function=View+Host;host=%s;tree=%s;compiler=%s#%s'>%s</a>" % (myself, host, tree, compiler, host, host), compiler, tree, status, revision_link(myself, revision, tree), revision_time])
 
     all_builds.sort(cmp_funcs[sort_by])
 
@@ -946,6 +947,7 @@ def buildApp(environ, start_response):
             yield "".join(view_recent_builds(myself, get_param(form, "tree"), get_param(form, "sortby") or "revision"))
         elif fn_name == "Recent_Checkins":
             # validate the tree
+            tree =  get_param(form, "tree")
             t = db.trees[tree]
             authors = set(["ALL"])
             authors.update(history.authors(tree))
