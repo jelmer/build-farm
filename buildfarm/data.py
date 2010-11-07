@@ -58,6 +58,8 @@ def build_status_from_logs(log, err):
                 tstatus = test_failures
             else:
                 tstatus = 255
+            if m.group(1) == "FAILED" and tstatus == 0:
+                tstatus = -1
         else:
             tstatus = None
 
