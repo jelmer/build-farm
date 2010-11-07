@@ -112,8 +112,6 @@ def html_build_status(status):
 def build_status(myself, tree, host, compiler, rev=None):
     build = db.get_build(tree, host, compiler, rev)
     rawstatus = build.status()
-    if not rawstatus.getcheckerstage() and compiler != "checker":
-        rawstatus.setcheckerstage("-")
     status = html_build_status(rawstatus)
     return build_link(myself, tree, host, compiler, rev, status)
 

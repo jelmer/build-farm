@@ -39,11 +39,6 @@ class BuildStatus(object):
     def __str__(self):
         return repr((self.stages, self.other_failures))
 
-    def setcheckerstage(self, val):
-        self.stages[4] = val
-
-    def getcheckerstage(self):
-        return self.stages[4]
 
 def check_dir_exists(kind, path):
     if not os.path.isdir(path):
@@ -98,13 +93,13 @@ def build_status_from_logs(log, err):
     if "maximum runtime exceeded" in log:
         other_failures.add("timeout")
 
+    stages = (cstatus, bstatus, istatus, tstatus)
+
     m = re.search("CC_CHECKER STATUS:(\s*\d+)", log)
     if m:
-        sstatus = int(m.group(1).strip())
-    else:
-        sstatus = None
+        stages = stages + (int(m.group(1).strip()),)
 
-    return BuildStatus([cstatus, bstatus, istatus, tstatus, sstatus], other_failures)
+    return BuildStatus(stages, other_failures)
 
 
 def lcov_extract_percentage(text):
