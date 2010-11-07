@@ -146,7 +146,7 @@ BUILD REVISION: 42
 BUILD COMMIT TIME: 3 August 2010
 """)
         build = self.x.get_build("tdb", "charis", "cc")
-        self.assertEquals(("42", "3 August 2010"), build.revision_details())
+        self.assertEquals(("43", "3 August 2010"), build.revision_details())
 
     def test_revision_details_no_timestamp(self):
         self.create_mock_logfile("tdb", "charis", "cc", contents="""
@@ -155,7 +155,7 @@ BUILD REVISION: 42
 BLA
 """)
         build = self.x.get_build("tdb", "charis", "cc")
-        self.assertEquals(("42", None), build.revision_details())
+        self.assertEquals(("43", None), build.revision_details())
 
     def test_err_count(self):
         self.create_mock_logfile("tdb", "charis", "cc")
@@ -175,7 +175,7 @@ class BuildStatusFromLogs(testtools.TestCase):
 
     def test_nothing(self):
         s = data.build_status_from_logs("", "")
-        self.assertEquals((None, None, None, None, None), s.stages)
+        self.assertEquals((None, None, None, None), s.stages)
         self.assertEquals(set(), s.other_failures)
 
     def test_disk_full(self):
