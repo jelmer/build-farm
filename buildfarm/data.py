@@ -168,18 +168,18 @@ class Build(object):
 
     def read_log(self):
         """read full log file"""
-        f = open(self._store.build_fname(self.tree, self.host, self.compiler, self.rev)+".log", "r")
-        try:
-            return f.read()
-        finally:
-            f.close()
+        return open(self._store.build_fname(self.tree, self.host, self.compiler, self.rev)+".log", "r")
 
     def read_err(self):
         """read full err file"""
         return util.FileLoad(self._store.build_fname(self.tree, self.host, self.compiler, self.rev)+".err")
 
     def log_checksum(self):
-        return hashlib.sha1(self.read_log()).hexdigest()
+        f = self.read_log()
+        try:
+            return hashlib.sha1(f.read()).hexdigest()
+        finally:
+            f.close()
 
     def revision_details(self):
         """get the revision of build
@@ -210,7 +210,11 @@ class Build(object):
         :return: tuple with build status
         """
 
-        log = self.read_log()
+        f = self.read_log()
+        try:
+            log = f.read()
+        finally:
+            f.close()
         err = self.read_err()
 
         return build_status_from_logs(log, err)

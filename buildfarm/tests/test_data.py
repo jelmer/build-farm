@@ -128,7 +128,7 @@ class BuildResultStoreTests(BuildFarmTestCase):
         path = self.create_mock_logfile("tdb", "charis", "cc",
             contents="This is what a log file looks like.")
         build = self.x.get_build("tdb", "charis", "cc")
-        self.assertEquals("This is what a log file looks like.", build.read_log())
+        self.assertEquals("This is what a log file looks like.", build.read_log().read())
 
     def test_read_err(self):
         self.create_mock_logfile("tdb", "charis", "cc")
