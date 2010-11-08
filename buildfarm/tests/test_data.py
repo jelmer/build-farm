@@ -138,6 +138,11 @@ class BuildResultStoreTests(BuildFarmTestCase):
         build = self.x.get_build("tdb", "charis", "cc")
         self.assertEquals("This is what an stderr file looks like.", build.read_err().read())
 
+    def test_read_err_nofile(self):
+        self.create_mock_logfile("tdb", "charis", "cc")
+        build = self.x.get_build("tdb", "charis", "cc")
+        self.assertEquals("", build.read_err().read())
+
     def test_revision_details(self):
         self.create_mock_logfile("tdb", "charis", "cc", contents="""
 BUILD COMMIT REVISION: 43

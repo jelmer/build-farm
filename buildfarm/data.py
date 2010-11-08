@@ -23,6 +23,7 @@
 
 
 import ConfigParser
+from cStringIO import StringIO
 import hashlib
 import os
 import re
@@ -172,7 +173,11 @@ class Build(object):
 
     def read_err(self):
         """read full err file"""
-        return open(self._store.build_fname(self.tree, self.host, self.compiler, self.rev)+".err", 'r')
+        try:
+            return open(self._store.build_fname(self.tree, self.host, self.compiler, self.rev)+".err", 'r')
+        except IOError:
+            # No such file
+            return StringIO()
 
 
     def log_checksum(self):
