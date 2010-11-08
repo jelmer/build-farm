@@ -17,13 +17,15 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from buildfarm import hostdb
+from buildfarm import (
+    hostdb,
+    open_hostdb,
+    )
 import smtplib
 from email.MIMEText import MIMEText
-import os
 import time
 
-db = hostdb.HostDatabase(os.path.join(os.path.dirname(__file__), "hostdb.sqlite"))
+db = open_hostdb()
 dry_run = False
 
 hosts = db.dead_hosts(7 * 86400)

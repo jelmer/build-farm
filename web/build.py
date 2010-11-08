@@ -33,6 +33,7 @@ from buildfarm import (
     data,
     history,
     hostdb,
+    open_hostdb,
     util,
     )
 
@@ -47,7 +48,7 @@ basedir = os.path.abspath(os.path.join(webdir, ".."))
 
 db = data.BuildResultStore(basedir)
 history = history.History(db)
-hostsdb = hostdb.HostDatabase(os.path.join(os.path.dirname(__file__), "..", "hostdb.sqlite"))
+hostsdb = open_hostdb()
 
 compilers = db.compilers
 hosts = dict([(host.name, host) for host in hostsdb.hosts()])
