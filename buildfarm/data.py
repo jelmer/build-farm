@@ -196,20 +196,21 @@ class Build(object):
         file = self._store.build_fname(self.tree, self.host, self.compiler, self.rev)
 
         revid = None
+        commit_revid = None
         timestamp = None
         f = open("%s.log" % file, 'r')
         try:
             for l in f.readlines():
                 if l.startswith("BUILD COMMIT REVISION: "):
-                    revid = l.split(":", 1)[1].strip()
-                elif l.startswith("BUILD REVISION: ") and not revid:
+                    commit_revid = l.split(":", 1)[1].strip()
+                elif l.startswith("BUILD REVISION: "):
                     revid = l.split(":", 1)[1].strip()
                 elif l.startswith("BUILD COMMIT TIME"):
                     timestamp = l.split(":", 1)[1].strip()
         finally:
             f.close()
 
-        return (revid, timestamp)
+        return (revid, commit_revid, timestamp)
 
     def status(self):
         """get status of build
@@ -261,15 +262,18 @@ class CachingBuild(Build):
         # the ctime/mtime asymmetry is needed so we don't get fooled by
         # the mtime update from rsync
         if st2 and st1.st_ctime <= st2.st_mtime:
-            (revid, timestamp) = util.FileLoad("%s.revision" % cachef).split(":", 1)
+            (revid, commit_revid, timestamp) = util.FileLoad("%s.revision" % cachef).split(":", 2)
             if timestamp == "":
-                return (revid, None)
-            else:
-                return (revid, timestamp)
-        (revid, timestamp) = super(CachingBuild, self).revision_details()
+                timestamp = None
+            if revid == "":
+                revid = None
+            if commit_revid == "":
+                commit_revid = None
+            return (revid, commit_revid, timestamp)
+        (revid, commit_revid, timestamp) = super(CachingBuild, self).revision_details()
         if not self._store.readonly:
-            util.FileSave("%s.revision" % cachef, "%s:%s" % (revid, timestamp or ""))
-        return (revid, timestamp)
+            util.FileSave("%s.revision" % cachef, "%s:%s:%s" % (revid, commit_revid or "", timestamp or ""))
+        return (revid, commit_revid, timestamp)
 
     def err_count(self):
         file = self._store.build_fname(self.tree, self.host, self.compiler, self.rev)

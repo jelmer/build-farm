@@ -112,11 +112,10 @@ def html_build_status(status):
     return bstatus + ostatus
 
 
-def build_status(myself, tree, host, compiler, rev=None):
-    build = db.get_build(tree, host, compiler, rev)
+def build_status_html(myself, build):
     rawstatus = build.status()
     status = html_build_status(rawstatus)
-    return build_link(myself, tree, host, compiler, rev, status)
+    return build_link(myself, build.tree, build.host, build.compiler, build.rev, status)
 
 
 def red_age(age):
@@ -168,7 +167,7 @@ def view_summary(myself, output_type):
             for tree in trees:
                 try:
                     build = db.get_build(tree, host.name, compiler)
-                    status = build_status(myself, tree, host.name, compiler)
+                    status = build_status_html(myself, build)
                 except data.NoSuchBuildError:
                     continue
                 age_mtime = build.age_mtime()
@@ -292,14 +291,16 @@ def view_recent_builds(myself, tree, sort_by):
     for host in hosts.values():
         for compiler in compilers:
             try:
-                status = build_status(myself, tree, host.name, compiler)
                 build = db.get_build(tree, host.name, compiler)
+                status = build_status_html(myself, build)
             except data.NoSuchBuildError:
                 pass
             else:
                 age_mtime = build.age_mtime()
                 age_ctime = build.age_ctime()
-                (revision, revision_time) = build.revision_details()
+                (revision, commit_revision, revision_time) = build.revision_details()
+                if commit_revision:
+                    revision = commit_revision
                 if revision:
                     all_builds.append([age_ctime, str(host.platform), "<a href='%s?function=View+Host;host=%s;tree=%s;compiler=%s#%s'>%s</a>" % (myself, host.name, tree, compiler, host.name, host.name), compiler, tree, status, revision_link(myself, revision, tree), revision_time])
 
@@ -400,8 +401,10 @@ def view_build(myself, tree, host, compiler, rev, plain_logs=False):
     config = ""
     build = db.get_build(tree, host, compiler, rev)
     age_mtime = build.age_mtime()
-    (revision, revision_time) = build.revision_details()
-    status = build_status(myself, tree, host, compiler, rev)
+    (revision, commit_revision, revision_time) = build.revision_details()
+    if commit_revision:
+        revision = commit_revision
+    status = build_status_html(myself, build)
 
     if rev:
         assert re.match("^[0-9a-fA-F]*$", rev)
@@ -532,7 +535,7 @@ def view_host(myself, output_type, *requested_hosts):
                     age_mtime = build.age_mtime()
                     age_ctime = build.age_ctime()
                     warnings = build.err_count()
-                    status = build_status(myself, tree, host, compiler)
+                    status = build_status_html(myself, build)
                     if row == 0:
                         if output_type == 'text':
                             yield "%-12s %-10s %-10s %-10s %-10s\n" % (
