@@ -949,8 +949,10 @@ def buildApp(environ, start_response):
         yield "    <meta name='description' contents='Home of the Samba Build Farm, the automated testing facility.'/>"
         yield "    <meta name='robots' contents='noindex'/>"
         yield "    <link rel='stylesheet' href='/build_farm.css' type='text/css' media='all'/>"
-        #yield "    <link rel='stylesheet' href='http://master.samba.org/samba/style/common.css' type='text/css' media='all'/>"
-        yield "    <link rel='stylesheet' href='common.css' type='text/css' media='all'/>"
+        if standalone:
+            yield "    <link rel='stylesheet' href='common.css' type='text/css' media='all'/>"
+        else:
+            yield "    <link rel='stylesheet' href='http://master.samba.org/samba/style/common.css' type='text/css' media='all'/>"
         yield "    <link rel='shortcut icon' href='http://www.samba.org/samba/images/favicon.ico'/>"
         yield "  </head>"
         yield "<body>"
@@ -1018,7 +1020,7 @@ if __name__ == '__main__':
     if opts.standalone:
         standalone = 1
         from wsgiref.simple_server import make_server
-        httpd = make_server('', 8000, buildApp)
+        httpd = make_server('localhost', 8000, buildApp)
         print "Serving on port 8000..."
         httpd.serve_forever()
     else:
