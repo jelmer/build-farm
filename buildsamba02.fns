@@ -6,7 +6,7 @@ global_lock
 
 action_test() {
 	echo "PWD: "`pwd`
-	ls -lrt ../../*.fns
+	ls -lrtda ../../
 	case $tree in
 		samba_4*)
 		../buildtools/bin/waf test
