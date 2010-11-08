@@ -51,7 +51,7 @@ history = history.History(db)
 hostsdb = open_hostdb()
 
 compilers = db.compilers
-hosts = dict([(host.name, host) for host in hostsdb.hosts()])
+hosts = dict([(str(host.name), host) for host in hostsdb.hosts()])
 trees = db.trees
 OLDAGE = db.OLDAGE
 
@@ -301,7 +301,7 @@ def view_recent_builds(myself, tree, sort_by):
                 age_ctime = build.age_ctime()
                 (revision, revision_time) = build.revision_details()
                 if revision:
-                    all_builds.append([age_ctime, host.platform, "<a href='%s?function=View+Host;host=%s;tree=%s;compiler=%s#%s'>%s</a>" % (myself, host.name, tree, compiler, host.name, host.name), compiler, tree, status, revision_link(myself, revision, tree), revision_time])
+                    all_builds.append([age_ctime, str(host.platform), "<a href='%s?function=View+Host;host=%s;tree=%s;compiler=%s#%s'>%s</a>" % (myself, host.name, tree, compiler, host.name, host.name), compiler, tree, status, revision_link(myself, revision, tree), revision_time])
 
     all_builds.sort(cmp_funcs[sort_by])
 
@@ -756,7 +756,7 @@ def main_menu():
     yield "<div id='build-menu'>"
     yield "<select name='host'>"
     for name, host in hosts.iteritems():
-        yield "<option value='%s'>%s -- %s</option>\n" % (name, host.platform, name)
+        yield "<option value='%s'>%s -- %s</option>\n" % (name, str(host.platform), name)
     yield "</select>"
     yield "<select name='tree'>"
     for tree, t in trees.iteritems():
