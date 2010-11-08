@@ -48,6 +48,7 @@ def check_dir_exists(kind, path):
 
 def build_status_from_logs(log, err):
     """get status of build"""
+    log = log.read()
     m = re.search("TEST STATUS:(\s*\d+)", log)
     other_failures = set()
     if m:
@@ -89,7 +90,7 @@ def build_status_from_logs(log, err):
     if m:
         other_failures.add("panic")
 
-    if "No space left on device" in err or "No space left on device" in log:
+    if "No space left on device" in log:
         other_failures.add("disk full")
 
     if "maximum runtime exceeded" in log:
@@ -100,6 +101,11 @@ def build_status_from_logs(log, err):
     m = re.search("CC_CHECKER STATUS:(\s*\d+)", log)
     if m:
         stages = stages + (int(m.group(1).strip()),)
+
+    # Scan err file for specific
+    for l in err:
+        if "No space left on device" in l:
+            other_failures.add("disk full")
 
     return BuildStatus(stages, other_failures)
 
@@ -217,19 +223,15 @@ class Build(object):
 
         :return: tuple with build status
         """
-
-        f = self.read_log()
+        log = self.read_log()
         try:
-            log = f.read()
+            err = self.read_err()
+            try:
+                return build_status_from_logs(log, err)
+            finally:
+                err.close()
         finally:
-            f.close()
-        f = self.read_err()
-        try:
-            err = f.read()
-        finally:
-            f.close()
-
-        return build_status_from_logs(log, err)
+            log.close()
 
     def err_count(self):
         """get status of build"""

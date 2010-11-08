@@ -15,6 +15,7 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+from cStringIO import StringIO
 import os
 import tempfile
 import testtools
@@ -178,48 +179,51 @@ error3""")
 
 class BuildStatusFromLogs(testtools.TestCase):
 
+    def parse_logs(self, log, err):
+        return data.build_status_from_logs(StringIO(log), StringIO(err))
+
     def test_nothing(self):
-        s = data.build_status_from_logs("", "")
+        s = self.parse_logs("", "")
         self.assertEquals((None, None, None, None), s.stages)
         self.assertEquals(set(), s.other_failures)
 
     def test_disk_full(self):
         self.assertEquals(set(["disk full"]),
-            data.build_status_from_logs("foo\nbar\nNo space left on device\nla\n",
+            self.parse_logs("foo\nbar\nNo space left on device\nla\n",
                 "").other_failures)
         self.assertEquals(set(["disk full"]),
-            data.build_status_from_logs(
+            self.parse_logs(
                 "", "foo\nbar\nNo space left on device\nla\n").other_failures)
 
     def test_timeout(self):
         self.assertEquals(set(["timeout"]),
-            data.build_status_from_logs("foo\nbar\nmaximum runtime exceeded\nla\n",
+            self.parse_logs("foo\nbar\nmaximum runtime exceeded\nla\n",
                 "").other_failures)
 
     def test_status(self):
         log = """
 TEST STATUS:1
 """
-        res = data.build_status_from_logs(log, "")
+        res = self.parse_logs(log, "")
         self.assertEquals(res.stages[3], 1)
         log = """
 TEST STATUS:  1
 """
-        res = data.build_status_from_logs(log, "")
+        res = self.parse_logs(log, "")
         self.assertEquals(res.stages[3], 1)
         log = """
 CONFIGURE STATUS: 2
 TEST STATUS:  1
 CC_CHECKER STATUS:	2
 """
-        res = data.build_status_from_logs(log, "")
+        res = self.parse_logs(log, "")
         self.assertEquals(res.stages[4], 2)
         log = """
 CONFIGURE STATUS: 2
 ACTION PASSED: test
 CC_CHECKER STATUS:	2
 """
-        res = data.build_status_from_logs(log, "")
+        res = self.parse_logs(log, "")
         self.assertEquals(res.stages[4], 2)
         self.assertEquals(res.stages[3], 255)
         log = """
@@ -231,7 +235,7 @@ testsuite-failure: bar
 testsuite-failure: biz
 CC_CHECKER STATUS:	2
 """
-        res = data.build_status_from_logs(log, "")
+        res = self.parse_logs(log, "")
         self.assertEquals(res.stages[0], 2)
         self.assertEquals(res.stages[3], 3)
 
