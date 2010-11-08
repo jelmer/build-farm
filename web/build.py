@@ -166,7 +166,7 @@ def view_summary(myself, output_type):
         for compiler in compilers:
             for tree in trees:
                 try:
-                    build = db.get_build(tree, host.name, compiler)
+                    build = db.get_build(tree, str(host.name), compiler)
                     status = build_status_html(myself, build)
                 except data.NoSuchBuildError:
                     continue
@@ -291,7 +291,7 @@ def view_recent_builds(myself, tree, sort_by):
     for host in hosts.values():
         for compiler in compilers:
             try:
-                build = db.get_build(tree, host.name, compiler)
+                build = db.get_build(tree, str(host.name), compiler)
                 status = build_status_html(myself, build)
             except data.NoSuchBuildError:
                 pass
@@ -302,7 +302,7 @@ def view_recent_builds(myself, tree, sort_by):
                 if commit_revision:
                     revision = commit_revision
                 if revision:
-                    all_builds.append([age_ctime, str(host.platform), "<a href='%s?function=View+Host;host=%s;tree=%s;compiler=%s#%s'>%s</a>" % (myself, host.name, tree, compiler, host.name, host.name), compiler, tree, status, revision_link(myself, revision, tree), revision_time])
+                    all_builds.append([age_ctime, str(host.platform), "<a href='%s?function=View+Host;host=%s;tree=%s;compiler=%s#%s'>%s</a>" % (myself, str(host.name), tree, compiler, str(host.name), str(host.name)), compiler, tree, status, revision_link(myself, revision, tree), revision_time])
 
     all_builds.sort(cmp_funcs[sort_by])
 
@@ -543,7 +543,7 @@ def view_host(myself, output_type, *requested_hosts):
                         else:
                             yield "<div class='host summary'>"
                             yield "<a id='host' name='host'/>"
-                            yield "<h3>%s - %s</h3>" % (host, hosts[host].platform)
+                            yield "<h3>%s - %s</h3>" % (host, str(hosts[host].platform))
                             yield "<table class='real'>"
                             yield "<thead><tr><th>Target</th><th>Build<br/>Revision</th><th>Build<br />Age</th><th>Status<br />config/build<br />install/test</th><th>Warnings</th></tr></thead>"
                             yield "<tbody>"
