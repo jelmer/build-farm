@@ -5,12 +5,12 @@ global_lock
 #. install_python.fns
 
 action_test() {
-	echo "PWD: "`pwd`
-	ls -lrta ../../
 	set
 	env
 	case $tree in
 		samba_4*)
+		  unset TEST_LDAP
+		  unset TEST_OPTIONS
 		../buildtools/bin/waf test
 			;;
 		*)
