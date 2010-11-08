@@ -343,8 +343,8 @@ class BuildResultStore(object):
         self.datadir = os.path.join(basedir, "data")
         check_dir_exists("data", self.datadir)
 
-        self.cachedir = os.path.join(basedir, "cache")
-        check_dir_exists("cache", self.cachedir)
+        self.cachedir = os.path.join(basedir, "cache2")
+        check_dir_exists("cache2", self.cachedir)
 
         self.lcovdir = os.path.join(basedir, "lcov/data")
         check_dir_exists("lcov", self.lcovdir)
