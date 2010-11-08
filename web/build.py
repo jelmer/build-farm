@@ -531,7 +531,9 @@ def view_host(myself, output_type, *requested_hosts):
                 except data.NoSuchBuildError:
                     pass
                 else:
-                    revision, revision_time = build.revision_details()
+                    (revision, commit_revision, revision_time) = build.revision_details()
+                    if commit_revision:
+                        revision = commit_revision
                     age_mtime = build.age_mtime()
                     age_ctime = build.age_ctime()
                     warnings = build.err_count()
