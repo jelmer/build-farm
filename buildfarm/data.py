@@ -49,6 +49,7 @@ def check_dir_exists(kind, path):
 def build_status_from_logs(log, err):
     """get status of build"""
     m = re.search("TEST STATUS:(\s*\d+)", log)
+    other_failures = set()
     if m:
         tstatus = int(m.group(1).strip())
     else:
@@ -62,6 +63,7 @@ def build_status_from_logs(log, err):
                 tstatus = 255
             if m.group(1) == "FAILED" and tstatus == 0:
                 tstatus = -1
+                other_failures.add("make test error")
         else:
             tstatus = None
 
@@ -83,7 +85,6 @@ def build_status_from_logs(log, err):
     else:
         cstatus = None
 
-    other_failures = set()
     m = re.search("(PANIC|INTERNAL ERROR):.*", log)
     if m:
         other_failures.add("panic")

@@ -106,6 +106,8 @@ def html_build_status(status):
         ostatus += "/"+span("status failed", "disk full")
     if "timeout" in status.other_failures:
         ostatus += "/"+span("status failed", "timeout")
+    if "make test error" in status.other_failures:
+        ostatus += "/"+span("status failed", "unexpected return code")
     bstatus = "/".join([span_status(s) for s in status.stages])
     return bstatus + ostatus
 
