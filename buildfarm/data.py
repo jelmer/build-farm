@@ -70,6 +70,7 @@ def build_status_from_logs(log, err):
     """get status of build"""
     test_failures = 0
     test_successes = 0
+    test_seen = 0
     ret = BuildStatus()
 
     stages = []
@@ -78,7 +79,17 @@ def build_status_from_logs(log, err):
         m = re.match("^([A-Z_]+) STATUS:(\s*\d+)$", l)
         if m:
             stages.append((m.group(1), int(m.group(2).strip())))
+            if m.group(1) == "TEST":
+                test_seen = 1
             continue
+        m = re.match("^ACTION (PASSED|FAILED):\s+test$", l)
+        if m and not test_seen:
+            if m.group(1) == "PASSED":
+                stages.append(("TEST", 0))
+            else:
+                stages.append(("TEST", 1))
+            continue
+
         if l.startswith("No space left on device"):
             ret.other_failures.add("disk full")
             continue
@@ -109,7 +120,7 @@ def build_status_from_logs(log, err):
         if test_successes + test_failures == 0:
             # No granular test output
             return ("TEST", result)
-        if result == 0 and test_failures == 0:
+        if result == 1 and test_failures == 0:
             ret.other_failures.add("inconsistent test result")
             return ("TEST", -1)
         return ("TEST", test_failures)
