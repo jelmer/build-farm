@@ -55,8 +55,6 @@ hosts = dict([(str(host.name), host) for host in hostsdb.hosts()])
 trees = db.trees
 OLDAGE = db.OLDAGE
 
-CVSWEB_BASE = "http://pserver.samba.org/cgi-bin/cvsweb"
-VIEWCVS_BASE = "http://websvn.samba.org/cgi-bin/viewcvs.cgi"
 UNPACKED_BASE = "http://svn.samba.org/ftp/unpacked"
 GITWEB_BASE = "http://gitweb.samba.org"
 
@@ -782,7 +780,8 @@ def main_menu():
 
 
 def diff_pretty(diff):
-    """pretty up a cvs diff -u"""
+    """pretty up a diff -u"""
+    # FIXME: JRV 20101109 Use pygments for this
     ret = ""
     lines = diff.splitlines()
 
@@ -812,11 +811,7 @@ def web_paths(t, paths):
 
     fmt = None
 
-    if t.scm == "cvs":
-        fmt = " <a href=\"%s/%s/%%s\">%%s</a>" % (CVSWEB_BASE, t.repo)
-    elif t.scm == "svn":
-        fmt = " <a href=\"%s/%s/%%s?root=%s\">%%s</a>" % (VIEWCVS_BASE, t.branch, t.repo)
-    elif t.scm == "git":
+    if t.scm == "git":
         r = t.repo
         s = t.subdir
         b = t.branch
