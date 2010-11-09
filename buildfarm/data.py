@@ -34,11 +34,28 @@ import util
 class BuildStatus(object):
 
     def __init__(self, stages=None, other_failures=None):
-        self.stages = stages
+        if stages is not None:
+            self.stages = stages
+        else:
+            self.stages = []
         if other_failures is not None:
             self.other_failures = other_failures
         else:
             self.other_failures = set()
+
+    def broken_host(self):
+        if "disk full" in self.other_failures:
+            return True
+        return False
+
+    def _status_tuple(self):
+        return [v for (k, v) in self.stages]
+
+    def regressed_since(self, other):
+        """Check if this build has regressed since another build."""
+        if "disk full" in self.other_failures:
+            return False
+        return cmp(self._status_tuple(), other._status_tuple())
 
     def __str__(self):
         return repr((self.stages, self.other_failures))
@@ -87,17 +104,17 @@ def build_status_from_logs(log, err):
     stage_results = dict(stages)
     def map_stage(name, result):
         if name != "TEST":
-            return result
+            return (name, result)
         # TEST is special
         if test_successes + test_failures == 0:
             # No granular test output
-            return result
+            return ("TEST", result)
         if result == 0 and test_failures == 0:
             ret.other_failures.add("inconsistent test result")
-            return -1
-        return test_failures
+            return ("TEST", -1)
+        return ("TEST", test_failures)
 
-    ret.stages = tuple([map_stage(k, v) for k, v in stages])
+    ret.stages = [map_stage(name, result) for (name, result) in stages]
     return ret
 
 
@@ -312,7 +329,6 @@ class CachingBuild(Build):
         return ret
 
 
-
 def read_trees_from_conf(path):
     """Read trees from a configuration file."""
     ret = {}
@@ -442,6 +458,7 @@ class BuildResultStore(object):
 
     def host_age(self, host):
         """get the overall age of a host"""
+        # FIXME: Turn this into a simple SQL query, or use something in hostdb ?
         ret = None
         for compiler in self.compilers:
             for tree in self.trees:

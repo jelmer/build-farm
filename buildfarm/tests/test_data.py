@@ -184,7 +184,7 @@ class BuildStatusFromLogs(testtools.TestCase):
 
     def test_nothing(self):
         s = self.parse_logs("", "")
-        self.assertEquals((), s.stages)
+        self.assertEquals([], s.stages)
         self.assertEquals(set(), s.other_failures)
 
     def test_disk_full(self):
@@ -205,14 +205,16 @@ class BuildStatusFromLogs(testtools.TestCase):
 TEST STATUS:1
 """
         res = self.parse_logs(log, "")
-        self.assertEquals(res.stages, (1,))
+        self.assertEquals(res.stages, [
+            ("TEST", 1)])
 
     def test_failed_test_whitespace(self):
         log = """
 TEST STATUS:  1
 """
         res = self.parse_logs(log, "")
-        self.assertEquals(res.stages, (1,))
+        self.assertEquals(res.stages,
+            [("TEST", 1)])
 
     def test_failed_test_noise(self):
         log = """
@@ -221,7 +223,8 @@ TEST STATUS:  1
 CC_CHECKER STATUS:	2
 """
         res = self.parse_logs(log, "")
-        self.assertEquals(res.stages, (2,1,2))
+        self.assertEquals(res.stages,
+            [("CONFIGURE", 2), ("TEST", 1), ("CC_CHECKER", 2)])
 
     def test_no_test_output(self):
         log = """
@@ -230,7 +233,8 @@ TEST STATUS: 0
 CC_CHECKER STATUS:	2
 """
         res = self.parse_logs(log, "")
-        self.assertEquals(res.stages, (2, 0, 2))
+        self.assertEquals(res.stages,
+            [("CONFIGURE", 2), ("TEST", 0), ("CC_CHECKER", 2)])
 
     def test_granular_test(self):
         log = """
@@ -243,5 +247,6 @@ TEST STATUS: 1
 CC_CHECKER STATUS:	2
 """
         res = self.parse_logs(log, "")
-        self.assertEquals(res.stages, (2, 3, 2))
+        self.assertEquals(res.stages,
+            [("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 2)])
 
