@@ -51,7 +51,8 @@ history = history.History(db)
 hostsdb = open_hostdb()
 
 compilers = db.compilers
-hosts = dict([(str(host.name), host) for host in hostsdb.hosts()])
+# host.properties are unicode object and the framework expect string object
+hosts = dict([(host.name.encode("utf-8"), host) for host in hostsdb.hosts()])
 trees = db.trees
 OLDAGE = db.OLDAGE
 
@@ -164,7 +165,7 @@ def view_summary(myself, output_type):
         for compiler in compilers:
             for tree in trees:
                 try:
-                    build = db.get_build(tree, str(host.name), compiler)
+                    build = db.get_build(tree, host.name.encode("utf-8"), compiler)
                     status = build_status_html(myself, build)
                 except data.NoSuchBuildError:
                     continue
@@ -289,7 +290,7 @@ def view_recent_builds(myself, tree, sort_by):
     for host in hosts.values():
         for compiler in compilers:
             try:
-                build = db.get_build(tree, str(host.name), compiler)
+                build = db.get_build(tree, host.name.encode("utf-8"), compiler)
                 status = build_status_html(myself, build)
             except data.NoSuchBuildError:
                 pass
@@ -300,7 +301,15 @@ def view_recent_builds(myself, tree, sort_by):
                 if commit_revision:
                     revision = commit_revision
                 if revision:
-                    all_builds.append([age_ctime, str(host.platform), "<a href='%s?function=View+Host;host=%s;tree=%s;compiler=%s#%s'>%s</a>" % (myself, str(host.name), tree, compiler, str(host.name), str(host.name)), compiler, tree, status, revision_link(myself, revision, tree), revision_time])
+                    all_builds.append([age_ctime,
+                                        host.platform.encode("utf-8"),
+                                        "<a href='%s?function=View+Host;host=%s;tree=%s;compiler=%s#%s'>%s</a>"
+                                            % (myself, host.name.encode("utf-8"),
+                                               tree, compiler, host.name.encode("utf-8"),
+                                               host.name.encode("utf-8")),
+                                        compiler, tree, status,
+                                        revision_link(myself, revision, tree),
+                                        revision_time])
 
     all_builds.sort(cmp_funcs[sort_by])
 
@@ -353,7 +362,9 @@ def draw_dead_hosts(output_type, *deadhosts):
 
     for host in deadhosts:
         age_ctime = db.host_age(host)
-        yield "<tr><td>%s</td><td>%s</td><td>%s</td></tr>" % (host, hosts[host].platform, util.dhm_time(age_ctime))
+        yield "<tr><td>%s</td><td>%s</td><td>%s</td></tr>" %\
+                (host,hosts[host].platform.encode("utf-8"),
+                 util.dhm_time(age_ctime))
 
     yield "</tbody></table>"
     yield "</div>"
@@ -441,7 +452,8 @@ def view_build(myself, tree, host, compiler, rev, plain_logs=False):
 
     yield "<table class='real'>\n"
     yield "<tr><td>Host:</td><td><a href='%s?function=View+Host;host=%s;tree=%s;"\
-          "compiler=%s#'>%s</a> - %s</td></tr>\n" % (myself, host, tree, compiler, host, hosts[host].platform)
+          "compiler=%s#'>%s</a> - %s</td></tr>\n" %\
+            (myself, host, tree, compiler, host, hosts[host].platform.encode("utf-8"))
     yield "<tr><td>Uname:</td><td>%s</td></tr>\n" % uname
     yield "<tr><td>Tree:</td><td>%s</td></tr>\n" % tree_link(myself, tree)
     yield "<tr><td>Build Revision:</td><td>%s</td></tr>\n" % revision_link(myself, revision, tree)
@@ -543,7 +555,7 @@ def view_host(myself, output_type, *requested_hosts):
                         else:
                             yield "<div class='host summary'>"
                             yield "<a id='host' name='host'/>"
-                            yield "<h3>%s - %s</h3>" % (host, str(hosts[host].platform))
+                            yield "<h3>%s - %s</h3>" % (host, hosts[host].platform.encode("utf-8"))
                             yield "<table class='real'>"
                             yield "<thead><tr><th>Target</th><th>Build<br/>Revision</th><th>Build<br />Age</th><th>Status<br />config/build<br />install/test</th><th>Warnings</th></tr></thead>"
                             yield "<tbody>"
@@ -759,7 +771,7 @@ def main_menu():
     yield "<div id='build-menu'>"
     yield "<select name='host'>"
     for name, host in hosts.iteritems():
-        yield "<option value='%s'>%s -- %s</option>\n" % (name, str(host.platform), name)
+        yield "<option value='%s'>%s -- %s</option>\n" % (name, host.platform.encode("utf-8"), name)
     yield "</select>"
     yield "<select name='tree'>"
     for tree, t in trees.iteritems():
