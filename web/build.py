@@ -258,27 +258,28 @@ def view_recent_builds(myself, tree, sort_by):
     all_builds = []
 
     def status_cmp(a, b):
-        bstat = build_status_vals(b)
-        astat = build_status_vals(a)
 
-        # handle panic
-        if len(bstat) > 5 and bstat[5]:
+        #put other failure on top
+        if len(b.other_failures):
             return 1
-        elif len(astat) > 5 and astat[5]:
+        if len(a.other_failures):
             return -1
 
-        # If we have ok/ok/ok/ok/- or ok/ok/ok/ok/ok then we want the line to be at the end
-        if len(bstat) == 5:
-            if bstat[0] == bstat[1] == bstat[2] == bstat[3] == "0":
-                return -1
-        if len(astat) == 5:
-            if astat[0] == astat[1] == astat[2] == astat[3] == "0":
+        la = len(a.stages)
+        lb = len(b.stages)
+        if la > lb:
+            return 1
+        elif lb > la:
+            return -1
+        else:
+            sa = a.stages[-1]
+            sb = b.stages[-1]
+            if sa[0] == "TEST" and sa[1] == 0:
                 return 1
+            if sb[0] == "TEST" and sb[1] == 0:
+                return -1
 
-        # Give more weight to higher stage (ie. install error before test errors)
-        return (cmp((10000 * astat[3] + 1000*astat[2] + 100 * astat[1] + astat[0]),
-                    (10000 * bstat[3] + 1000*bstat[2] + 100 * bstat[1] + bstat[0])))
-
+            return (sb[-1] <= sb[-1])
 
     cmp_funcs = {
         "revision": lambda a, b: cmp(a[7], b[7]),
@@ -286,7 +287,7 @@ def view_recent_builds(myself, tree, sort_by):
         "host": lambda a, b: cmp(a[2], b[2]),
         "platform": lambda a, b: cmp(a[1], b[1]),
         "compiler": lambda a, b: cmp(a[3], b[3]),
-        "status": lambda a, b: status_cmp(a[5], b[5]),
+        "status": lambda a, b: status_cmp(a[6], b[6]),
         }
 
     assert tree in trees, "not a build tree"
@@ -314,7 +315,7 @@ def view_recent_builds(myself, tree, sort_by):
                                             % (myself, host.name.encode("utf-8"),
                                                tree, compiler, host.name.encode("utf-8"),
                                                host.name.encode("utf-8")),
-                                        compiler, tree, status,
+                                        compiler, tree, status, build.status(),
                                         revision_link(myself, revision, tree),
                                         revision_time])
 
@@ -339,7 +340,7 @@ def view_recent_builds(myself, tree, sort_by):
     for build in all_builds:
         yield "<tr>"
         yield "<td>%s</td>" % util.dhm_time(build[0])
-        yield "<td>%s</td>" % build[6]
+        yield "<td>%s</td>" % build[7]
         yield "<td>%s</td>" % build[4]
         yield "<td>%s</td>" % build[1]
         yield "<td>%s</td>" % build[2]
