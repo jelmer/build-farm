@@ -51,67 +51,53 @@ def check_dir_exists(kind, path):
 
 def build_status_from_logs(log, err):
     """get status of build"""
+    test_failures = 0
+    test_successes = 0
     ret = BuildStatus()
 
-    log = log.read()
-    m = re.search("TEST STATUS:(\s*\d+)", log)
-    if m:
-        tstatus = int(m.group(1).strip())
-    else:
-        m = re.search("ACTION (PASSED|FAILED): test", log)
+    stages = []
+
+    for l in log:
+        m = re.match("^([A-Z_]+) STATUS:(\s*\d+)$", l)
         if m:
-            test_failures = len(re.findall("testsuite-(failure|error): ", log))
-            test_successes = len(re.findall("testsuite-success: ", log))
-            if test_successes > 0:
-                tstatus = test_failures
-            else:
-                tstatus = 255
-            if m.group(1) == "FAILED" and tstatus == 0:
-                tstatus = -1
-                ret.other_failures.add("make test error")
-        else:
-            tstatus = None
+            stages.append((m.group(1), int(m.group(2).strip())))
+            continue
+        if l.startswith("No space left on device"):
+            ret.other_failures.add("disk full")
+            continue
+        if l.startswith("maximum runtime exceeded"):
+            ret.other_failures.add("timeout")
+            continue
+        m = re.match("^(PANIC|INTERNAL ERROR):.*$", l)
+        if m:
+            ret.other_failures.add("panic")
+            continue
+        if l.startswith("testsuite-failure: ") or l.startswith("testsuite-error: "):
+            test_failures += 1
+            continue
+        if l.startswith("testsuite-success: "):
+            test_successes += 1
+            continue
 
-    m = re.search("INSTALL STATUS:(\s*\d+)", log)
-    if m:
-        istatus = int(m.group(1).strip())
-    else:
-        istatus = None
-
-    m = re.search("BUILD STATUS:(\s*\d+)", log)
-    if m:
-        bstatus = int(m.group(1).strip())
-    else:
-        bstatus = None
-
-    m = re.search("CONFIGURE STATUS:(\s*\d+)", log)
-    if m:
-        cstatus = int(m.group(1).strip())
-    else:
-        cstatus = None
-
-    m = re.search("(PANIC|INTERNAL ERROR):.*", log)
-    if m:
-        ret.other_failures.add("panic")
-
-    if "No space left on device" in log:
-        ret.other_failures.add("disk full")
-
-    if "maximum runtime exceeded" in log:
-        ret.other_failures.add("timeout")
-
-    stages = (cstatus, bstatus, istatus, tstatus)
-
-    m = re.search("CC_CHECKER STATUS:(\s*\d+)", log)
-    if m:
-        stages = stages + (int(m.group(1).strip()),)
-
-    # Scan err file for specific
+    # Scan err file for specific errors
     for l in err:
         if "No space left on device" in l:
             ret.other_failures.add("disk full")
 
-    ret.stages = stages
+    stage_results = dict(stages)
+    def map_stage(name, result):
+        if name != "TEST":
+            return result
+        # TEST is special
+        if test_successes + test_failures == 0:
+            # No granular test output
+            return result
+        if result == 0 and test_failures == 0:
+            ret.other_failures.add("inconsistent test result")
+            return -1
+        return test_failures
+
+    ret.stages = tuple([map_stage(k, v) for k, v in stages])
     return ret
 
 

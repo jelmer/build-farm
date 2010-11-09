@@ -184,7 +184,7 @@ class BuildStatusFromLogs(testtools.TestCase):
 
     def test_nothing(self):
         s = self.parse_logs("", "")
-        self.assertEquals((None, None, None, None), s.stages)
+        self.assertEquals((), s.stages)
         self.assertEquals(set(), s.other_failures)
 
     def test_disk_full(self):
@@ -200,43 +200,48 @@ class BuildStatusFromLogs(testtools.TestCase):
             self.parse_logs("foo\nbar\nmaximum runtime exceeded\nla\n",
                 "").other_failures)
 
-    def test_status(self):
+    def test_failed_test(self):
         log = """
 TEST STATUS:1
 """
         res = self.parse_logs(log, "")
-        self.assertEquals(res.stages[3], 1)
+        self.assertEquals(res.stages, (1,))
+
+    def test_failed_test_whitespace(self):
         log = """
 TEST STATUS:  1
 """
         res = self.parse_logs(log, "")
-        self.assertEquals(res.stages[3], 1)
+        self.assertEquals(res.stages, (1,))
+
+    def test_failed_test_noise(self):
         log = """
 CONFIGURE STATUS: 2
 TEST STATUS:  1
 CC_CHECKER STATUS:	2
 """
         res = self.parse_logs(log, "")
-        self.assertEquals(res.stages[4], 2)
+        self.assertEquals(res.stages, (2,1,2))
+
+    def test_no_test_output(self):
         log = """
 CONFIGURE STATUS: 2
-ACTION PASSED: test
+TEST STATUS: 0
 CC_CHECKER STATUS:	2
 """
         res = self.parse_logs(log, "")
-        self.assertEquals(res.stages[4], 2)
-        self.assertEquals(res.stages[3], 255)
+        self.assertEquals(res.stages, (2, 0, 2))
+
+    def test_granular_test(self):
         log = """
 CONFIGURE STATUS: 2
-ACTION PASSED: test
 testsuite-success: toto
 testsuite-failure: foo
 testsuite-failure: bar
 testsuite-failure: biz
+TEST STATUS: 1
 CC_CHECKER STATUS:	2
 """
         res = self.parse_logs(log, "")
-        self.assertEquals(res.stages[0], 2)
-        self.assertEquals(res.stages[3], 3)
-
+        self.assertEquals(res.stages, (2, 3, 2))
 
