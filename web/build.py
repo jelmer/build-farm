@@ -89,15 +89,20 @@ def html_build_status(status):
     def span(classname, contents):
         return "<span class=\"%s\">%s</span>" % (classname, contents)
 
-    def span_status(st):
+    def span_status(n, st):
+        if n == "CC_CHECKER":
+            if st == 0:
+                return span("status checker", "ok")
+            else:
+                return span("status checker", st)
+
         if st is None:
             return span("status unknown", "?")
-        elif st == "-":
-            return span("status notapplicable", "-")
         elif st == 0:
             return span("status passed", "ok")
         else:
             return span("status failed", st)
+
     ostatus = ""
     if "panic" in status.other_failures:
         ostatus += "/"+span("status panic", "PANIC")
@@ -107,7 +112,7 @@ def html_build_status(status):
         ostatus += "/"+span("status failed", "timeout")
     if "make test error" in status.other_failures:
         ostatus += "/"+span("status failed", "unexpected return code")
-    bstatus = "/".join([span_status(s) for (n, s) in status.stages])
+    bstatus = "/".join([span_status(n, s) for (n, s) in status.stages])
     return bstatus + ostatus
 
 
