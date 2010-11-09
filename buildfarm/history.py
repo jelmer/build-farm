@@ -51,7 +51,6 @@ class History(object):
 
     def _git_diff(self, t, revision, tree):
         """show recent git entries"""
-        os.chdir(os.path.join(UNPACKED_DIR, tree))
 
         log = self._log(tree)
 
@@ -68,8 +67,16 @@ class History(object):
         title = "GIT Diff in %s:%s for revision %s" % (
             tree, t.branch, revision)
 
-        cmd = "git diff %s^ %s ./" % (revision, revision)
-        return (title, entry, tree, [(cmd, commands.getoutput("%s 2> /dev/null" % cmd))])
+        pwd = os.environ["PWD"]
+        ret = None
+        try:
+            os.chdir(os.path.join(UNPACKED_DIR, tree))
+            cmd = "git diff %s^ %s ./" % (revision, revision)
+            ret = (title, entry, tree, [(cmd, commands.getoutput("%s 2> /dev/null" % cmd))])
+
+        finally:
+            os.chdir(pwd)
+            return ret
 
     def authors(self, tree):
         log = self._log(tree)
