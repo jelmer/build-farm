@@ -257,37 +257,13 @@ def view_recent_builds(myself, tree, sort_by):
     last_host = ""
     all_builds = []
 
-    def status_cmp(a, b):
-
-        #put other failure on top
-        if len(b.other_failures):
-            return 1
-        if len(a.other_failures):
-            return -1
-
-        la = len(a.stages)
-        lb = len(b.stages)
-        if la > lb:
-            return 1
-        elif lb > la:
-            return -1
-        else:
-            sa = a.stages[-1]
-            sb = b.stages[-1]
-            if sa[0] == "TEST" and sa[1] == 0:
-                return 1
-            if sb[0] == "TEST" and sb[1] == 0:
-                return -1
-
-            return (sb[-1] <= sb[-1])
-
     cmp_funcs = {
         "revision": lambda a, b: cmp(a[7], b[7]),
         "age": lambda a, b: cmp(a[0], b[0]),
         "host": lambda a, b: cmp(a[2], b[2]),
         "platform": lambda a, b: cmp(a[1], b[1]),
         "compiler": lambda a, b: cmp(a[3], b[3]),
-        "status": lambda a, b: status_cmp(a[6], b[6]),
+        "status": lambda a, b: a[6].cmp(b[6]),
         }
 
     assert tree in trees, "not a build tree"

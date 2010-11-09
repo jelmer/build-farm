@@ -57,6 +57,29 @@ class BuildStatus(object):
             return False
         return cmp(self._status_tuple(), other._status_tuple())
 
+    def cmp(a, b):
+
+        #Give more importance to other failures
+        if len(b.other_failures):
+            return 1
+        if len(a.other_failures):
+            return -1
+
+        la = len(a.stages)
+        lb = len(b.stages)
+        if la > lb:
+            return 1
+        elif lb > la:
+            return -1
+        else:
+            if la == 0:
+                return 0
+
+            sa = a.stages[-1]
+            sb = b.stages[-1]
+
+            return cmp(sb[1], sa[1])
+
     def __str__(self):
         return repr((self.stages, self.other_failures))
 
