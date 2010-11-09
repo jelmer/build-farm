@@ -33,9 +33,12 @@ import util
 
 class BuildStatus(object):
 
-    def __init__(self, stages, other_failures):
+    def __init__(self, stages=None, other_failures=None):
         self.stages = stages
-        self.other_failures = other_failures
+        if other_failures is not None:
+            self.other_failures = other_failures
+        else:
+            self.other_failures = set()
 
     def __str__(self):
         return repr((self.stages, self.other_failures))
@@ -48,9 +51,10 @@ def check_dir_exists(kind, path):
 
 def build_status_from_logs(log, err):
     """get status of build"""
+    ret = BuildStatus()
+
     log = log.read()
     m = re.search("TEST STATUS:(\s*\d+)", log)
-    other_failures = set()
     if m:
         tstatus = int(m.group(1).strip())
     else:
@@ -64,7 +68,7 @@ def build_status_from_logs(log, err):
                 tstatus = 255
             if m.group(1) == "FAILED" and tstatus == 0:
                 tstatus = -1
-                other_failures.add("make test error")
+                ret.other_failures.add("make test error")
         else:
             tstatus = None
 
@@ -88,13 +92,13 @@ def build_status_from_logs(log, err):
 
     m = re.search("(PANIC|INTERNAL ERROR):.*", log)
     if m:
-        other_failures.add("panic")
+        ret.other_failures.add("panic")
 
     if "No space left on device" in log:
-        other_failures.add("disk full")
+        ret.other_failures.add("disk full")
 
     if "maximum runtime exceeded" in log:
-        other_failures.add("timeout")
+        ret.other_failures.add("timeout")
 
     stages = (cstatus, bstatus, istatus, tstatus)
 
@@ -105,9 +109,10 @@ def build_status_from_logs(log, err):
     # Scan err file for specific
     for l in err:
         if "No space left on device" in l:
-            other_failures.add("disk full")
+            ret.other_failures.add("disk full")
 
-    return BuildStatus(stages, other_failures)
+    ret.stages = stages
+    return ret
 
 
 def lcov_extract_percentage(text):
