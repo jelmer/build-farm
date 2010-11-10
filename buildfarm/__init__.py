@@ -128,6 +128,24 @@ class BuildFarm(object):
             util.FileSave(cachefile, ret)
         return perc
 
+    def get_build(self, tree, host, compiler, rev=None):
+        if rev:
+            if host in self.hostdb.hosts() and\
+                    tree in self.trees and\
+                    compiler in self.compilers:
+                return self.builds.get_build(tree, host, compiler)
+            else:
+                from buildfarm import data
+                raise data.NoSuchBuildError(tree, host, compiler)
+        else:
+            if host in [h.name for h in self.hostdb.hosts()] and\
+                    tree in self.trees and\
+                    compiler in self.compilers:
+                return self.upload_builds.get_build(tree, host, compiler)
+            else:
+                from buildfarm import data
+                raise data.NoSuchBuildError(tree, host, compiler)
+
     def get_new_builds(self):
         from buildfarm import data
         for host in self.hostdb.hosts():
