@@ -69,7 +69,7 @@ The Build Farm administration team.
     if dry_run:
         print msg.as_string()
     else:
-        s = smtplib.Connection()
+        s = smtplib.SMTP()
         s.connect()
         s.send(msg["From"], [msg["To"]], msg.as_string())
         s.quit()
