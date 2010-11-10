@@ -912,18 +912,19 @@ def buildApp(environ, start_response):
 
     if standalone and environ['PATH_INFO']:
         dir = os.path.join(os.path.dirname(__file__))
-        static_file = "%s/%s" % (dir, environ['PATH_INFO'])
-        if os.path.exists(static_file):
-            tab = environ['PATH_INFO'].split('.')
-            if len(tab) > 1:
-                extension = tab[-1]
-                import mimetypes
-                mimetypes.init()
-                type = mimetypes.types_map[".%s" % extension]
-                start_response('200 OK', [('Content-type', type)])
-                data = open(static_file, 'rb').read()
-                yield data
-                return
+        if re.match("^/[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)?", environ['PATH_INFO']):
+            static_file = "%s/%s" % (dir, environ['PATH_INFO'])
+            if os.path.exists(static_file):
+                tab = environ['PATH_INFO'].split('.')
+                if len(tab) > 1:
+                    extension = tab[-1]
+                    import mimetypes
+                    mimetypes.init()
+                    type = mimetypes.types_map[".%s" % extension]
+                    start_response('200 OK', [('Content-type', type)])
+                    data = open(static_file, 'rb').read()
+                    yield data
+                    return
 
     if fn_name == 'text_diff':
         start_response('200 OK', [('Content-type', 'application/x-diff')])
