@@ -47,7 +47,19 @@ def read_trees_from_conf(path):
     return ret
 
 
+def lcov_extract_percentage(text):
+    m = re.search('\<td class="headerItem".*?\>Code\&nbsp\;covered\:\<\/td\>.*?\n.*?\<td class="headerValue".*?\>([0-9.]+) \%', text)
+    if m:
+        return m.group(1)
+    else:
+        return None
+
+
 class BuildFarm(object):
+
+    LCOVHOST = "magni"
+    OLDAGE = 60*60*4,
+    DEADAGE = 60*60*24*4
 
     def __init__(self, path=None):
         if path is None:
@@ -57,11 +69,17 @@ class BuildFarm(object):
         if not os.path.isdir(path):
             raise Exception("web directory %s does not exist" % self.webdir)
         self.trees = read_trees_from_conf(os.path.join(self.webdir, "trees.conf"))
+        self.builds = self._open_build_results()
         self.hostdb = self._open_hostdb()
         self.compilers = self._load_compilers()
+        self.lcovdir = os.path.join(self.path, "lcov/data")
 
     def __repr__(self):
         return "%s(%r)" % (self.__class__.__name__, self.path)
+
+    def _open_build_results(self):
+        from buildfarm import data
+        return data.BuildResultStore(self.path)
 
     def _open_hostdb(self):
         from buildfarm import hostdb
@@ -71,3 +89,36 @@ class BuildFarm(object):
     def _load_compilers(self):
         from buildfarm import util
         return util.load_list(os.path.join(self.webdir, "compilers.list"))
+
+    def lcov_status(self, tree):
+        """get status of build"""
+        from buildfarm import data, util
+        cachefile = os.path.join(self.builds.cachedir, "lcov.%s.%s.status" % (
+            self.LCOVHOST, tree))
+        file = os.path.join(self.lcovdir, self.LCOVHOST, tree, "index.html")
+        try:
+            st1 = os.stat(file)
+        except OSError:
+            # File does not exist
+            raise data.NoSuchBuildError(tree, self.LCOVHOST, "lcov")
+        try:
+            st2 = os.stat(cachefile)
+        except OSError:
+            # file does not exist
+            st2 = None
+
+        if st2 and st1.st_ctime <= st2.st_mtime:
+            ret = util.FileLoad(cachefile)
+            if ret == "":
+                return None
+            return ret
+
+        lcov_html = util.FileLoad(file)
+        perc = lcov_extract_percentage(lcov_html)
+        if perc is None:
+            ret = ""
+        else:
+            ret = perc
+        if self.readonly:
+            util.FileSave(cachefile, ret)
+        return perc

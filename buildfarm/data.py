@@ -155,14 +155,6 @@ def build_status_from_logs(log, err):
     return ret
 
 
-def lcov_extract_percentage(text):
-    m = re.search('\<td class="headerItem".*?\>Code\&nbsp\;covered\:\<\/td\>.*?\n.*?\<td class="headerValue".*?\>([0-9.]+) \%', text)
-    if m:
-        return m.group(1)
-    else:
-        return None
-
-
 class NoSuchBuildError(Exception):
     """The build with the specified name does not exist."""
 
@@ -359,10 +351,6 @@ class CachingBuild(Build):
 class BuildResultStore(object):
     """The build farm build result database."""
 
-    OLDAGE = 60*60*4,
-    DEADAGE = 60*60*24*4
-    LCOVHOST = "magni"
-
     def __init__(self, basedir, readonly=False):
         """Open the database.
 
@@ -378,9 +366,6 @@ class BuildResultStore(object):
 
         self.cachedir = os.path.join(basedir, "cache")
         check_dir_exists("cache", self.cachedir)
-
-        self.lcovdir = os.path.join(basedir, "lcov/data")
-        check_dir_exists("lcov", self.lcovdir)
 
     def get_build(self, tree, host, compiler, rev=None):
         logf = self.build_fname(tree, host, compiler, rev) + ".log"
@@ -399,38 +384,6 @@ class BuildResultStore(object):
         if rev is not None:
             return os.path.join(self.datadir, "oldrevs/build.%s.%s.%s-%s" % (tree, host, compiler, rev))
         return os.path.join(self.datadir, "upload/build.%s.%s.%s" % (tree, host, compiler))
-
-    def lcov_status(self, tree):
-        """get status of build"""
-        cachefile = os.path.join(self.cachedir, "lcov.%s.%s.status" % (
-            self.LCOVHOST, tree))
-        file = os.path.join(self.lcovdir, self.LCOVHOST, tree, "index.html")
-        try:
-            st1 = os.stat(file)
-        except OSError:
-            # File does not exist
-            raise NoSuchBuildError(tree, self.LCOVHOST, "lcov")
-        try:
-            st2 = os.stat(cachefile)
-        except OSError:
-            # file does not exist
-            st2 = None
-
-        if st2 and st1.st_ctime <= st2.st_mtime:
-            ret = util.FileLoad(cachefile)
-            if ret == "":
-                return None
-            return ret
-
-        lcov_html = util.FileLoad(file)
-        perc = lcov_extract_percentage(lcov_html)
-        if perc is None:
-            ret = ""
-        else:
-            ret = perc
-        if self.readonly:
-            util.FileSave(cachefile, ret)
-        return perc
 
     def get_old_revs(self, tree, host, compiler):
         """get a list of old builds and their status."""
