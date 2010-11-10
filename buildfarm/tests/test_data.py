@@ -257,9 +257,9 @@ class BuildStatusTest(testtools.TestCase):
         a = data.BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 2)])
         b = data.BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 2)])
 
-        self.assertEquals(a.cmp(b), 0)
+        self.assertEquals(cmp(a, b), 0)
 
-        self.assertEquals(data.BuildStatus().cmp(data.BuildStatus()), 0)
+        self.assertEquals(cmp(data.BuildStatus(), data.BuildStatus()), 0)
 
     def test_cmp_bigger(self):
         a = data.BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 3)])
@@ -269,13 +269,13 @@ class BuildStatusTest(testtools.TestCase):
         e = data.BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 1)], ("super error"))
 
         # less stage means smaller, more error/higher error code means smaller as well
-        self.assertEquals(b.cmp(a), 1)
+        self.assertEquals(cmp(b, a), 1)
 
-        self.assertEquals(a.cmp(c), 1)
+        self.assertEquals(cmp(a, c), 1)
 
-        self.assertEquals(a.cmp(d), 1)
+        self.assertEquals(cmp(a, d), 1)
 
-        self.assertEquals(b.cmp(e), 1)
+        self.assertEquals(cmp(b, e), 1)
 
     def test_cmp_smaller(self):
         a = data.BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 2)])
@@ -285,10 +285,10 @@ class BuildStatusTest(testtools.TestCase):
         e = data.BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 1)], ("super error"))
 
         # less stage means smaller, more error/higher error code means smaller as well
-        self.assertEquals(a.cmp(b), -1)
+        self.assertEquals(cmp(a, b), -1)
 
-        self.assertEquals(c.cmp(b), -1)
+        self.assertEquals(cmp(c, b), -1)
 
-        self.assertEquals(d.cmp(c), -1)
+        self.assertEquals(cmp(d, c), -1)
 
-        self.assertEquals(e.cmp(c), -1)
+        self.assertEquals(cmp(e, c), -1)
