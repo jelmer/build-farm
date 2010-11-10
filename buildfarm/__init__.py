@@ -19,6 +19,7 @@
 
 import ConfigParser
 import os
+import re
 
 
 class Tree(object):

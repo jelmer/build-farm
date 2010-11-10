@@ -226,12 +226,11 @@ class Build(object):
 
         :return: Tuple with revision id and timestamp (if available)
         """
-        file = self._store.build_fname(self.tree, self.host, self.compiler, self.rev)
 
         revid = None
         commit_revid = None
         timestamp = None
-        f = open("%s.log" % file, 'r')
+        f = self.read_log()
         try:
             for l in f.readlines():
                 if l.startswith("BUILD COMMIT REVISION: "):
@@ -262,15 +261,8 @@ class Build(object):
 
     def err_count(self):
         """get status of build"""
-        file = self._store.build_fname(self.tree, self.host, self.compiler, self.rev)
-
-        try:
-            err = util.FileLoad("%s.err" % file)
-        except OSError:
-            # File does not exist
-            return 0
-
-        return util.count_lines(err)
+        file = self.read_err()
+        return len(file.readlines())
 
 
 class CachingBuild(Build):

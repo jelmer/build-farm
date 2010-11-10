@@ -22,14 +22,6 @@ import unittest
 
 from buildfarm import util
 
-class CountLinesTests(unittest.TestCase):
-
-    def test_simple(self):
-        self.assertEquals(2, util.count_lines("foo\nbar"))
-        self.assertEquals(1, util.count_lines("bar"))
-        self.assertEquals(1, util.count_lines(""))
-
-
 class ChangeExtensionTests(unittest.TestCase):
 
     def test_simple(self):

@@ -77,11 +77,6 @@ def ChangeExtension(fname, ext):
         return "%s.%s" % (base, ext)
 
 
-def count_lines(s):
-    """count the number of lines in a buffer"""
-    return len(s.split("\n"))
-
-
 def dhm_time(sec):
     """display a time as days, hours, minutes"""
     days = int(sec / (60*60*24));
