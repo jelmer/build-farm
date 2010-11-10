@@ -348,8 +348,7 @@ class CachingBuild(Build):
         return ret
 
 
-class BuildResultStore(object):
-    """The build farm build result database."""
+class UploadBuildResultStore(object):
 
     def __init__(self, basedir, readonly=False):
         """Open the database.
@@ -364,26 +363,72 @@ class BuildResultStore(object):
         self.datadir = os.path.join(basedir, "data")
         check_dir_exists("data", self.datadir)
 
+    def build_fname(self, tree, host, compiler):
+        return os.path.join(self.datadir, "upload/build.%s.%s.%s" % (tree, host, compiler))
+
+    def has_host(self, host):
+        for name in os.listdir(os.path.join(self.datadir, "upload")):
+            try:
+                if name.split(".")[2] == host:
+                    return True
+            except IndexError:
+                pass
+        return False
+
+    def get_build(self, tree, host, compiler):
+        logf = self.build_fname(tree, host, compiler) + ".log"
+        if not os.path.exists(logf):
+            raise NoSuchBuildError(tree, host, compiler)
+        return Build(self, tree, host, compiler)
+
+
+class CachingUploadBuildResultStore(UploadBuildResultStore):
+
+    def __init__(self, basedir, readonly=False):
+        """Open the database.
+
+        :param readonly: Whether to avoid saving cache files
+        """
+        super(CachingUploadBuildResultStore, self).__init__(basedir)
+
         self.cachedir = os.path.join(basedir, "cache")
         check_dir_exists("cache", self.cachedir)
 
-    def get_build(self, tree, host, compiler, rev=None):
+        self.readonly = readonly
+
+    def cache_fname(self, tree, host, compiler):
+        return os.path.join(self.cachedir, "build.%s.%s.%s" % (tree, host, compiler))
+
+    def get_build(self, tree, host, compiler):
+        logf = self.build_fname(tree, host, compiler) + ".log"
+        if not os.path.exists(logf):
+            raise NoSuchBuildError(tree, host, compiler)
+        return CachingBuild(self, tree, host, compiler)
+
+
+class BuildResultStore(object):
+    """The build farm build result database."""
+
+    def __init__(self, basedir):
+        """Open the database.
+
+        :param basedir: Build result base directory
+        """
+        self.basedir = basedir
+        check_dir_exists("base", self.basedir)
+
+        self.datadir = os.path.join(basedir, "data")
+        check_dir_exists("data", self.datadir)
+
+    def get_build(self, tree, host, compiler, rev):
         logf = self.build_fname(tree, host, compiler, rev) + ".log"
         if not os.path.exists(logf):
             raise NoSuchBuildError(tree, host, compiler, rev)
-        return CachingBuild(self, tree, host, compiler, rev)
+        return Build(self, tree, host, compiler, rev)
 
-    def cache_fname(self, tree, host, compiler, rev=None):
-        if rev is not None:
-            return os.path.join(self.cachedir, "build.%s.%s.%s-%s" % (tree, host, compiler, rev))
-        else:
-            return os.path.join(self.cachedir, "build.%s.%s.%s" % (tree, host, compiler))
-
-    def build_fname(self, tree, host, compiler, rev=None):
+    def build_fname(self, tree, host, compiler, rev):
         """get the name of the build file"""
-        if rev is not None:
-            return os.path.join(self.datadir, "oldrevs/build.%s.%s.%s-%s" % (tree, host, compiler, rev))
-        return os.path.join(self.datadir, "upload/build.%s.%s.%s" % (tree, host, compiler))
+        return os.path.join(self.datadir, "oldrevs/build.%s.%s.%s-%s" % (tree, host, compiler, rev))
 
     def get_old_revs(self, tree, host, compiler):
         """get a list of old builds and their status."""
@@ -409,15 +454,6 @@ class BuildResultStore(object):
         ret.sort(lambda a, b: cmp(a["TIMESTAMP"], b["TIMESTAMP"]))
 
         return ret
-
-    def has_host(self, host):
-        for name in os.listdir(os.path.join(self.datadir, "upload")):
-            try:
-                if name.split(".")[2] == host:
-                    return True
-            except IndexError:
-                pass
-        return False
 
 """
     def get_previous_revision(self, tree, host, compiler, revision):
@@ -463,25 +499,7 @@ class BuildResultStore(object):
         $st = $dbh->prepare("INSERT INTO build (tree, revision, commit_revision, host, compiler, checksum, age, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
         $st->execute($tree, $rev, $commit, $host, $compiler, $checksum, $stat->ctime, $status_html)
 
-
-        #   SKIP This code, as it creates massive databases, until we get code to use the information, and a way to expire the results
-        #	    my $build = $dbh->func('last_insert_rowid')
-        #	    
-        #	    $st = $dbh->prepare("INSERT INTO test_run (build, test, result, output) VALUES ($build, ?, ?, ?)")
-        #	    
-        #	    while ($data =~ /--==--==--==--==--==--==--==--==--==--==--.*?
-        #	Running\ test\ ([\w\-=,_:\ \/.&;]+).*?
-        #	--==--==--==--==--==--==--==--==--==--==--
-        #	(.*?)
-        #	==========================================.*?
-        #	TEST\ (FAILED|PASSED|SKIPPED):.*?
-        #	==========================================\s+
-        #	/sxg) {
-        #		# Note: output is discarded ($2)
-        #		$st->execute($1, $3, undef)
-        #	    }
-
-        $st->finish()
+       $st->finish()
 
         cur_status = db.build_status_info_from_html(rev, commit, status_html)
 
@@ -502,3 +520,26 @@ class BuildResultStore(object):
         unlink($logfn . ".err")
         link($err_rev, $logfn . ".err")
         """
+
+
+class CachingBuildResultStore(BuildResultStore):
+
+    def __init__(self, basedir, readonly=False):
+        super(CachingBuildResultStore, self).__init__(basedir)
+
+        self.cachedir = os.path.join(basedir, "cache")
+        check_dir_exists("cache", self.cachedir)
+
+        self.readonly = readonly
+
+    def get_build(self, tree, host, compiler, rev):
+        logf = self.build_fname(tree, host, compiler, rev) + ".log"
+        if not os.path.exists(logf):
+            raise NoSuchBuildError(tree, host, compiler, rev)
+        return CachingBuild(self, tree, host, compiler, rev)
+
+    def cache_fname(self, tree, host, compiler, rev):
+        return os.path.join(self.cachedir, "build.%s.%s.%s-%s" % (tree, host, compiler, rev))
+
+
+

@@ -15,6 +15,8 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+from buildfarm import BuildFarm
+
 import os
 from testtools import TestCase
 import shutil
@@ -26,12 +28,12 @@ class BuildFarmTestCase(TestCase):
     """Test case class that provides a build farm data directory and convenience methods.
     """
 
-    def create_mock_logfile(self, tree, host, compiler, rev=None, 
+    def create_mock_logfile(self, tree, host, compiler, rev=None,
             kind="stdout", contents="FOO"):
         basename = "build.%s.%s.%s" % (tree, host, compiler)
-        if rev:
+        if rev is not None:
             basename += "-%s" % rev
-            path = os.path.join(self.path, "data", "oldrevs", basename + "-%s" % rev)
+            path = os.path.join(self.path, "data", "oldrevs", basename)
         else:
             path = os.path.join(self.path, "data", "upload", basename)
         if kind == "stdout":
@@ -125,3 +127,14 @@ branch = HEAD
 
 
 
+
+class BuildFarmTests(BuildFarmTestCase):
+
+    def setUp(self):
+        super(BuildFarmTests, self).setUp()
+        self.x = BuildFarm(self.path)
+
+    def test_has_host(self):
+        self.assertFalse(self.x.has_host("charis"))
+        self.create_mock_logfile("tdb", "charis", "cc")
+        self.assertTrue(self.x.has_host("charis"))

@@ -39,15 +39,9 @@ class BuildResultStoreTests(BuildFarmTestCase):
     def setUp(self):
         super(BuildResultStoreTests, self).setUp()
 
-        self.write_compilers(["cc"])
-        self.write_trees({"tdb": {"scm": "git", "repo": "tdb", "branch": "master"}})
-
-        self.x = data.BuildResultStore(self.path)
+        self.x = data.CachingBuildResultStore(self.path)
 
     def test_build_fname(self):
-        self.assertEquals(
-            self.x.build_fname("mytree", "myhost", "cc"),
-            "%s/data/upload/build.mytree.myhost.cc" % self.path)
         self.assertEquals(
             self.x.build_fname("mytree", "myhost", "cc", 123),
             "%s/data/oldrevs/build.mytree.myhost.cc-123" % self.path)
@@ -56,79 +50,71 @@ class BuildResultStoreTests(BuildFarmTestCase):
         self.assertEquals(
             self.x.cache_fname("mytree", "myhost", "cc", 123),
             "%s/cache/build.mytree.myhost.cc-123" % self.path)
-        self.assertEquals(
-            self.x.cache_fname("mytree", "myhost", "cc"),
-            "%s/cache/build.mytree.myhost.cc" % self.path)
 
     def test_build_age_mtime(self):
-        path = self.create_mock_logfile("tdb", "charis", "cc")
+        path = self.create_mock_logfile("tdb", "charis", "cc", "12")
         # Set mtime to something in the past
         os.utime(path, (time.time(), time.time() - 990))
-        build = self.x.get_build("tdb", "charis", "cc")
+        build = self.x.get_build("tdb", "charis", "cc", "12")
         age = build.age_mtime()
         self.assertTrue(age >= 990 and age <= 1000, "age was %d" % age)
 
     def test_get_build_nonexistant(self):
         self.assertRaises(data.NoSuchBuildError, self.x.get_build, "tdb",
-            "charis", "cc")
+            "charis", "cc", "12")
 
     def test_build_age_ctime(self):
-        path = self.create_mock_logfile("tdb", "charis", "cc")
+        path = self.create_mock_logfile("tdb", "charis", "cc", "12")
         # Set mtime to something in the past
-        build = self.x.get_build("tdb", "charis", "cc")
+        build = self.x.get_build("tdb", "charis", "cc", "12")
         age = build.age_ctime()
         self.assertTrue(age >= 0 and age <= 10, "age was %d" % age)
 
     def test_read_log(self):
-        path = self.create_mock_logfile("tdb", "charis", "cc",
+        path = self.create_mock_logfile("tdb", "charis", "cc", "12",
             contents="This is what a log file looks like.")
-        build = self.x.get_build("tdb", "charis", "cc")
+        build = self.x.get_build("tdb", "charis", "cc", "12")
         self.assertEquals("This is what a log file looks like.", build.read_log().read())
 
     def test_read_err(self):
-        self.create_mock_logfile("tdb", "charis", "cc")
-        path = self.create_mock_logfile("tdb", "charis", "cc",
+        self.create_mock_logfile("tdb", "charis", "cc", "12")
+        path = self.create_mock_logfile("tdb", "charis", "cc", "12",
             kind="stderr",
             contents="This is what an stderr file looks like.")
-        build = self.x.get_build("tdb", "charis", "cc")
+        build = self.x.get_build("tdb", "charis", "cc", "12")
         self.assertEquals("This is what an stderr file looks like.", build.read_err().read())
 
     def test_read_err_nofile(self):
-        self.create_mock_logfile("tdb", "charis", "cc")
-        build = self.x.get_build("tdb", "charis", "cc")
+        self.create_mock_logfile("tdb", "charis", "cc", "12")
+        build = self.x.get_build("tdb", "charis", "cc", "12")
         self.assertEquals("", build.read_err().read())
 
     def test_revision_details(self):
-        self.create_mock_logfile("tdb", "charis", "cc", contents="""
+        self.create_mock_logfile("tdb", "charis", "cc", "12", contents="""
 BUILD COMMIT REVISION: 43
 bla
 BUILD REVISION: 42
 BUILD COMMIT TIME: 3 August 2010
 """)
-        build = self.x.get_build("tdb", "charis", "cc")
+        build = self.x.get_build("tdb", "charis", "cc", "12")
         self.assertEquals(("42", "43", "3 August 2010"), build.revision_details())
 
     def test_revision_details_no_timestamp(self):
-        self.create_mock_logfile("tdb", "charis", "cc", contents="""
+        self.create_mock_logfile("tdb", "charis", "cc", rev="12", contents="""
 BUILD COMMIT REVISION: 43
 BUILD REVISION: 42
 BLA
 """)
-        build = self.x.get_build("tdb", "charis", "cc")
+        build = self.x.get_build("tdb", "charis", "cc", "12")
         self.assertEquals(("42", "43", None), build.revision_details())
 
     def test_err_count(self):
-        self.create_mock_logfile("tdb", "charis", "cc")
-        self.create_mock_logfile("tdb", "charis", "cc", kind="stderr", contents="""error1
+        self.create_mock_logfile("tdb", "charis", "cc", "12")
+        self.create_mock_logfile("tdb", "charis", "cc", "12", kind="stderr", contents="""error1
 error2
 error3""")
-        build = self.x.get_build("tdb", "charis", "cc")
+        build = self.x.get_build("tdb", "charis", "cc", "12")
         self.assertEquals(3, build.err_count())
-
-    def test_has_host(self):
-        self.assertFalse(self.x.has_host("charis"))
-        self.create_mock_logfile("tdb", "charis", "cc")
-        self.assertTrue(self.x.has_host("charis"))
 
 
 class BuildStatusFromLogs(testtools.TestCase):
@@ -262,3 +248,24 @@ class BuildStatusTest(testtools.TestCase):
         d = data.BuildStatus([], set(["super error"]))
         e = data.BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 1)], set(["super error"]))
         self.assertEquals(cmp(d, e), -1)
+
+
+class UploadBuildResultStoreTests(BuildFarmTestCase):
+
+    def setUp(self):
+        super(UploadBuildResultStoreTests, self).setUp()
+
+        self.write_compilers(["cc"])
+        self.write_trees({"tdb": {"scm": "git", "repo": "tdb", "branch": "master"}})
+
+        self.x = data.CachingUploadBuildResultStore(self.path)
+
+    def test_build_fname(self):
+        self.assertEquals(
+            self.x.build_fname("mytree", "myhost", "cc"),
+            "%s/data/upload/build.mytree.myhost.cc" % self.path)
+
+    def test_cache_fname(self):
+        self.assertEquals(
+            self.x.cache_fname("mytree", "myhost", "cc"),
+            "%s/cache/build.mytree.myhost.cc" % self.path)
