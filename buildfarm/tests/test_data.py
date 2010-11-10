@@ -267,6 +267,11 @@ class BuildStatusTest(testtools.TestCase):
             data.BuildStatus((), set(["foo"])), data.BuildStatus((), set(["foo"]))),
             0)
 
+    def test_cmp_intermediate_errors(self):
+        a = data.BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 3)])
+        b = data.BuildStatus([("CONFIGURE", 2), ("TEST", 7), ("CC_CHECKER", 3)])
+        self.assertEquals(cmp(a, b), 1)
+
     def test_cmp_bigger(self):
         a = data.BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 3)])
         b = data.BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 2)])
@@ -299,4 +304,7 @@ class BuildStatusTest(testtools.TestCase):
 
         self.assertEquals(cmp(e, c), -1)
 
+    def test_cmp_with_other_failures(self):
+        d = data.BuildStatus([], set(["super error"]))
+        e = data.BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 1)], set(["super error"]))
         self.assertEquals(cmp(d, e), -1)
