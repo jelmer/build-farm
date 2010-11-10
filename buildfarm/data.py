@@ -130,7 +130,6 @@ def build_status_from_logs(log, err):
         if "No space left on device" in l:
             ret.other_failures.add("disk full")
 
-    stage_results = dict(stages)
     def map_stage(name, result):
         if name != "TEST":
             return (name, result)
