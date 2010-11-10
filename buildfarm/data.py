@@ -350,24 +350,18 @@ class CachingBuild(Build):
 
 class UploadBuildResultStore(object):
 
-    def __init__(self, basedir, readonly=False):
+    def __init__(self, path):
         """Open the database.
 
-        :param basedir: Build result base directory
-        :param readonly: Whether to avoid saving cache files
+        :param path: Build result base directory
         """
-        self.basedir = basedir
-        check_dir_exists("base", self.basedir)
-        self.readonly = readonly
-
-        self.datadir = os.path.join(basedir, "data")
-        check_dir_exists("data", self.datadir)
+        self.path = path
 
     def build_fname(self, tree, host, compiler):
-        return os.path.join(self.datadir, "upload/build.%s.%s.%s" % (tree, host, compiler))
+        return os.path.join(self.path, "build.%s.%s.%s" % (tree, host, compiler))
 
     def has_host(self, host):
-        for name in os.listdir(os.path.join(self.datadir, "upload")):
+        for name in os.listdir(self.path):
             try:
                 if name.split(".")[2] == host:
                     return True
@@ -384,16 +378,13 @@ class UploadBuildResultStore(object):
 
 class CachingUploadBuildResultStore(UploadBuildResultStore):
 
-    def __init__(self, basedir, readonly=False):
+    def __init__(self, basedir, cachedir, readonly=False):
         """Open the database.
 
         :param readonly: Whether to avoid saving cache files
         """
         super(CachingUploadBuildResultStore, self).__init__(basedir)
-
-        self.cachedir = os.path.join(basedir, "cache")
-        check_dir_exists("cache", self.cachedir)
-
+        self.cachedir = cachedir
         self.readonly = readonly
 
     def cache_fname(self, tree, host, compiler):
@@ -409,16 +400,12 @@ class CachingUploadBuildResultStore(UploadBuildResultStore):
 class BuildResultStore(object):
     """The build farm build result database."""
 
-    def __init__(self, basedir):
+    def __init__(self, path):
         """Open the database.
 
-        :param basedir: Build result base directory
+        :param path: Build result base directory
         """
-        self.basedir = basedir
-        check_dir_exists("base", self.basedir)
-
-        self.datadir = os.path.join(basedir, "data")
-        check_dir_exists("data", self.datadir)
+        self.path = path
 
     def get_build(self, tree, host, compiler, rev):
         logf = self.build_fname(tree, host, compiler, rev) + ".log"
@@ -428,18 +415,17 @@ class BuildResultStore(object):
 
     def build_fname(self, tree, host, compiler, rev):
         """get the name of the build file"""
-        return os.path.join(self.datadir, "oldrevs/build.%s.%s.%s-%s" % (tree, host, compiler, rev))
+        return os.path.join(self.path, "build.%s.%s.%s-%s" % (tree, host, compiler, rev))
 
     def get_old_revs(self, tree, host, compiler):
         """get a list of old builds and their status."""
         ret = []
-        directory = os.path.join(self.datadir, "oldrevs")
-        logfiles = [d for d in os.listdir(directory) if d.startswith("build.%s.%s.%s-" % (tree, host, compiler)) and d.endswith(".log")]
+        logfiles = [d for d in os.listdir(self.path) if d.startswith("build.%s.%s.%s-" % (tree, host, compiler)) and d.endswith(".log")]
         for l in logfiles:
             m = re.match(".*-([0-9A-Fa-f]+).log$", l)
             if m:
                 rev = m.group(1)
-                stat = os.stat(os.path.join(directory, l))
+                stat = os.stat(os.path.join(self.path, l))
                 # skip the current build
                 if stat.st_nlink == 2:
                     continue
@@ -524,10 +510,10 @@ class BuildResultStore(object):
 
 class CachingBuildResultStore(BuildResultStore):
 
-    def __init__(self, basedir, readonly=False):
+    def __init__(self, basedir, cachedir, readonly=False):
         super(CachingBuildResultStore, self).__init__(basedir)
 
-        self.cachedir = os.path.join(basedir, "cache")
+        self.cachedir = cachedir
         check_dir_exists("cache", self.cachedir)
 
         self.readonly = readonly

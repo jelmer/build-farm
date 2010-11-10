@@ -79,7 +79,7 @@ class BuildFarm(object):
 
     def _open_build_results(self):
         from buildfarm import data
-        return data.BuildResultStore(self.path)
+        return data.BuildResultStore(os.path.join(self.path, "data", "oldrevs"))
 
     def _open_hostdb(self):
         from buildfarm import hostdb

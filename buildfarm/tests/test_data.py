@@ -39,7 +39,9 @@ class BuildResultStoreTests(BuildFarmTestCase):
     def setUp(self):
         super(BuildResultStoreTests, self).setUp()
 
-        self.x = data.CachingBuildResultStore(self.path)
+        self.x = data.CachingBuildResultStore(
+            os.path.join(self.path, "data", "oldrevs"),
+            os.path.join(self.path, "cache"))
 
     def test_build_fname(self):
         self.assertEquals(
@@ -255,10 +257,9 @@ class UploadBuildResultStoreTests(BuildFarmTestCase):
     def setUp(self):
         super(UploadBuildResultStoreTests, self).setUp()
 
-        self.write_compilers(["cc"])
-        self.write_trees({"tdb": {"scm": "git", "repo": "tdb", "branch": "master"}})
-
-        self.x = data.CachingUploadBuildResultStore(self.path)
+        self.x = data.CachingUploadBuildResultStore(
+            os.path.join(self.path, "data", "upload"),
+            os.path.join(self.path, "cache"))
 
     def test_build_fname(self):
         self.assertEquals(
