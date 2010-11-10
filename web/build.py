@@ -48,7 +48,7 @@ basedir = os.path.abspath(os.path.join(webdir, ".."))
 buildfarm = BuildFarm()
 
 db = data.BuildResultStore(basedir)
-history = history.History(db)
+#history = history.History(db)
 hostsdb = buildfarm.hostdb
 
 compilers = buildfarm.compilers
