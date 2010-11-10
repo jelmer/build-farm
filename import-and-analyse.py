@@ -12,7 +12,6 @@ on recent commits.
 
 from buildfarm import (
     BuildFarm,
-    data,
     hostdb,
     )
 import commands
@@ -22,8 +21,6 @@ import optparse
 import os
 import re
 import smtplib
-
-dry_run = True
 
 parser = optparse.OptionParser("import-and-analyse [options]")
 parser.add_option("--dry-run", help="Will cause the script to send output to stdout instead of to sendmail.", action="store_true")
@@ -35,7 +32,7 @@ UNPACKED_DIR = "/home/ftp/pub/unpacked"
 
 # we open readonly here as only apache(www-run) has write access
 buildfarm = BuildFarm()
-db = data.BuildResultStore(os.path.abspath(os.path.dirname(__file__)), True)
+db = buildfarm.builds
 hostsdb = buildfarm.hostdb
 
 smtp = smtplib.SMTP()
@@ -105,18 +102,18 @@ def check_and_send_mails(tree, host, compiler, cur, old):
     (old_rev, old_rev_timestamp) = old.revision_details()
     old_status = old.status()
 
-    if dry_run:
+    if opts.dry_run:
         print "rev=%s status=%s" % (cur_rev, cur_status)
         print "old rev=%s status=%s" % (old_rev, old_status)
 
     if not cur_status.regressed_since(old_status):
-        if dry_run:
+        if opts.dry_run:
             print "the build didn't get worse since %r" % old_status
         return
 
     log = get_log(tree, cur, old)
     if not log:
-        if dry_run:
+        if opts.dry_run:
             print "no log"
         return
 
@@ -135,7 +132,8 @@ See http://build.samba.org/?function=View+Build;host=%(host)s;tree=%(tree)s;comp
 The build may have been broken by one of the following commits:
 
 %(change_log)s
-    """ % {"tree": tree, "host": host, "compiler": compiler, "change_log": log.change_log, "scm": t.scm, "branch": t.branch}
+    """ % {"tree": tree, "host": host, "compiler": compiler, "change_log": log.change_log, "scm": t.scm, "branch": t.branch,
+            "cur_rev": cur_rev, "old_rev": old_rev, "cur_status": cur_status, "old_status": old_status }
 
     msg = MIMEText(body)
     msg["Subject"] = "BUILD of %s:%s BROKEN on %s with %s AT REVISION %s" % (tree, t.branch, host, compiler, cur_rev)
@@ -150,7 +148,7 @@ for build in buildfarm.get_new_builds():
 
     db.upload_build(build)
 
-    (rev, commit_rev, rev_timestamp) = db.revision_details()
+    (rev, commit_rev, rev_timestamp) = build.revision_details()
 
     try:
         prev_rev = db.get_previous_revision(build.tree, build.host, build.compiler, rev)
@@ -159,7 +157,7 @@ for build in buildfarm.get_new_builds():
         continue
     else:
         prev_build = db.get_build(build.tree, build.host, build.compiler, prev_rev)
-        check_and_send_mails(build.tree, build.host, build.compiler, build.status(), prev_build.status())
+        check_and_send_mails(build.tree, build.host, build.compiler, build, prev_build)
 
 
 smtp.quit()

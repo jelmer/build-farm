@@ -175,6 +175,10 @@ class Build(object):
         self.host = host
         self.compiler = compiler
         self.rev = rev
+        if rev is None:
+            self.basename = self._store.build_fname(self.tree, self.host, self.compiler)
+        else:
+            self.basename = self._store.build_fname(self.tree, self.host, self.compiler, self.rev)
 
     ###################
     # the mtime age is used to determine if builds are still happening
@@ -183,26 +187,22 @@ class Build(object):
 
     def age_mtime(self):
         """get the age of build from mtime"""
-        file = self._store.build_fname(self.tree, self.host, self.compiler, self.rev)
-
-        st = os.stat("%s.log" % file)
+        st = os.stat("%s.log" % self.basename)
         return time.time() - st.st_mtime
 
     def age_ctime(self):
         """get the age of build from ctime"""
-        file = self._store.build_fname(self.tree, self.host, self.compiler, self.rev)
-
-        st = os.stat("%s.log" % file)
+        st = os.stat("%s.log" % self.basename)
         return time.time() - st.st_ctime
 
     def read_log(self):
         """read full log file"""
-        return open(self._store.build_fname(self.tree, self.host, self.compiler, self.rev)+".log", "r")
+        return open(self.basename+".log", "r")
 
     def read_err(self):
         """read full err file"""
         try:
-            return open(self._store.build_fname(self.tree, self.host, self.compiler, self.rev)+".err", 'r')
+            return open(self.basename+".err", 'r')
         except IOError:
             # No such file
             return StringIO()
@@ -232,7 +232,7 @@ class Build(object):
         timestamp = None
         f = self.read_log()
         try:
-            for l in f.readlines():
+            for l in f:
                 if l.startswith("BUILD COMMIT REVISION: "):
                     commit_revid = l.split(":", 1)[1].strip()
                 elif l.startswith("BUILD REVISION: "):
@@ -270,9 +270,8 @@ class CachingBuild(Build):
     to calculate."""
 
     def revision_details(self):
-        file = self._store.build_fname(self.tree, self.host, self.compiler, self.rev)
         cachef = self._store.cache_fname(self.tree, self.host, self.compiler, self.rev)
-        st1 = os.stat("%s.log" % file)
+        st1 = os.stat("%s.log" % self.basename)
 
         try:
             st2 = os.stat("%s.revision" % cachef)
@@ -297,9 +296,8 @@ class CachingBuild(Build):
         return (revid, commit_revid, timestamp)
 
     def err_count(self):
-        file = self._store.build_fname(self.tree, self.host, self.compiler, self.rev)
         cachef = self._store.cache_fname(self.tree, self.host, self.compiler, self.rev)
-        st1 = os.stat("%s.err" % file)
+        st1 = os.stat("%s.err" % self.basename)
 
         try:
             st2 = os.stat("%s.errcount" % cachef)
@@ -318,10 +316,9 @@ class CachingBuild(Build):
         return ret
 
     def status(self):
-        file = self._store.build_fname(self.tree, self.host, self.compiler, self.rev)
         cachefile = self._store.cache_fname(self.tree, self.host, self.compiler, self.rev)+".status"
 
-        st1 = os.stat("%s.log" % file)
+        st1 = os.stat("%s.log" % self.basename)
 
         try:
             st2 = os.stat(cachefile)
@@ -433,6 +430,21 @@ class BuildResultStore(object):
 
         return ret
 
+    def upload_build(self, build):
+        (rev, commit_rev, rev_timestamp) = build.revision_details()
+
+        if commit_rev is not None:
+            rev = commit_rev
+
+        new_basename = self.build_fname(build.tree, build.host, build.compiler, rev)
+        os.rename(build.basename+".log", new_basename+".log")
+        if os.path.exists(build.basename+".err"):
+            os.rename(build.basename+".err", new_basename+".err")
+
+        # FIXME:
+        # $st = $dbh->prepare("INSERT INTO build (tree, revision, commit_revision, host, compiler, checksum, age, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+        # $st->execute($tree, $rev, $commit, $host, $compiler, $checksum, $stat->ctime, $status_html)
+
 """
     def get_previous_revision(self, tree, host, compiler, revision):
         # Look up the database to find the previous status
@@ -443,60 +455,6 @@ class BuildResultStore(object):
             $old_status_html = @row[0]
             $old_rev = @row[1]
             $old_commit = @row[2]
-
-    def upload_build(self, build):
-
-        my $expression = "SELECT checksum FROM build WHERE age >= ? AND tree = ? AND host = ? AND compiler = ?"
-        my $st = $dbh->prepare($expression)
-        $st->execute($stat->ctime, $tree, $host, $compiler)
-        # Don't bother if we've already processed this file
-        my $relevant_rows = $st->fetchall_arrayref()
-        $st->finish()
-
-        if relevant_rows > 0:
-            return
-
-        data = build.read_log()
-        # Don't bother with empty logs, they have no meaning (and would all share the same checksum)
-        if not data:
-            return
-
-        err = build.read_err()
-        checksum = build.log_checksum()
-        if ($dbh->selectrow_array("SELECT checksum FROM build WHERE checksum = '$checksum'")):
-            $dbh->do("UPDATE BUILD SET age = ? WHERE checksum = ?", undef, 
-                 ($stat->ctime, $checksum))
-            continue
-
-        (rev, rev_timestamp) = build.revision_details()
-
-        status_html = db.build_status_from_logs(data, err)
-
-        $st->finish()
-
-        $st = $dbh->prepare("INSERT INTO build (tree, revision, commit_revision, host, compiler, checksum, age, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
-        $st->execute($tree, $rev, $commit, $host, $compiler, $checksum, $stat->ctime, $status_html)
-
-       $st->finish()
-
-        cur_status = db.build_status_info_from_html(rev, commit, status_html)
-
-        # If we were able to put this into the DB (ie, a
-        # one-off event, so we won't repeat this), then also
-        # hard-link the log files to the revision, if we know
-        # it.
-
-        # This ensures that the names under 'oldrev' are well known and well formed 
-        log_rev = self.build_fname(tree, host, compiler, commit) + ".log"
-        err_rev = self.build_fname(tree, host, compiler, commit) + ".err"
-        unlink $log_rev
-        unlink $err_rev
-        link($logfn . ".log", $log_rev) || die "Failed to link $logfn to $log_rev"
-
-        # this prevents lots of links building up with err files
-        copy($logfn . ".err", $err_rev) || die "Failed to copy $logfn to $err_rev"
-        unlink($logfn . ".err")
-        link($err_rev, $logfn . ".err")
         """
 
 

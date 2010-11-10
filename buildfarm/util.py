@@ -67,6 +67,7 @@ def FileSave(filename, contents):
     finally:
         f.close()
 
+
 def ChangeExtension(fname, ext):
     """return a filename with a changed extension"""
     try:
@@ -82,8 +83,6 @@ def dhm_time(sec):
     days = int(sec / (60*60*24));
     hour = int(sec / (60*60)) % 24;
     min = int(sec / 60) % 60;
-
-    ret = ""
 
     if sec < 0:
         return "-"

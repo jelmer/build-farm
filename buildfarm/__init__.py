@@ -71,7 +71,7 @@ class BuildFarm(object):
             raise Exception("web directory %s does not exist" % self.webdir)
         self.trees = read_trees_from_conf(os.path.join(self.webdir, "trees.conf"))
         self.builds = self._open_build_results()
-        self.upload_builds = self._open_upload_builds_results()
+        self.upload_builds = self._open_upload_build_results()
         self.hostdb = self._open_hostdb()
         self.compilers = self._load_compilers()
         self.lcovdir = os.path.join(self.path, "lcov/data")
@@ -131,7 +131,7 @@ class BuildFarm(object):
 
     def get_new_builds(self):
         from buildfarm import data
-        for host in self.hostsdb.hosts():
+        for host in self.hostdb.hosts():
             for tree in self.trees:
                 for compiler in self.compilers:
                     # By building the log file name this way, using only the list of
