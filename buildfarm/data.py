@@ -59,10 +59,12 @@ class BuildStatus(object):
 
     def __cmp__(self, other):
 
+        other_extra = other.other_failures - self.other_failures
+        self_extra = self.other_failures - other.other_failures
         # Give more importance to other failures
-        if len(other.other_failures):
+        if other_extra:
             return 1
-        if len(self.other_failures):
+        if self_extra:
             return -1
 
         la = len(self.stages)
