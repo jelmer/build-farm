@@ -19,7 +19,7 @@
 
 from buildfarm import (
     hostdb,
-    open_hostdb,
+    BuildFarm,
     )
 import commands
 import os
@@ -28,7 +28,9 @@ import sys
 import time
 from email.MIMEText import MIMEText
 
-db = open_hostdb()
+buildfarm = BuildFarm()
+
+db = buildfarm.hostdb
 
 dry_run = False
 

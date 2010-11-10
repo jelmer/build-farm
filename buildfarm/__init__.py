@@ -19,7 +19,24 @@
 
 import os
 
-def open_hostdb():
-    from buildfarm import hostdb
-    return hostdb.HostDatabase(
-        os.path.join(os.path.dirname(__file__), "..", "hostdb.sqlite"))
+
+class BuildFarm(object):
+
+    def __init__(self, path=None):
+        if path is None:
+            path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        self.path = path
+        self.hostdb = self._open_hostdb()
+        self.compilers = self._load_compilers()
+
+    def __repr__(self):
+        return "%s(%r)" % (self.__class__.__name__, self.path)
+
+    def _open_hostdb(self):
+        from buildfarm import hostdb
+        return hostdb.HostDatabase(
+            os.path.join(self.path, "hostdb.sqlite"))
+
+    def _load_compilers(self):
+        from buildfarm import util
+        return util.load_list(os.path.join(self.webdir, "compilers.list"))

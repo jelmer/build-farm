@@ -11,9 +11,9 @@ on recent commits.
 """
 
 from buildfarm import (
+    BuildFarm,
     data,
     hostdb,
-    open_hostdb,
     )
 import commands
 from email.mime.text import MIMEText
@@ -34,10 +34,11 @@ parser.add_option("--verbose", help="Be verbose", action="count")
 UNPACKED_DIR = "/home/ftp/pub/unpacked"
 
 # we open readonly here as only apache(www-run) has write access
+buildfarm = BuildFarm()
 db = data.BuildResultStore(os.path.abspath(os.path.dirname(__file__)), True)
-hostsdb = open_hostdb()
+hostsdb = buildfarm.hostdb
 
-compilers = db.compilers
+compilers = buildfarm.compilers
 hosts = hostsdb.hosts()
 trees = db.trees
 

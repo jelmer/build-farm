@@ -30,10 +30,9 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from buildfarm import (
+    BuildFarm,
     data,
     history,
-    hostdb,
-    open_hostdb,
     util,
     )
 
@@ -46,11 +45,13 @@ standalone = 0
 webdir = os.path.dirname(__file__)
 basedir = os.path.abspath(os.path.join(webdir, ".."))
 
+buildfarm = BuildFarm()
+
 db = data.BuildResultStore(basedir)
 history = history.History(db)
-hostsdb = open_hostdb()
+hostsdb = buildfarm.hostdb
 
-compilers = db.compilers
+compilers = buildfarm.compilers
 # host.properties are unicode object and the framework expect string object
 hosts = dict([(host.name.encode("utf-8"), host) for host in hostsdb.hosts()])
 trees = db.trees

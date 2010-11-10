@@ -31,6 +31,16 @@ import time
 import util
 
 
+class BuildSummary(object):
+
+    def __init__(self, host, tree, compiler, rev, status):
+        self.host = host
+        self.tree = tree
+        self.compiler = compiler
+        self.rev = rev
+        self.status = status
+
+
 class BuildStatus(object):
 
     def __init__(self, stages=None, other_failures=None):
@@ -222,13 +232,19 @@ class Build(object):
             # No such file
             return StringIO()
 
-
     def log_checksum(self):
         f = self.read_log()
         try:
             return hashlib.sha1(f.read()).hexdigest()
         finally:
             f.close()
+
+    def summary(self):
+        (revid, commit_revid, timestamp) = self.revision_details()
+        if commit_revid:
+            revid = commit_revid
+        status = self.status()
+        return BuildSummary(self.host, self.tree, self.compiler, revid, status)
 
     def revision_details(self):
         """get the revision of build
@@ -396,8 +412,6 @@ class BuildResultStore(object):
         self.lcovdir = os.path.join(basedir, "lcov/data")
         check_dir_exists("lcov", self.lcovdir)
 
-        self.compilers = util.load_list(os.path.join(self.webdir, "compilers.list"))
-
         self.trees = read_trees_from_conf(os.path.join(self.webdir, "trees.conf"))
 
     def get_build(self, tree, host, compiler, rev=None):
@@ -484,16 +498,86 @@ class BuildResultStore(object):
                 pass
         return False
 
-    def host_age(self, host):
-        """get the overall age of a host"""
-        # FIXME: Turn this into a simple SQL query, or use something in hostdb ?
-        ret = None
-        for compiler in self.compilers:
-            for tree in self.trees:
-                try:
-                    build = self.get_build(tree, host, compiler)
-                except NoSuchBuildError:
-                    pass
-                else:
-                    ret = min(ret, build.age_mtime())
-        return ret
+"""
+    def get_previous_revision(self, tree, host, compiler, revision):
+        # Look up the database to find the previous status
+        $st = $dbh->prepare("SELECT status, revision, commit_revision FROM build WHERE tree = ? AND host = ? AND compiler = ? AND revision != ? AND commit_revision != ? ORDER BY id DESC LIMIT 1")
+        $st->execute( $tree, $host, $compiler, $rev, $commit)
+
+        while ( my @row = $st->fetchrow_array ) {
+            $old_status_html = @row[0]
+            $old_rev = @row[1]
+            $old_commit = @row[2]
+
+    def upload_build(self, build):
+
+        my $expression = "SELECT checksum FROM build WHERE age >= ? AND tree = ? AND host = ? AND compiler = ?"
+        my $st = $dbh->prepare($expression)
+        $st->execute($stat->ctime, $tree, $host, $compiler)
+        # Don't bother if we've already processed this file
+        my $relevant_rows = $st->fetchall_arrayref()
+        $st->finish()
+
+        if relevant_rows > 0:
+            return
+
+        data = build.read_log()
+        # Don't bother with empty logs, they have no meaning (and would all share the same checksum)
+        if not data:
+            return
+
+        err = build.read_err()
+        checksum = build.log_checksum()
+        if ($dbh->selectrow_array("SELECT checksum FROM build WHERE checksum = '$checksum'")):
+            $dbh->do("UPDATE BUILD SET age = ? WHERE checksum = ?", undef, 
+                 ($stat->ctime, $checksum))
+            continue
+
+        (rev, rev_timestamp) = build.revision_details()
+
+        status_html = db.build_status_from_logs(data, err)
+
+        $st->finish()
+
+        $st = $dbh->prepare("INSERT INTO build (tree, revision, commit_revision, host, compiler, checksum, age, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+        $st->execute($tree, $rev, $commit, $host, $compiler, $checksum, $stat->ctime, $status_html)
+
+
+        #   SKIP This code, as it creates massive databases, until we get code to use the information, and a way to expire the results
+        #	    my $build = $dbh->func('last_insert_rowid')
+        #	    
+        #	    $st = $dbh->prepare("INSERT INTO test_run (build, test, result, output) VALUES ($build, ?, ?, ?)")
+        #	    
+        #	    while ($data =~ /--==--==--==--==--==--==--==--==--==--==--.*?
+        #	Running\ test\ ([\w\-=,_:\ \/.&;]+).*?
+        #	--==--==--==--==--==--==--==--==--==--==--
+        #	(.*?)
+        #	==========================================.*?
+        #	TEST\ (FAILED|PASSED|SKIPPED):.*?
+        #	==========================================\s+
+        #	/sxg) {
+        #		# Note: output is discarded ($2)
+        #		$st->execute($1, $3, undef)
+        #	    }
+
+        $st->finish()
+
+        cur_status = db.build_status_info_from_html(rev, commit, status_html)
+
+        # If we were able to put this into the DB (ie, a
+        # one-off event, so we won't repeat this), then also
+        # hard-link the log files to the revision, if we know
+        # it.
+
+        # This ensures that the names under 'oldrev' are well known and well formed 
+        log_rev = self.build_fname(tree, host, compiler, commit) + ".log"
+        err_rev = self.build_fname(tree, host, compiler, commit) + ".err"
+        unlink $log_rev
+        unlink $err_rev
+        link($logfn . ".log", $log_rev) || die "Failed to link $logfn to $log_rev"
+
+        # this prevents lots of links building up with err files
+        copy($logfn . ".err", $err_rev) || die "Failed to copy $logfn to $err_rev"
+        unlink($logfn . ".err")
+        link($err_rev, $logfn . ".err")
+        """

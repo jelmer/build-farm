@@ -18,14 +18,14 @@
 #
 
 from buildfarm import (
-    hostdb,
-    open_hostdb,
+    BuildFarm,
     )
 import smtplib
 from email.MIMEText import MIMEText
 import time
 
-db = open_hostdb()
+buildfarm = BuildFarm()
+db = buildfarm.hostdb
 dry_run = False
 
 hosts = db.dead_hosts(7 * 86400)
