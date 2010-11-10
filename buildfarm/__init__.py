@@ -70,6 +70,7 @@ class BuildFarm(object):
             raise Exception("web directory %s does not exist" % self.webdir)
         self.trees = read_trees_from_conf(os.path.join(self.webdir, "trees.conf"))
         self.builds = self._open_build_results()
+        self.upload_builds = self._open_upload_builds_results()
         self.hostdb = self._open_hostdb()
         self.compilers = self._load_compilers()
         self.lcovdir = os.path.join(self.path, "lcov/data")
@@ -80,6 +81,10 @@ class BuildFarm(object):
     def _open_build_results(self):
         from buildfarm import data
         return data.BuildResultStore(os.path.join(self.path, "data", "oldrevs"))
+
+    def _open_upload_build_results(self):
+        from buildfarm import data
+        return data.UploadBuildResultStore(os.path.join(self.path, "data", "upload"))
 
     def _open_hostdb(self):
         from buildfarm import hostdb

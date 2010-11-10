@@ -149,7 +149,6 @@ The build may have been broken by one of the following commits:
 for host in hosts:
     for tree in buildfarm.trees:
         for compiler in buildfarm.compilers:
-            retry = 0
             if opts.verbose >= 2:
                 print "Looking for a log file for %s %s %s..." % (host, compiler, tree)
 
@@ -157,7 +156,7 @@ for host in hosts:
             # hosts, trees and compilers as input, we ensure we
             # control the inputs
             try:
-                build = db.get_build(host, tree, compiler)
+                build = buildfarm.upload_builds.get_build(host, tree, compiler)
             except data.NoSuchBuildError:
                 continue
 
