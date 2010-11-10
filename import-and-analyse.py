@@ -38,9 +38,7 @@ buildfarm = BuildFarm()
 db = data.BuildResultStore(os.path.abspath(os.path.dirname(__file__)), True)
 hostsdb = buildfarm.hostdb
 
-compilers = buildfarm.compilers
 hosts = hostsdb.hosts()
-trees = db.trees
 
 smtp = smtplib.SMTP()
 smtp.connect()
@@ -101,7 +99,7 @@ def get_log(tree, cur, old):
 
 
 def check_and_send_mails(tree, host, compiler, cur, old):
-    t = trees[tree]
+    t = buildfarm.trees[tree]
 
     (cur_rev, cur_rev_timestamp) = cur.revision_details()
     cur_status = cur.status()
@@ -149,8 +147,8 @@ The build may have been broken by one of the following commits:
 
 
 for host in hosts:
-    for tree in trees:
-        for compiler in compilers:
+    for tree in buildfarm.trees:
+        for compiler in buildfarm.compilers:
             retry = 0
             if opts.verbose >= 2:
                 print "Looking for a log file for %s %s %s..." % (host, compiler, tree)

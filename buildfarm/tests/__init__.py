@@ -19,6 +19,7 @@ import os
 from testtools import TestCase
 import shutil
 import tempfile
+import testtools
 
 
 class BuildFarmTestCase(TestCase):
@@ -75,3 +76,52 @@ class BuildFarmTestCase(TestCase):
     def tearDown(self):
         shutil.rmtree(self.path)
         super(BuildFarmTestCase, self).tearDown()
+
+
+class ReadTreesFromConfTests(testtools.TestCase):
+
+    def create_file(self, contents):
+        (fd, path) = tempfile.mkstemp()
+        f = os.fdopen(fd, 'w')
+        self.addCleanup(os.remove, path)
+        try:
+            f.write(contents)
+        finally:
+            f.close()
+        return path
+
+    def test_read_trees_from_conf_ko(self):
+        name = self.create_file("""
+[foo]
+param1 = fooval1
+param2 = fooval2
+param3 = fooval3
+
+[bar]
+param1 = barval1
+param2 = barval2
+param3 = barval3
+""")
+        self.assertRaises(
+            Exception, data.read_trees_from_conf, name, None)
+
+    def test_read_trees_from_conf(self):
+        name = self.create_file("""
+[pidl]
+scm = git
+repo = samba.git
+branch = master
+subdir = pidl/
+
+[rsync]
+scm = git
+repo = rsync.git
+branch = HEAD
+""")
+        t = data.read_trees_from_conf(name)
+        self.assertEquals(
+            t["pidl"].scm,
+            "git")
+
+
+

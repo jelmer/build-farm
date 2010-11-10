@@ -17,7 +17,34 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+import ConfigParser
 import os
+
+
+class Tree(object):
+    """A tree to build."""
+
+    def __init__(self, name, scm, repo, branch, subdir="", srcdir=""):
+        self.name = name
+        self.repo = repo
+        self.scm = scm
+        self.branch = branch
+        self.subdir = subdir
+        self.srcdir = srcdir
+        self.scm = scm
+
+    def __repr__(self):
+        return "<%s %r>" % (self.__class__.__name__, self.name)
+
+
+def read_trees_from_conf(path):
+    """Read trees from a configuration file."""
+    ret = {}
+    cfp = ConfigParser.ConfigParser()
+    cfp.readfp(open(path))
+    for s in cfp.sections():
+        ret[s] = Tree(name=s, **dict(cfp.items(s)))
+    return ret
 
 
 class BuildFarm(object):
@@ -26,6 +53,10 @@ class BuildFarm(object):
         if path is None:
             path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         self.path = path
+        self.webdir = os.path.join(self.path, "web")
+        if not os.path.isdir(path):
+            raise Exception("web directory %s does not exist" % self.webdir)
+        self.trees = read_trees_from_conf(os.path.join(self.webdir, "trees.conf"))
         self.hostdb = self._open_hostdb()
         self.compilers = self._load_compilers()
 

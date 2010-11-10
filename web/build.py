@@ -54,7 +54,7 @@ hostsdb = buildfarm.hostdb
 compilers = buildfarm.compilers
 # host.properties are unicode object and the framework expect string object
 hosts = dict([(host.name.encode("utf-8"), host) for host in hostsdb.hosts()])
-trees = db.trees
+trees = buildfarm.trees
 OLDAGE = db.OLDAGE
 
 UNPACKED_BASE = "http://svn.samba.org/ftp/unpacked"
