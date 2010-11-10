@@ -127,3 +127,16 @@ class BuildFarm(object):
         if self.readonly:
             util.FileSave(cachefile, ret)
         return perc
+
+    def get_new_builds(self):
+        from buildfarm import data
+        for host in self.hostsdb.hosts():
+            for tree in self.trees:
+                for compiler in self.compilers:
+                    # By building the log file name this way, using only the list of
+                    # hosts, trees and compilers as input, we ensure we
+                    # control the inputs
+                    try:
+                        yield self.upload_builds.get_build(host, tree, compiler)
+                    except data.NoSuchBuildError:
+                        continue

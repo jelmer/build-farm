@@ -38,8 +38,6 @@ buildfarm = BuildFarm()
 db = data.BuildResultStore(os.path.abspath(os.path.dirname(__file__)), True)
 hostsdb = buildfarm.hostdb
 
-hosts = hostsdb.hosts()
-
 smtp = smtplib.SMTP()
 smtp.connect()
 
@@ -146,35 +144,22 @@ The build may have been broken by one of the following commits:
     smtp.send(msg["From"], [msg["To"]], msg.as_string())
 
 
-for host in hosts:
-    for tree in buildfarm.trees:
-        for compiler in buildfarm.compilers:
-            if opts.verbose >= 2:
-                print "Looking for a log file for %s %s %s..." % (host, compiler, tree)
+for build in buildfarm.get_new_builds():
+    if opts.verbose >= 2:
+        print "Processing %s..." % build
 
-            # By building the log file name this way, using only the list of
-            # hosts, trees and compilers as input, we ensure we
-            # control the inputs
-            try:
-                build = buildfarm.upload_builds.get_build(host, tree, compiler)
-            except data.NoSuchBuildError:
-                continue
+    db.upload_build(build)
 
-            if opts.verbose >= 2:
-                print "Processing %s..." % build
+    (rev, commit_rev, rev_timestamp) = db.revision_details()
 
-            db.upload_build(build)
-
-            (rev, commit_rev, rev_timestamp) = db.revision_details()
-
-            try:
-                prev_rev = db.get_previous_revision(tree, host, compiler, rev)
-            except hostdb.NoSuchBuild:
-                # Can't send a nastygram until there are 2 builds..
-                continue
-            else:
-                prev_build = db.get_build(tree, host, compiler, prev_rev)
-                check_and_send_mails(tree, host, compiler, build.status(), prev_build.status())
+    try:
+        prev_rev = db.get_previous_revision(build.tree, build.host, build.compiler, rev)
+    except hostdb.NoSuchBuild:
+        # Can't send a nastygram until there are 2 builds..
+        continue
+    else:
+        prev_build = db.get_build(build.tree, build.host, build.compiler, prev_rev)
+        check_and_send_mails(build.tree, build.host, build.compiler, build.status(), prev_build.status())
 
 
 smtp.quit()
