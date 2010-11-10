@@ -173,7 +173,7 @@ def view_summary(myself, output_type):
         for compiler in compilers:
             for tree in trees:
                 try:
-                    build = db.get_build(tree, host.name.encode("utf-8"), compiler)
+                    build = buildfarm.get_build(tree, host.name.encode("utf-8"), compiler)
                     status = build_status_html(myself, build)
                 except data.NoSuchBuildError:
                     continue
@@ -275,7 +275,7 @@ def view_recent_builds(myself, tree, sort_by):
     for host in hosts.values():
         for compiler in compilers:
             try:
-                build = db.get_build(tree, host.name.encode("utf-8"), compiler)
+                build = buildfarm.get_build(tree, host.name.encode("utf-8"), compiler)
                 status = build_status_html(myself, build)
             except data.NoSuchBuildError:
                 pass
@@ -393,7 +393,7 @@ def view_build(myself, tree, host, compiler, rev, plain_logs=False):
     uname = ""
     cflags = ""
     config = ""
-    build = db.get_build(tree, host, compiler, rev)
+    build = buildfarm.get_build(tree, host, compiler, rev)
     age_mtime = build.age_mtime()
     (revision, commit_revision, revision_time) = build.revision_details()
     if commit_revision:
@@ -522,7 +522,7 @@ def view_host(myself, output_type, *requested_hosts):
         for compiler in compilers:
             for tree in sorted(trees.keys()):
                 try:
-                    build = db.get_build(tree, host, compiler)
+                    build = buildfarm.get_build(tree, host, compiler)
                 except data.NoSuchBuildError:
                     pass
                 else:
