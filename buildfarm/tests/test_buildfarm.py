@@ -93,6 +93,24 @@ class BuildFarmTestBase(object):
         self.assertEquals("git://foo", tree.repo)
         self.assertEquals("master", tree.branch)
 
+    def test_get_build_rev(self):
+        path = self.create_mock_logfile("tdb", "charis", "cc", "12",
+            contents="This is what a log file looks like.")
+        build = self.x.get_build("tdb", "charis", "cc", "12")
+        self.assertEquals("tdb", build.tree)
+        self.assertEquals("charis", build.host)
+        self.assertEquals("cc", build.compiler)
+        self.assertEquals("12", build.rev)
+
+    def test_get_build_no_rev(self):
+        path = self.create_mock_logfile("tdb", "charis", "cc", 
+            contents="This is what a log file looks like.")
+        build = self.x.get_build("tdb", "charis", "cc")
+        self.assertEquals("tdb", build.tree)
+        self.assertEquals("charis", build.host)
+        self.assertEquals("cc", build.compiler)
+        self.assertIs(None, build.rev)
+
 
 class BuildFarmTests(BuildFarmTestBase, BuildFarmTestCase):
 
