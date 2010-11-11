@@ -49,6 +49,7 @@ def read_trees_from_conf(path):
 
 
 def lcov_extract_percentage(text):
+    """Extract the coverage percentage from the lcov file."""
     m = re.search('\<td class="headerItem".*?\>Code\&nbsp\;covered\:\<\/td\>.*?\n.*?\<td class="headerValue".*?\>([0-9.]+) \%', text)
     if m:
         return m.group(1)
@@ -102,7 +103,7 @@ class BuildFarm(object):
         file = os.path.join(self.lcovdir, self.LCOVHOST, tree, "index.html")
         try:
             lcov_html = util.FileLoad(file)
-        except OSError:
+        except (OSError, IOError):
             # File does not exist
             raise data.NoSuchBuildError(tree, self.LCOVHOST, "lcov")
 
