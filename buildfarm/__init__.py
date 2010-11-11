@@ -66,7 +66,6 @@ class BuildFarm(object):
         if path is None:
             path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         self.path = path
-        self.cachedir = os.path.join(self.path, "cache")
         self.webdir = os.path.join(self.path, "web")
         if not os.path.isdir(path):
             raise Exception("web directory %s does not exist" % self.webdir)
