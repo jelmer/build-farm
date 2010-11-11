@@ -169,16 +169,13 @@ class Build(object):
     """A single build of a tree on a particular host using a particular compiler.
     """
 
-    def __init__(self, store, tree, host, compiler, rev=None):
+    def __init__(self, store, basename, tree, host, compiler, rev=None):
         self._store = store
+        self.basename = basename
         self.tree = tree
         self.host = host
         self.compiler = compiler
         self.rev = rev
-        if rev is None:
-            self.basename = self._store.build_fname(self.tree, self.host, self.compiler)
-        else:
-            self.basename = self._store.build_fname(self.tree, self.host, self.compiler, self.rev)
 
     ###################
     # the mtime age is used to determine if builds are still happening
@@ -365,10 +362,11 @@ class UploadBuildResultStore(object):
         return False
 
     def get_build(self, tree, host, compiler):
-        logf = self.build_fname(tree, host, compiler) + ".log"
+        basename = self.build_fname(tree, host, compiler)
+        logf = "%s.log" % basename
         if not os.path.exists(logf):
             raise NoSuchBuildError(tree, host, compiler)
-        return Build(self, tree, host, compiler)
+        return Build(self, basename, tree, host, compiler)
 
 
 class CachingUploadBuildResultStore(UploadBuildResultStore):
@@ -386,10 +384,11 @@ class CachingUploadBuildResultStore(UploadBuildResultStore):
         return os.path.join(self.cachedir, "build.%s.%s.%s" % (tree, host, compiler))
 
     def get_build(self, tree, host, compiler):
-        logf = self.build_fname(tree, host, compiler) + ".log"
+        basename = self.build_fname(tree, host, compiler)
+        logf = "%s.log" % basename
         if not os.path.exists(logf):
             raise NoSuchBuildError(tree, host, compiler)
-        return CachingBuild(self, tree, host, compiler)
+        return CachingBuild(self, basename, tree, host, compiler)
 
 
 class BuildResultStore(object):
@@ -403,10 +402,11 @@ class BuildResultStore(object):
         self.path = path
 
     def get_build(self, tree, host, compiler, rev):
-        logf = self.build_fname(tree, host, compiler, rev) + ".log"
+        basename = self.build_fname(tree, host, compiler, rev)
+        logf = "%s.log" % basename
         if not os.path.exists(logf):
             raise NoSuchBuildError(tree, host, compiler, rev)
-        return Build(self, tree, host, compiler, rev)
+        return Build(self, basename, tree, host, compiler, rev)
 
     def build_fname(self, tree, host, compiler, rev):
         """get the name of the build file"""
@@ -442,10 +442,13 @@ class BuildResultStore(object):
         if commit_rev is not None:
             rev = commit_rev
 
+        if not rev:
+            raise Exception("Unable to find revision in %r log" % build)
+
         new_basename = self.build_fname(build.tree, build.host, build.compiler, rev)
-        os.rename(build.basename+".log", new_basename+".log")
+        os.link(build.basename+".log", new_basename+".log")
         if os.path.exists(build.basename+".err"):
-            os.rename(build.basename+".err", new_basename+".err")
+            os.link(build.basename+".err", new_basename+".err")
 
         # FIXME:
         # $st = $dbh->prepare("INSERT INTO build (tree, revision, commit_revision, host, compiler, checksum, age, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
@@ -475,10 +478,11 @@ class CachingBuildResultStore(BuildResultStore):
         self.readonly = readonly
 
     def get_build(self, tree, host, compiler, rev):
-        logf = self.build_fname(tree, host, compiler, rev) + ".log"
+        basename = self.build_fname(tree, host, compiler, rev)
+        logf = "%s.log" % basename
         if not os.path.exists(logf):
             raise NoSuchBuildError(tree, host, compiler, rev)
-        return CachingBuild(self, tree, host, compiler, rev)
+        return CachingBuild(self, basename, tree, host, compiler, rev)
 
     def cache_fname(self, tree, host, compiler, rev):
         return os.path.join(self.cachedir, "build.%s.%s.%s-%s" % (tree, host, compiler, rev))

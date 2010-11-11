@@ -39,7 +39,11 @@ class Tree(object):
 
 
 def read_trees_from_conf(path):
-    """Read trees from a configuration file."""
+    """Read trees from a configuration file.
+
+    :param path: tree path
+    :return: Dictionary with trees
+    """
     ret = {}
     cfp = ConfigParser.ConfigParser()
     cfp.readfp(open(path))
@@ -182,5 +186,5 @@ class CachingBuildFarm(BuildFarm):
 
         perc = super(CachingBuildFarm, self).lcov_status(tree)
         if not self.readonly:
-            util.FileSave(cachefile, ret)
+            util.FileSave(cachefile, perc)
         return perc

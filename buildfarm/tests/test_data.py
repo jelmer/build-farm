@@ -105,6 +105,21 @@ error3""")
         build = self.x.get_build("tdb", "charis", "cc", "12")
         self.assertEquals(3, build.err_count())
 
+    def test_upload_build(self):
+        path = self.create_mock_logfile("tdb", "charis", "cc", contents="""
+BUILD COMMIT REVISION: myrev
+""")
+        build = data.Build(None, path[:-4], "tdb", "charis", "cc")
+        self.x.upload_build(build)
+        uploaded_build = self.x.get_build("tdb", "charis", "cc", "myrev")
+        self.assertEquals(uploaded_build.log_checksum(), build.log_checksum())
+
+    def test_upload_build_no_rev(self):
+        path = self.create_mock_logfile("tdb", "charis", "cc", contents="""
+""")
+        build = data.Build(None, path[:-4], "tdb", "charis", "cc")
+        self.assertRaises(Exception, self.x.upload_build, build)
+
 
 
 class BuildResultStoreTests(BuildFarmTestCase,BuildResultStoreTestBase):
