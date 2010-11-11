@@ -30,7 +30,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from buildfarm import (
-    BuildFarm,
+    CachingBuildFarm,
     data,
     history,
     util,
@@ -45,7 +45,7 @@ standalone = 0
 webdir = os.path.dirname(__file__)
 basedir = os.path.abspath(os.path.join(webdir, ".."))
 
-buildfarm = BuildFarm()
+buildfarm = CachingBuildFarm()
 
 db = data.BuildResultStore(basedir)
 #history = history.History(db)
