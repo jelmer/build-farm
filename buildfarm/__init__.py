@@ -143,7 +143,7 @@ class CachingBuildFarm(BuildFarm):
         if cachedirname:
             self.cachedir = os.path.join(self.path, cachedirname)
         else:
-            self.cachedir = os.path.join(self.path, "toto")
+            self.cachedir = os.path.join(self.path, "cache2")
         self.builds = self._open_build_results()
         self.upload_builds = self._open_upload_build_results()
 
