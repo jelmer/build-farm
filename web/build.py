@@ -264,7 +264,7 @@ def view_recent_builds(myself, tree, sort_by):
         "host": lambda a, b: cmp(a[2], b[2]),
         "platform": lambda a, b: cmp(a[1], b[1]),
         "compiler": lambda a, b: cmp(a[3], b[3]),
-        "status": lambda a, b: a[6].cmp(b[6]),
+        "status": lambda a, b: cmp(a[6], b[6]),
         }
 
     assert tree in trees, "not a build tree"
