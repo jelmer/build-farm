@@ -164,7 +164,8 @@ class CachingBuildFarm(BuildFarm):
     def lcov_status(self, tree):
         """get status of build"""
         from buildfarm import data, util
-        cachefile = self.builds.get_lcov_cached_status(self.LCOVHOST, tree)
+        cachefile = os.path.join(self.cachedir,
+                                    "lcov.%s.%s.status" % (self.LCOVHOST, tree))
         file = os.path.join(self.lcovdir, self.LCOVHOST, tree, "index.html")
         try:
             st1 = os.stat(file)
