@@ -136,30 +136,30 @@ class BuildFarm(object):
 class CachingBuildFarm(BuildFarm):
 
     def __init__(self, path=None, readonly=False, cachedirname=None):
+        self._cachedirname = cachedirname
+        self.readonly = readonly
         super(CachingBuildFarm, self).__init__(path)
 
-        if cachedirname:
-            self.cachedir = os.path.join(self.path, cachedirname)
+    def _get_cachedir(self):
+        if self._cachedirname is not None:
+            return os.path.join(self.path, self._cachedirname)
         else:
-            self.cachedir = os.path.join(self.path, "cache")
-        self.builds = self._open_build_results()
-        self.upload_builds = self._open_upload_build_results()
-        self.readonly = readonly
+            return os.path.join(self.path, "cache")
 
     def _open_build_results(self):
         from buildfarm import data
         return data.CachingBuildResultStore(os.path.join(self.path, "data", "oldrevs"),
-                self.cachedir, reaodnly=self.readonly)
+                self._get_cachedir(), readonly=self.readonly)
 
     def _open_upload_build_results(self):
         from buildfarm import data
         return data.CachingUploadBuildResultStore(os.path.join(self.path, "data", "upload"),
-                self.cachedir, readonly=self.readonly)
+                self._get_cachedir(), readonly=self.readonly)
 
     def lcov_status(self, tree):
         """get status of build"""
         from buildfarm import data, util
-        cachefile = os.path.join(self.cachedir,
+        cachefile = os.path.join(self._get_cachedir(),
                                     "lcov.%s.%s.status" % (self.LCOVHOST, tree))
         file = os.path.join(self.lcovdir, self.LCOVHOST, tree, "index.html")
         try:
