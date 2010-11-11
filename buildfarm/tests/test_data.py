@@ -17,7 +17,6 @@
 
 from cStringIO import StringIO
 import os
-import tempfile
 import testtools
 import time
 import unittest
@@ -34,24 +33,12 @@ class NonexistantTests(unittest.TestCase):
             Exception, data.BuildResultStore, "somedirthatdoesn'texist", None)
 
 
-class BuildResultStoreTests(BuildFarmTestCase):
-
-    def setUp(self):
-        super(BuildResultStoreTests, self).setUp()
-
-        self.x = data.CachingBuildResultStore(
-            os.path.join(self.path, "data", "oldrevs"),
-            os.path.join(self.path, "cache"))
+class BuildResultStoreTestBase(object):
 
     def test_build_fname(self):
         self.assertEquals(
             self.x.build_fname("mytree", "myhost", "cc", 123),
             "%s/data/oldrevs/build.mytree.myhost.cc-123" % self.path)
-
-    def test_cache_fname(self):
-        self.assertEquals(
-            self.x.cache_fname("mytree", "myhost", "cc", 123),
-            "%s/cache/build.mytree.myhost.cc-123" % self.path)
 
     def test_build_age_mtime(self):
         path = self.create_mock_logfile("tdb", "charis", "cc", "12")
@@ -117,6 +104,31 @@ error2
 error3""")
         build = self.x.get_build("tdb", "charis", "cc", "12")
         self.assertEquals(3, build.err_count())
+
+
+
+class BuildResultStoreTests(BuildFarmTestCase,BuildResultStoreTestBase):
+
+    def setUp(self):
+        super(BuildResultStoreTests, self).setUp()
+
+        self.x = data.BuildResultStore(
+            os.path.join(self.path, "data", "oldrevs"))
+
+
+class CachingBuildResultStoreTests(BuildFarmTestCase,BuildResultStoreTestBase):
+
+    def setUp(self):
+        super(CachingBuildResultStoreTests, self).setUp()
+
+        self.x = data.CachingBuildResultStore(
+            os.path.join(self.path, "data", "oldrevs"),
+            os.path.join(self.path, "cache"))
+
+    def test_cache_fname(self):
+        self.assertEquals(
+            self.x.cache_fname("mytree", "myhost", "cc", 123),
+            "%s/cache/build.mytree.myhost.cc-123" % self.path)
 
 
 class BuildStatusFromLogs(testtools.TestCase):
@@ -252,21 +264,35 @@ class BuildStatusTest(testtools.TestCase):
         self.assertEquals(cmp(d, e), -1)
 
 
-class UploadBuildResultStoreTests(BuildFarmTestCase):
-
-    def setUp(self):
-        super(UploadBuildResultStoreTests, self).setUp()
-
-        self.x = data.CachingUploadBuildResultStore(
-            os.path.join(self.path, "data", "upload"),
-            os.path.join(self.path, "cache"))
+class UploadBuildResultStoreTestBase(object):
 
     def test_build_fname(self):
         self.assertEquals(
             self.x.build_fname("mytree", "myhost", "cc"),
             "%s/data/upload/build.mytree.myhost.cc" % self.path)
 
+
+class UploadBuildResultStoreTests(UploadBuildResultStoreTestBase,BuildFarmTestCase):
+
+    def setUp(self):
+        super(UploadBuildResultStoreTests, self).setUp()
+
+        self.x = data.UploadBuildResultStore(
+            os.path.join(self.path, "data", "upload"))
+
+
+class CachingUploadBuildResultStoreTests(UploadBuildResultStoreTestBase,BuildFarmTestCase):
+
+    def setUp(self):
+        super(CachingUploadBuildResultStoreTests, self).setUp()
+
+        self.x = data.CachingUploadBuildResultStore(
+            os.path.join(self.path, "data", "upload"),
+            os.path.join(self.path, "cache"))
+
     def test_cache_fname(self):
         self.assertEquals(
             self.x.cache_fname("mytree", "myhost", "cc"),
             "%s/cache/build.mytree.myhost.cc" % self.path)
+
+
