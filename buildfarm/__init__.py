@@ -135,30 +135,26 @@ class BuildFarm(object):
 
 class CachingBuildFarm(BuildFarm):
 
-    def __init__(self, path=None, cachedirname=None):
-        self.cachedir = None
+    def __init__(self, path=None, readonly=False, cachedirname=None):
         super(CachingBuildFarm, self).__init__(path)
 
         if cachedirname:
             self.cachedir = os.path.join(self.path, cachedirname)
         else:
-            self.cachedir = os.path.join(self.path, "cache2")
+            self.cachedir = os.path.join(self.path, "cache")
         self.builds = self._open_build_results()
         self.upload_builds = self._open_upload_build_results()
+        self.readonly = readonly
 
     def _open_build_results(self):
         from buildfarm import data
-        if not self.cachedir:
-            return
         return data.CachingBuildResultStore(os.path.join(self.path, "data", "oldrevs"),
-                self.cachedir)
+                self.cachedir, reaodnly=self.readonly)
 
     def _open_upload_build_results(self):
         from buildfarm import data
-        if not self.cachedir:
-            return
         return data.CachingUploadBuildResultStore(os.path.join(self.path, "data", "upload"),
-                self.cachedir)
+                self.cachedir, readonly=self.readonly)
 
     def lcov_status(self, tree):
         """get status of build"""
@@ -183,11 +179,7 @@ class CachingBuildFarm(BuildFarm):
                 return None
             return ret
 
-        lcov_html = util.FileLoad(file)
-        perc = lcov_extract_percentage(lcov_html)
-        if perc is None:
-            ret = ""
-        else:
-            ret = perc
+        perc = super(CachingBuildFarm, self).lcov_status(tree)
+        if not self.readonly:
             util.FileSave(cachefile, ret)
         return perc
