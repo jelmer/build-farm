@@ -17,6 +17,7 @@
 
 from buildfarm import (
     BuildFarm,
+    CachingBuildFarm,
     data,
     read_trees_from_conf,
     )
@@ -73,13 +74,11 @@ branch = HEAD
             "git")
 
 
-class BuildFarmTests(BuildFarmTestCase):
+class BuildFarmTestBase(object):
 
     def setUp(self):
-        super(BuildFarmTests, self).setUp()
         self.write_compilers(["cc"])
         self.write_trees({"trivial": { "scm": "git", "repo": "git://foo", "branch": "master" }})
-        self.x = BuildFarm(self.path)
 
     def test_get_new_builds_empty(self):
         self.assertEquals([], list(self.x.get_new_builds()))
@@ -93,3 +92,19 @@ class BuildFarmTests(BuildFarmTestCase):
         self.assertEquals("git", tree.scm)
         self.assertEquals("git://foo", tree.repo)
         self.assertEquals("master", tree.branch)
+
+
+class BuildFarmTests(BuildFarmTestBase, BuildFarmTestCase):
+
+    def setUp(self):
+        BuildFarmTestCase.setUp(self)
+        BuildFarmTestBase.setUp(self)
+        self.x = BuildFarm(self.path)
+
+
+class CachingBuildFarmTests(BuildFarmTestBase, BuildFarmTestCase):
+
+    def setUp(self):
+        BuildFarmTestCase.setUp(self)
+        BuildFarmTestBase.setUp(self)
+        self.x = CachingBuildFarm(self.path)
