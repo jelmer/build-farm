@@ -132,3 +132,63 @@ class BuildFarm(object):
                         yield self.upload_builds.get_build(host, tree, compiler)
                     except data.NoSuchBuildError:
                         continue
+
+
+class CachingBuildFarm(BuildFarm):
+
+    def __init__(self, path=None, cachedirname=None):
+        self.cachedir = None
+        super(CachingBuildFarm, self).__init__(path)
+
+        if cachedirname:
+            self.cachedir = os.path.join(self.path, cachedirname)
+        else:
+            self.cachedir = os.path.join(self.path, "toto")
+        self.builds = self._open_build_results()
+        self.upload_builds = self._open_upload_build_results()
+
+    def _open_build_results(self):
+        from buildfarm import data
+        if not self.cachedir:
+            return
+        return data.CachingBuildResultStore(os.path.join(self.path, "data", "oldrevs"),
+                self.cachedir)
+
+    def _open_upload_build_results(self):
+        from buildfarm import data
+        if not self.cachedir:
+            return
+        return data.CachingUploadBuildResultStore(os.path.join(self.path, "data", "upload"),
+                self.cachedir)
+
+    def lcov_status(self, tree):
+        """get status of build"""
+        from buildfarm import data, util
+        cachefile = self.builds.get_lcov_cached_status(self.LCOVHOST, tree)
+        file = os.path.join(self.lcovdir, self.LCOVHOST, tree, "index.html")
+        try:
+            st1 = os.stat(file)
+        except OSError:
+            # File does not exist
+            raise data.NoSuchBuildError(tree, self.LCOVHOST, "lcov")
+        try:
+            st2 = os.stat(cachefile)
+        except OSError:
+            # file does not exist
+            st2 = None
+
+        if st2 and st1.st_ctime <= st2.st_mtime:
+            ret = util.FileLoad(cachefile)
+            if ret == "":
+                return None
+            return ret
+
+        lcov_html = util.FileLoad(file)
+        perc = lcov_extract_percentage(lcov_html)
+        if perc is None:
+            ret = ""
+        else:
+            ret = perc
+        if not self.readonly:
+            util.FileSave(cachefile, ret)
+        return perc

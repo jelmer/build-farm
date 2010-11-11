@@ -270,7 +270,10 @@ class CachingBuild(Build):
     to calculate."""
 
     def revision_details(self):
-        cachef = self._store.cache_fname(self.tree, self.host, self.compiler, self.rev)
+        if self.rev:
+            cachef = self._store.cache_fname(self.tree, self.host, self.compiler, self.rev)
+        else:
+            cachef = self._store.cache_fname(self.tree, self.host, self.compiler)
         st1 = os.stat("%s.log" % self.basename)
 
         try:
@@ -316,7 +319,10 @@ class CachingBuild(Build):
         return ret
 
     def status(self):
-        cachefile = self._store.cache_fname(self.tree, self.host, self.compiler, self.rev)+".status"
+        if self.rev:
+            cachefile = self._store.cache_fname(self.tree, self.host, self.compiler, self.rev)+".status"
+        else:
+            cachefile = self._store.cache_fname(self.tree, self.host, self.compiler)+".status"
 
         st1 = os.stat("%s.log" % self.basename)
 
