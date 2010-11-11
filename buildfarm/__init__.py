@@ -100,34 +100,18 @@ class BuildFarm(object):
     def lcov_status(self, tree):
         """get status of build"""
         from buildfarm import data, util
-        cachefile = os.path.join(self.cachedir, "lcov.%s.%s.status" % (
-            self.LCOVHOST, tree))
         file = os.path.join(self.lcovdir, self.LCOVHOST, tree, "index.html")
         try:
-            st1 = os.stat(file)
+            lcov_html = util.FileLoad(file)
         except OSError:
             # File does not exist
             raise data.NoSuchBuildError(tree, self.LCOVHOST, "lcov")
-        try:
-            st2 = os.stat(cachefile)
-        except OSError:
-            # file does not exist
-            st2 = None
 
-        if st2 and st1.st_ctime <= st2.st_mtime:
-            ret = util.FileLoad(cachefile)
-            if ret == "":
-                return None
-            return ret
-
-        lcov_html = util.FileLoad(file)
         perc = lcov_extract_percentage(lcov_html)
         if perc is None:
             ret = ""
         else:
             ret = perc
-        if self.readonly:
-            util.FileSave(cachefile, ret)
         return perc
 
     def get_build(self, tree, host, compiler, rev=None):
