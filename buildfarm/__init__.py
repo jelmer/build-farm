@@ -189,6 +189,5 @@ class CachingBuildFarm(BuildFarm):
             ret = ""
         else:
             ret = perc
-        if not self.readonly:
             util.FileSave(cachefile, ret)
         return perc
