@@ -66,6 +66,7 @@ class BuildFarm(object):
         if path is None:
             path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         self.path = path
+        self.cachedir = os.path.join(self.path, "cache")
         self.webdir = os.path.join(self.path, "web")
         if not os.path.isdir(path):
             raise Exception("web directory %s does not exist" % self.webdir)
@@ -99,7 +100,8 @@ class BuildFarm(object):
     def lcov_status(self, tree):
         """get status of build"""
         from buildfarm import data, util
-        cachefile = self.builds.get_lcov_cached_status(self.LCOVHOST, tree)
+        cachefile = os.path.join(self.cachedir, "lcov.%s.%s.status" % (
+            self.LCOVHOST, tree))
         file = os.path.join(self.lcovdir, self.LCOVHOST, tree, "index.html")
         try:
             st1 = os.stat(file)
@@ -130,21 +132,9 @@ class BuildFarm(object):
 
     def get_build(self, tree, host, compiler, rev=None):
         if rev:
-            if host in self.hostdb.hosts() and\
-                    tree in self.trees and\
-                    compiler in self.compilers:
-                return self.builds.get_build(tree, host, compiler)
-            else:
-                from buildfarm import data
-                raise data.NoSuchBuildError(tree, host, compiler)
+            return self.builds.get_build(tree, host, compiler, rev)
         else:
-            if host in [h.name for h in self.hostdb.hosts()] and\
-                    tree in self.trees and\
-                    compiler in self.compilers:
-                return self.upload_builds.get_build(tree, host, compiler)
-            else:
-                from buildfarm import data
-                raise data.NoSuchBuildError(tree, host, compiler)
+            return self.upload_builds.get_build(tree, host, compiler)
 
     def get_new_builds(self):
         from buildfarm import data

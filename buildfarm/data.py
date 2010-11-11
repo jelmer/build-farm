@@ -396,9 +396,6 @@ class BuildResultStore(object):
         """
         self.path = path
 
-    def get_lcov_cached_status(self, host, tree):
-        return None
-
     def get_build(self, tree, host, compiler, rev):
         logf = self.build_fname(tree, host, compiler, rev) + ".log"
         if not os.path.exists(logf):
@@ -479,8 +476,3 @@ class CachingBuildResultStore(BuildResultStore):
 
     def cache_fname(self, tree, host, compiler, rev):
         return os.path.join(self.cachedir, "build.%s.%s.%s-%s" % (tree, host, compiler, rev))
-
-    def get_lcov_cached_status(self, host, tree):
-        return os.path.join(self.cachedir, "lcov.%s.%s.status" % (host, tree))
-
-
