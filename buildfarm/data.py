@@ -55,7 +55,7 @@ class BuildStatus(object):
     def __str__(self):
         if self.other_failures:
             return ",".join(self.other_failures)
-        return "/".join([x[1] for x in self.stages])
+        return "/".join(self._status_tuple())
 
     def broken_host(self):
         if "disk full" in self.other_failures:
@@ -89,8 +89,8 @@ class BuildStatus(object):
         else:
             return cmp(other.stages, self.stages)
 
-    def __str__(self):
-        return repr((self.stages, self.other_failures))
+    def __repr__(self):
+        return "%s(%r)" % (self.__class__.__name__, (self.stages, self.other_failures))
 
 
 def check_dir_exists(kind, path):
@@ -346,12 +346,12 @@ class CachingBuild(Build):
             st2 = None
 
         if st2 and st1.st_ctime <= st2.st_mtime:
-            return BuildStatus(*eval(util.FileLoad(cachefile)))
+            return eval(util.FileLoad(cachefile))
 
         ret = super(CachingBuild, self).status()
 
         if not self._store.readonly:
-            util.FileSave(cachefile, str(ret))
+            util.FileSave(cachefile, repr(ret))
 
         return ret
 
