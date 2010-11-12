@@ -40,12 +40,8 @@ def check_and_send_mails(tree, host, compiler, cur, old):
     (old_rev, old_rev_timestamp) = old.revision_details()
     old_status = old.status()
 
-    if opts.dry_run:
-        print "rev=%s status=%s" % (cur_rev, cur_status)
-        print "old rev=%s status=%s" % (old_rev, old_status)
-
     if not cur_status.regressed_since(old_status):
-        if opts.dry_run:
+        if opts.verbose:
             print "the build didn't get worse since %r" % old_status
         return
 
@@ -83,14 +79,16 @@ The build may have been broken by one of the following commits:
     msg["Subject"] = "BUILD of %s:%s BROKEN on %s with %s AT REVISION %s" % (tree, t.branch, host, compiler, cur_rev)
     msg["From"] = "\"Build Farm\" <build@samba.org>"
     msg["To"] = ",".join(recipients.keys())
-    smtp.send(msg["From"], [msg["To"]], msg.as_string())
+    if not opts.dry_run:
+        smtp.send(msg["From"], [msg["To"]], msg.as_string())
 
 
 for build in buildfarm.get_new_builds():
-    if opts.verbose >= 2:
+    if opts.verbose >= 1:
         print "Processing %s..." % build
 
-    buildfarm.builds.upload_build(build)
+    if not opts.dry_run:
+        buildfarm.builds.upload_build(build)
 
     (rev, commit_rev, rev_timestamp) = build.revision_details()
 
@@ -103,6 +101,7 @@ for build in buildfarm.get_new_builds():
         prev_build = buildfarm.get_build(build.tree, build.host, build.compiler, prev_rev)
         check_and_send_mails(build.tree, build.host, build.compiler, build, prev_build)
 
-    build.remove()
+    if not opts.dry_run:
+        build.remove()
 
 smtp.quit()
