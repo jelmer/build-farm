@@ -41,7 +41,7 @@ def check_and_send_mails(tree, host, compiler, cur, old):
     old_status = old.status()
 
     if not cur_status.regressed_since(old_status):
-        if opts.verbose:
+        if opts.verbose >= 1:
             print "the build didn't get worse since %r" % old_status
         return
 
@@ -81,6 +81,8 @@ The build may have been broken by one of the following commits:
     msg["To"] = ",".join(recipients.keys())
     if not opts.dry_run:
         smtp.send(msg["From"], [msg["To"]], msg.as_string())
+    else:
+        print msg.as_string()
 
 
 for build in buildfarm.get_new_builds():
@@ -90,7 +92,7 @@ for build in buildfarm.get_new_builds():
     if not opts.dry_run:
         buildfarm.builds.upload_build(build)
 
-    (rev, commit_rev, rev_timestamp) = build.revision_details()
+    (rev, rev_timestamp) = build.revision_details()
 
     if opts.verbose >= 1:
         print str(build.status())
