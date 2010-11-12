@@ -137,7 +137,7 @@ class BuildFarm(object):
                     # hosts, trees and compilers as input, we ensure we
                     # control the inputs
                     try:
-                        yield self.upload_builds.get_build(host, tree, compiler)
+                        yield self.upload_builds.get_build(host.name, tree, compiler)
                     except data.NoSuchBuildError:
                         continue
 
