@@ -12,7 +12,7 @@ on recent commits.
 
 from buildfarm import (
     BuildFarm,
-    hostdb,
+    data,
     )
 from email.mime.text import MIMEText
 import logging
@@ -94,7 +94,7 @@ for build in buildfarm.get_new_builds():
 
     try:
         prev_rev = buildfarm.builds.get_previous_revision(build.tree, build.host, build.compiler, rev)
-    except hostdb.NoSuchBuild:
+    except data.NoSuchBuild:
         # Can't send a nastygram until there are 2 builds..
         continue
     else:

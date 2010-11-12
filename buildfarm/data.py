@@ -459,6 +459,9 @@ class BuildResultStore(object):
         # $st = $dbh->prepare("INSERT INTO build (tree, revision, commit_revision, host, compiler, checksum, age, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
         # $st->execute($tree, $rev, $commit, $host, $compiler, $checksum, $stat->ctime, $status_html)
 
+    def get_previous_revision(self, tree, host, compiler, revision):
+        raise NoSuchBuildError(self):
+
 """
     def get_previous_revision(self, tree, host, compiler, revision):
         # Look up the database to find the previous status
