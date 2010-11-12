@@ -94,7 +94,7 @@ for build in buildfarm.get_new_builds():
 
     try:
         prev_rev = buildfarm.builds.get_previous_revision(build.tree, build.host, build.compiler, rev)
-    except data.NoSuchBuild:
+    except data.NoSuchBuildError:
         # Can't send a nastygram until there are 2 builds..
         continue
     else:

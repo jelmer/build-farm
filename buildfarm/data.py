@@ -177,6 +177,12 @@ class Build(object):
         self.compiler = compiler
         self.rev = rev
 
+    def __repr__(self):
+        if self.rev:
+            return "<%s: revision %s of %s on %s using %s>" % (self.__class__.__name__, self.rev, self.tree, self.host, self.compiler)
+        else:
+            return "<%s: %s on %s using %s>" % (self.__class__.__name__, self.tree, self.host, self.compiler)
+
     def remove(self):
         os.unlink(self.basename + ".log")
         if os.path.exists(self.basename+".err"):
@@ -460,7 +466,7 @@ class BuildResultStore(object):
         # $st->execute($tree, $rev, $commit, $host, $compiler, $checksum, $stat->ctime, $status_html)
 
     def get_previous_revision(self, tree, host, compiler, revision):
-        raise NoSuchBuildError(self):
+        raise NoSuchBuildError(tree, host, compiler, revision)
 
 """
     def get_previous_revision(self, tree, host, compiler, revision):

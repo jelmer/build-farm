@@ -47,6 +47,11 @@ class BuildResultStoreTestBase(object):
         self.assertFalse(os.path.exists(path))
         self.assertRaises(data.NoSuchBuildError, self.x.get_build, "tdb", "charis", "cc", "12")
 
+    def test_build_repr(self):
+        path = self.create_mock_logfile("tdb", "charis", "cc", "12")
+        build = self.x.get_build("tdb", "charis", "cc", "12")
+        self.assertEquals("<%s: revision 12 of tdb on charis using cc>" % build.__class__.__name__, repr(build))
+
     def test_build_age_mtime(self):
         path = self.create_mock_logfile("tdb", "charis", "cc", "12")
         # Set mtime to something in the past
