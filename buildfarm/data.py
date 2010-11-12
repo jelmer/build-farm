@@ -503,7 +503,7 @@ class SQLCachingBuildResultStore(BuildResultStore):
         self.db = db
 
     def get_previous_revision(self, tree, host, compiler, revision):
-        cursor = self.db.execute("SELECT revision FROM build WHERE tree = ? AND host = ? AND compiler = ? AND revision < ? ORDER BY id DESC LIMIT 1", (tree, host, compiler, revision))
+        cursor = self.db.execute("SELECT commit_revision FROM build WHERE tree = ? AND host = ? AND compiler = ? AND commit_revision < ? ORDER BY id DESC LIMIT 1", (tree, host, compiler, revision))
         row = cursor.fetchone()
         if row is None:
             raise NoSuchBuildError(tree, host, compiler, revision)
