@@ -10,7 +10,7 @@ compiler=gcc
 #lcov like shared libraries
 #export config="--disable-shared"
 export PIDL_TESTS_SKIP=yes
-test_tree samba_4_0_test source4 $compiler configure config_log config_header build install test infos 
+test_tree samba_4_0_test source4 $compiler configure config_log config_header build install test lcovreport
 
 export config=""
 test_tree samba_3_current source $compiler
