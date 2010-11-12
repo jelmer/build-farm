@@ -32,10 +32,11 @@ parser.add_option("--dry-run", help="Don't actually send any emails.", action="s
 buildfarm = BuildFarm()
 db = buildfarm.hostdb
 
+smtp = smtplib.SMTP()
+smtp.connect()
+
 hosts = db.dead_hosts(7 * 86400)
 for host in hosts:
-    db.sent_dead_mail(host.name)
-
     if host.last_update:
         last_update = time.strftime("%a %b %e %H:%M:%S %Y", time.gmtime(host.last_update))
     else:
@@ -73,7 +74,6 @@ The Build Farm administration team.
     if opts.dry_run:
         print msg.as_string()
     else:
-        s = smtplib.SMTP()
-        s.connect()
-        s.send(msg["From"], [msg["To"]], msg.as_string())
-        s.quit()
+        smtp.send(msg["From"], [msg["To"]], msg.as_string())
+        db.sent_dead_mail(host.name)
+smtp.quit()
