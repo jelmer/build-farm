@@ -280,9 +280,7 @@ def view_recent_builds(myself, tree, sort_by):
             else:
                 age_mtime = build.age_mtime()
                 age_ctime = build.age_ctime()
-                (revision, commit_revision, revision_time) = build.revision_details()
-                if commit_revision:
-                    revision = commit_revision
+                (revision, revision_time) = build.revision_details()
                 if revision:
                     all_builds.append([age_ctime,
                                         host.platform.encode("utf-8"),
@@ -393,9 +391,7 @@ def view_build(myself, tree, host, compiler, rev, plain_logs=False):
     config = ""
     build = buildfarm.get_build(tree, host, compiler, rev)
     age_mtime = build.age_mtime()
-    (revision, commit_revision, revision_time) = build.revision_details()
-    if commit_revision:
-        revision = commit_revision
+    (revision, revision_time) = build.revision_details()
     status = build_status_html(myself, build)
 
     if rev:
@@ -524,9 +520,7 @@ def view_host(myself, output_type, *requested_hosts):
                 except data.NoSuchBuildError:
                     pass
                 else:
-                    (revision, commit_revision, revision_time) = build.revision_details()
-                    if commit_revision:
-                        revision = commit_revision
+                    (revision, revision_time) = build.revision_details()
                     age_mtime = build.age_mtime()
                     age_ctime = build.age_ctime()
                     warnings = build.err_count()

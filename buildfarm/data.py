@@ -229,9 +229,7 @@ class Build(object):
             f.close()
 
     def summary(self):
-        (revid, commit_revid, timestamp) = self.revision_details()
-        if commit_revid:
-            revid = commit_revid
+        (revid, timestamp) = self.revision_details()
         status = self.status()
         return BuildSummary(self.host, self.tree, self.compiler, revid, status)
 
@@ -240,23 +238,19 @@ class Build(object):
 
         :return: Tuple with revision id and timestamp (if available)
         """
-
         revid = None
-        commit_revid = None
         timestamp = None
         f = self.read_log()
         try:
             for l in f:
                 if l.startswith("BUILD COMMIT REVISION: "):
-                    commit_revid = l.split(":", 1)[1].strip()
-                elif l.startswith("BUILD REVISION: "):
                     revid = l.split(":", 1)[1].strip()
                 elif l.startswith("BUILD COMMIT TIME"):
                     timestamp = l.split(":", 1)[1].strip()
         finally:
             f.close()
 
-        return (revid, commit_revid, timestamp)
+        return (revid, timestamp)
 
     def status(self):
         """get status of build
@@ -299,18 +293,16 @@ class CachingBuild(Build):
         # the ctime/mtime asymmetry is needed so we don't get fooled by
         # the mtime update from rsync
         if st2 and st1.st_ctime <= st2.st_mtime:
-            (revid, commit_revid, timestamp) = util.FileLoad("%s.revision" % cachef).split(":", 2)
+            (revid, timestamp) = util.FileLoad("%s.revision" % cachef).split(":", 2)
             if timestamp == "":
                 timestamp = None
             if revid == "":
                 revid = None
-            if commit_revid == "":
-                commit_revid = None
-            return (revid, commit_revid, timestamp)
-        (revid, commit_revid, timestamp) = super(CachingBuild, self).revision_details()
+            return (revid, timestamp)
+        (revid, timestamp) = super(CachingBuild, self).revision_details()
         if not self._store.readonly:
-            util.FileSave("%s.revision" % cachef, "%s:%s:%s" % (revid, commit_revid or "", timestamp or ""))
-        return (revid, commit_revid, timestamp)
+            util.FileSave("%s.revision" % cachef, "%s:%s" % (revid, timestamp or ""))
+        return (revid, timestamp)
 
     def err_count(self):
         cachef = self._store.cache_fname(self.tree, self.host, self.compiler, self.revision)
@@ -464,10 +456,7 @@ class BuildResultStore(object):
         return ret
 
     def upload_build(self, build):
-        (rev, commit_rev, rev_timestamp) = build.revision_details()
-
-        if commit_rev is not None:
-            rev = commit_rev
+        (rev, rev_timestamp) = build.revision_details()
 
         if not rev:
             raise Exception("Unable to find revision in %r log" % build)
