@@ -781,6 +781,7 @@ test_tree() {
 
 			if [ $action_status != 0 ]; then
 				echo "ACTION FAILED: $action";
+				echo " return code $action_status $action";
 			else
 				echo "ACTION PASSED: $action";
 			fi
