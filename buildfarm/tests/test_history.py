@@ -21,7 +21,6 @@ from dulwich.repo import Repo
 
 import tempfile
 from testtools import TestCase
-from testtools.testcase import TestSkipped
 
 
 class GitBranchTests(TestCase):
@@ -46,5 +45,4 @@ class GitBranchTests(TestCase):
         revid = self.repo.do_commit("message", committer="Jelmer Vernooij")
         entry, diff = list(branch.diff(revid))
         self.assertEquals("message", entry.message)
-        raise TestSkipped("Must use alternative to git show")
         self.assertEquals("", diff)

@@ -19,15 +19,11 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+from cStringIO import StringIO
 
+from dulwich.objects import Tree
+from dulwich.patch import write_blob_diff
 from dulwich.repo import Repo
-import subprocess
-
-BASEDIR = "/home/build/master"
-HISTORYDIR = "/home/build/master/cache"
-TIMEZONE = "PST"
-TIMEOFFSET = 0
-UNPACKED_DIR = "/home/ftp/pub/unpacked"
 
 
 class Branch(object):
@@ -61,11 +57,28 @@ class GitBranch(object):
 
     def __init__(self, path, branch="master"):
         self.repo = Repo(path)
+        self.store = self.repo.object_store
         self.branch = branch
 
+    def _changes_for(self, commit):
+        if len(commit.parents) == 0:
+            parent_tree = Tree().id
+        else:
+            parent_tree = self.store[commit.parents[0]].tree
+        return self.store.tree_changes(parent_tree, commit.tree)
+
     def _revision_from_commit(self, commit):
-        # FIXME: modified/added/removed
-        return Revision(commit.id, commit.commit_time, commit.author, commit.message)
+        added = set()
+        modified = set()
+        removed = set()
+        for ((oldpath, newpath), (oldmode, newmode), (oldsha, newsha)) in self._changes_for(commit):
+            if oldpath is None:
+                added.add(newpath)
+            elif newpath is None:
+                removed.add(oldpath)
+            else:
+                modified.add(newpath)
+        return Revision(commit.id, commit.commit_time, commit.author, commit.message, modified=modified, removed=removed, added=added)
 
     def log(self, from_rev=None, exclude_revs=None):
         if from_rev is None:
@@ -91,5 +104,7 @@ class GitBranch(object):
 
     def diff(self, revision):
         commit = self.repo[revision]
-        x = subprocess.Popen(["git", "show", revision], cwd=self.repo.path, stdout=subprocess.PIPE)
-        return (self._revision_from_commit(commit), x.communicate()[0])
+        f = StringIO()
+        for (oldpath, newpath), (oldmode, newmode), (oldsha, newsha) in self._changes_for(commit):
+            write_blob_diff((oldpath, oldmode, self.store[oldsha]), (newpath, newmode, self.store[newsha]))
+        return (self._revision_from_commit(commit), f.getvalue())
