@@ -11,7 +11,7 @@ on recent commits.
 """
 
 from buildfarm import (
-    BuildFarm,
+    SQLCachingBuildFarm,
     data,
     )
 from email.mime.text import MIMEText
@@ -25,8 +25,7 @@ parser.add_option("--verbose", help="Be verbose", action="count")
 
 (opts, args) = parser.parse_args()
 
-# we open readonly here as only apache(www-run) has write access
-buildfarm = BuildFarm()
+buildfarm = SQLCachingBuildFarm()
 
 smtp = smtplib.SMTP()
 smtp.connect()
