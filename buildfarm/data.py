@@ -52,6 +52,11 @@ class BuildStatus(object):
         else:
             self.other_failures = set()
 
+    def __str__(self):
+        if self.other_failures:
+            return ",".join(self.other_failures)
+        return "/".join([x[1] for x in self.stages])
+
     def broken_host(self):
         if "disk full" in self.other_failures:
             return True

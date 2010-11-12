@@ -85,12 +85,15 @@ The build may have been broken by one of the following commits:
 
 for build in buildfarm.get_new_builds():
     if opts.verbose >= 1:
-        print "Processing %s..." % build
+        print "Processing %s..." % build,
 
     if not opts.dry_run:
         buildfarm.builds.upload_build(build)
 
     (rev, commit_rev, rev_timestamp) = build.revision_details()
+
+    if opts.verbose >= 1:
+        print str(build.status())
 
     try:
         prev_rev = buildfarm.builds.get_previous_revision(build.tree, build.host, build.compiler, rev)
