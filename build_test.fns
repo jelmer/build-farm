@@ -289,6 +289,41 @@ do_make() {
 	return 0
 }
 
+
+############################
+# do the coverage report
+############################
+
+action_lcovreport() {
+	if [ "$LCOV_REPORT" = "yes" ]; then
+		case "$tree" in
+		lorikeet-heimdal*)
+			lcov --directory $builddir --capture --output-file $builddir/$tree.lcov.info
+			;;
+		samba_3_master*)
+			lcov --base-directory $builddir --directory $builddir/.. --capture --output-file $builddir/$tree.lcov.info
+			;;
+		samba_4*)
+			# ugly hack for s4, as lcov is otherwise not able to find
+			# these files
+			rm -f heimdal/lib/*/{lex,parse,sel-lex}.{gcda,gcno}
+			lcov --base-directory $builddir --directory $builddir/.. --capture --output-file $builddir/$tree.lcov.info
+			;;
+		*)
+			lcov --base-directory $builddir --directory $builddir --capture --output-file $builddir/$tree.lcov.info
+			;;
+		esac
+		genhtml -o $builddir/coverage $builddir/$tree.lcov.info
+		rc=$?
+		echo "return code: $rc"
+	else
+		echo "LCOV_REPORT not set and lcovreport asked"
+		echo "Most probably an error please fix !"
+		return 1
+	fi
+}
+
+
 ############################
 # configure the tree
 ############################
@@ -791,26 +826,6 @@ test_tree() {
 			fi
 		done
 
-		if [ "$LCOV_REPORT" = "yes" ]; then
-			case "$tree" in
-			lorikeet-heimdal*)
-				lcov --directory $builddir --capture --output-file $builddir/$tree.lcov.info
-				;;
-			samba_3_master*)
-				lcov --base-directory $builddir --directory $builddir/.. --capture --output-file $builddir/$tree.lcov.info
-				;;
-			samba_4*)
-				# ugly hack for s4, as lcov is otherwise not able to find 
-				# these files
-				rm -f heimdal/lib/*/{lex,parse,sel-lex}.{gcda,gcno}
-				lcov --base-directory $builddir --directory $builddir/.. --capture --output-file $builddir/$tree.lcov.info
-				;;
-			*)
-				lcov --base-directory $builddir --directory $builddir --capture --output-file $builddir/$tree.lcov.info
-				;;
-			esac
-			genhtml -o $builddir/coverage $builddir/$tree.lcov.info
-		fi
 
 		if [ "$noclean" = "yes" ]; then
 			echo cleanup skipped!
