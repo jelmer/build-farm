@@ -67,20 +67,27 @@ class GitBranch(object):
         # FIXME: modified/added/removed
         return Revision(commit.id, commit.commit_time, commit.author, commit.message)
 
-    def log(self):
-        try:
-            commit = self.repo["refs/heads/%s" % self.branch]
-        except KeyError:
-            return
+    def log(self, from_rev=None, exclude_revs=None):
+        if from_rev is None:
+            try:
+                commit = self.repo["refs/heads/%s" % self.branch]
+            except KeyError:
+                return
+            from_rev = commit.id
+        else:
+            from_rev = commit.id
         done = set()
-        pending_commits = [commit.id]
+        pending_commits = [from_rev]
         while pending_commits != []:
              commit_id = pending_commits.pop(0)
              commit = self.repo[commit_id]
              yield self._revision_from_commit(commit)
              done.add(commit.id)
              # FIXME: Add sorted by commit_time
-             pending_commits.extend(commit.parents)
+             for p in commit.parents:
+                 if exclude_revs is not None and p in exclude_revs:
+                     continue
+                 pending_commits.append(p)
 
     def diff(self, revision):
         commit = self.repo[revision]
