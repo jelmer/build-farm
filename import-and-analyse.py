@@ -25,12 +25,8 @@ parser.add_option("--verbose", help="Be verbose", action="count")
 
 (opts, args) = parser.parse_args()
 
-UNPACKED_DIR = "/home/ftp/pub/unpacked"
-
 # we open readonly here as only apache(www-run) has write access
 buildfarm = BuildFarm()
-db = buildfarm.builds
-hostsdb = buildfarm.hostdb
 
 smtp = smtplib.SMTP()
 smtp.connect()
@@ -94,17 +90,17 @@ for build in buildfarm.get_new_builds():
     if opts.verbose >= 2:
         print "Processing %s..." % build
 
-    db.upload_build(build)
+    buildfarm.builds.upload_build(build)
 
     (rev, commit_rev, rev_timestamp) = build.revision_details()
 
     try:
-        prev_rev = db.get_previous_revision(build.tree, build.host, build.compiler, rev)
+        prev_rev = buildfarm.builds.get_previous_revision(build.tree, build.host, build.compiler, rev)
     except hostdb.NoSuchBuild:
         # Can't send a nastygram until there are 2 builds..
         continue
     else:
-        prev_build = db.get_build(build.tree, build.host, build.compiler, prev_rev)
+        prev_build = buildfarm.get_build(build.tree, build.host, build.compiler, prev_rev)
         check_and_send_mails(build.tree, build.host, build.compiler, build, prev_build)
 
 
