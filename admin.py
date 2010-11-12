@@ -32,6 +32,22 @@ buildfarm = BuildFarm()
 
 db = buildfarm.hostdb
 
+def update_rsyncd_secrets():
+    temp_rsyncd_secrets = os.path.join(os.path.dirname(__file__), "../rsyncd.secrets.new")
+    f = open(temp_rsyncd_secrets, "w")
+    f.writelines(db.create_rsync_secrets())
+    f.close()
+
+    os.rename(temp_rsyncd_secrets, "../rsyncd.secrets")
+
+def update_hosts_list():
+    temp_hosts_list_file = os.path.join(os.path.dirname(__file__), "web", "hosts.list.new")
+    f = open(temp_hosts_list_file, "w")
+    f.writelines(db.create_hosts_list())
+    f.close()
+
+    os.rename(temp_hosts_list_file, os.path.join(os.path.dirname(__file__), "web/hosts.list"))
+
 dry_run = False
 
 print "Samba Build farm management tool"
@@ -58,6 +74,9 @@ if op == "remove":
     except hostdb.NoSuchHost, e:
         print "No such host '%s'" % e.name
         sys.exit(1)
+    else:
+        update_rsyncd_secrets()
+        update_hosts_list()
 elif op == "modify":
     hostname = raw_input("Please enter hostname to modify: ")
     host = db.host(hostname)
@@ -85,6 +104,8 @@ elif op == "modify":
     else:
         print "Unknown subcommand %s" % mod_op
         sys.exit(1)
+    update_rsyncd_secrets()
+    update_hosts_list()
 elif op == "add":
     hostname = raw_input("Machine hostname: ")
     platform = raw_input("Machine platform (eg Fedora 9 x86_64): ")
@@ -155,7 +176,8 @@ Thanks, your friendly Samba build farm administrator <build@samba.org>""" % owne
                 recipients.append(msg["Bcc"])
             s.sendmail(msg["From"], recipients, msg.as_string())
         s.quit()
-
+        update_rsyncd_secrets()
+        update_hosts_list()
 elif op == "info":
     hostname = raw_input("Hostname: ")
     host = db.host(hostname)
@@ -179,17 +201,3 @@ elif op == "list":
 else:
     print "Unknown command %s" % op
     sys.exit(1)
-
-temp_rsyncd_secrets = os.path.join(os.path.dirname(__file__), "../rsyncd.secrets.new")
-f = open(temp_rsyncd_secrets, "w")
-f.writelines(db.create_rsync_secrets())
-f.close()
-
-os.rename(temp_rsyncd_secrets, "../rsyncd.secrets")
-
-temp_hosts_list_file = os.path.join(os.path.dirname(__file__), "web", "hosts.list.new")
-f = open(temp_hosts_list_file, "w")
-f.writelines(db.create_hosts_list())
-f.close()
-
-os.rename(temp_hosts_list_file, os.path.join(os.path.dirname(__file__), "web/hosts.list"))
