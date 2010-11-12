@@ -103,5 +103,6 @@ for build in buildfarm.get_new_builds():
         prev_build = buildfarm.get_build(build.tree, build.host, build.compiler, prev_rev)
         check_and_send_mails(build.tree, build.host, build.compiler, build, prev_build)
 
+    build.remove()
 
 smtp.quit()

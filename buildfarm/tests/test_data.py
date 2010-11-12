@@ -40,6 +40,13 @@ class BuildResultStoreTestBase(object):
             self.x.build_fname("mytree", "myhost", "cc", 123),
             "%s/data/oldrevs/build.mytree.myhost.cc-123" % self.path)
 
+    def test_build_remove(self):
+        path = self.create_mock_logfile("tdb", "charis", "cc", "12")
+        build = self.x.get_build("tdb", "charis", "cc", "12")
+        build.remove()
+        self.assertFalse(os.path.exists(path))
+        self.assertRaises(data.NoSuchBuildError, self.x.get_build, "tdb", "charis", "cc", "12")
+
     def test_build_age_mtime(self):
         path = self.create_mock_logfile("tdb", "charis", "cc", "12")
         # Set mtime to something in the past

@@ -177,6 +177,11 @@ class Build(object):
         self.compiler = compiler
         self.rev = rev
 
+    def remove(self):
+        os.unlink(self.basename + ".log")
+        if os.path.exists(self.basename+".err"):
+            os.unlink(self.basename+".err")
+
     ###################
     # the mtime age is used to determine if builds are still happening
     # on a host.
