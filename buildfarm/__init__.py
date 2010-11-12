@@ -20,6 +20,7 @@
 import ConfigParser
 import os
 import re
+import sqlite3
 
 
 class Tree(object):
@@ -185,6 +186,24 @@ class CachingBuildFarm(BuildFarm):
         if not self.readonly:
             util.FileSave(cachefile, perc)
         return perc
+
+
+class SQLCachingBuildFarm(BuildFarm):
+
+    def __init__(self, path=None, db=None):
+        self.db = db
+        super(SQLCachingBuildFarm, self).__init__(path)
+
+    def _get_db(self):
+        if self.db is not None:
+            return self.db
+        else:
+            return sqlite3.connect(os.path.join(self.path, "hostdb.sqlite"))
+
+    def _open_build_results(self):
+        from buildfarm import data
+        return data.SQLCachingBuildResultStore(os.path.join(self.path, "data", "oldrevs"),
+            self.db)
 
 
 def setup_db(db):

@@ -18,6 +18,7 @@
 from buildfarm import (
     BuildFarm,
     CachingBuildFarm,
+    SQLCachingBuildFarm,
     data,
     read_trees_from_conf,
     )
@@ -126,3 +127,11 @@ class CachingBuildFarmTests(BuildFarmTestBase, BuildFarmTestCase):
         BuildFarmTestCase.setUp(self)
         BuildFarmTestBase.setUp(self)
         self.x = CachingBuildFarm(self.path)
+
+
+class SQLCachingBuildFarmTests(BuildFarmTestBase, BuildFarmTestCase):
+
+    def setUp(self):
+        BuildFarmTestCase.setUp(self)
+        BuildFarmTestBase.setUp(self)
+        self.x = SQLCachingBuildFarm(self.path)

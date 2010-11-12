@@ -15,7 +15,9 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+from buildfarm import setup_db
 import os
+import sqlite3
 from testtools import TestCase
 import shutil
 import tempfile
@@ -71,6 +73,9 @@ class BuildFarmTestCase(TestCase):
 
         for subdir in ["data", "data/upload", "data/oldrevs", "cache", "web", "lcov", "lcov/data"]:
             os.mkdir(os.path.join(self.path, subdir))
+
+        db = sqlite3.connect(os.path.join(self.path, "hostdb.sqlite"))
+        setup_db(db)
 
     def tearDown(self):
         shutil.rmtree(self.path)
