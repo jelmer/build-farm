@@ -20,20 +20,24 @@
 from buildfarm import (
     BuildFarm,
     )
+import optparse
 import smtplib
 from email.MIMEText import MIMEText
 import time
 
+parser = optparse.OptionParser()
+parser.add_option("--dry-run", help="Don't actually send any emails.", action="store_true")
+(opts, args) = parser.parse_args()
+
 buildfarm = BuildFarm()
 db = buildfarm.hostdb
-dry_run = False
 
 hosts = db.dead_hosts(7 * 86400)
 for host in hosts:
     db.sent_dead_mail(host.name)
 
     if host.last_update:
-        last_update = time.strftime ("%a %b %e %H:%M:%S %Y", time.gmtime(host.last_update))
+        last_update = time.strftime("%a %b %e %H:%M:%S %Y", time.gmtime(host.last_update))
     else:
         last_update = "a long time"
 
@@ -66,7 +70,7 @@ The Build Farm administration team.
     msg["From"] = "\"Samba Build Farm\" <build@samba.org>"
     msg["To"] = "\"%s\" <%s>" % host.owner
 
-    if dry_run:
+    if opts.dry_run:
         print msg.as_string()
     else:
         s = smtplib.SMTP()
