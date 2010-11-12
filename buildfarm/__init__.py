@@ -103,7 +103,7 @@ class BuildFarm(object):
 
     def _load_compilers(self):
         from buildfarm import util
-        return util.load_list(os.path.join(self.webdir, "compilers.list"))
+        return set(util.load_list(os.path.join(self.webdir, "compilers.list")))
 
     def lcov_status(self, tree):
         """get status of build"""
@@ -129,17 +129,10 @@ class BuildFarm(object):
             return self.upload_builds.get_build(tree, host, compiler)
 
     def get_new_builds(self):
-        from buildfarm import data
-        for host in self.hostdb.hosts():
-            for tree in self.trees:
-                for compiler in self.compilers:
-                    # By building the log file name this way, using only the list of
-                    # hosts, trees and compilers as input, we ensure we
-                    # control the inputs
-                    try:
-                        yield self.upload_builds.get_build(tree, host.name, compiler)
-                    except data.NoSuchBuildError:
-                        continue
+        hosts = set([host.name for host in self.hostdb.hosts()])
+        for build in self.upload_builds.get_new_builds():
+            if build.tree in self.trees and build.compiler in self.compilers and build.host in hosts:
+                yield build
 
 
 class CachingBuildFarm(BuildFarm):

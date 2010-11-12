@@ -298,6 +298,15 @@ class UploadBuildResultStoreTestBase(object):
             self.x.build_fname("mytree", "myhost", "cc"),
             "%s/data/upload/build.mytree.myhost.cc" % self.path)
 
+    def test_get_new_builds(self):
+        self.assertEquals([], list(self.x.get_new_builds()))
+        path = self.create_mock_logfile("tdb", "charis", "cc")
+        new_builds = list(self.x.get_new_builds())
+        self.assertEquals(1, len(new_builds))
+        self.assertEquals("tdb", new_builds[0].tree)
+        self.assertEquals("charis", new_builds[0].host)
+        self.assertEquals("cc", new_builds[0].compiler)
+
 
 class UploadBuildResultStoreTests(UploadBuildResultStoreTestBase,BuildFarmTestCase):
 

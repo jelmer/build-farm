@@ -55,7 +55,7 @@ class BuildStatus(object):
     def __str__(self):
         if self.other_failures:
             return ",".join(self.other_failures)
-        return "/".join(self._status_tuple())
+        return "/".join(map(str, self._status_tuple()))
 
     def broken_host(self):
         if "disk full" in self.other_failures:
@@ -364,6 +364,16 @@ class UploadBuildResultStore(object):
         :param path: Build result base directory
         """
         self.path = path
+
+    def get_new_builds(self):
+        for name in os.listdir(self.path):
+            try:
+                (build, tree, host, compiler, extension) = name.split(".")
+            except ValueError:
+                continue
+            if build != "build" or extension != "log":
+                continue
+            yield self.get_build(tree, host, compiler)
 
     def build_fname(self, tree, host, compiler):
         return os.path.join(self.path, "build.%s.%s.%s" % (tree, host, compiler))
