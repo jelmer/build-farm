@@ -32,7 +32,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from buildfarm import (
     CachingBuildFarm,
     data,
-    history,
     util,
     )
 
@@ -48,7 +47,6 @@ basedir = os.path.abspath(os.path.join(webdir, ".."))
 buildfarm = CachingBuildFarm()
 
 db = data.BuildResultStore(basedir)
-#history = history.History(db)
 hostsdb = buildfarm.hostdb
 
 compilers = buildfarm.compilers
@@ -804,29 +802,20 @@ def diff_pretty(diff):
 
 def web_paths(t, paths):
     """change the given source paths into links"""
-    ret = ""
-
-    fmt = None
-
     if t.scm == "git":
-        r = t.repo
-        s = t.subdir
-        b = t.branch
-        fmt = " <a href=\"%s/?p=%s;a=history;f=%s%%s;h=%s;hb=%s\">%%s</a>" % (GITWEB_BASE, r, s, b, b)
+        ret = ""
+        for path in paths:
+            ret += " <a href=\"%s/?p=%s;a=history;f=%s%s;h=%s;hb=%s\">%s</a>" % (GITWEB_BASE, t.repo, t.subdir, path, t.branch, t.branch, path)
+        return ret
     else:
-        return paths
-
-    for m in re.finditer("\s*([^\s]+)", paths):
-        ret += fmt % (m.group(1), m.group(1))
-
-    return ret
+        raise Exception("Unknown scm %s" % t.scm)
 
 
 def history_row_html(myself, entry, tree):
     """show one row of history table"""
-    msg = cgi.escape(entry["MESSAGE"])
-    t = time.asctime(time.gmtime(entry["DATE"]))
-    age = util.dhm_time(time()-entry["DATE"])
+    msg = cgi.escape(entry.message)
+    t = time.asctime(time.gmtime(entry.date))
+    age = util.dhm_time(time()-entry.date)
 
     t = t.replace(" ", "&nbsp;")
 
@@ -835,11 +824,11 @@ def history_row_html(myself, entry, tree):
     <div class=\"datetime\">
         <span class=\"date\">%s</span><br />
         <span class=\"age\">%s ago</span>""" % (t, age)
-    if entry["REVISION"]:
-        yield " - <span class=\"revision\">%s</span><br/>" % entry["REVISION"]
-        revision_url = "revision=%s" % entry["REVISION"]
+    if entry.revision:
+        yield " - <span class=\"revision\">%s</span><br/>" % entry.revision
+        revision_url = "revision=%s" % entry.revision
     else:
-        revision_url = "author=%s" % entry["AUTHOR"]
+        revision_url = "author=%s" % entry.author
     yield """    </div>
     <div class=\"diff\">
         <span class=\"html\"><a href=\"%s?function=diff;tree=%s;date=%s;%s\">show diffs</a></span>
@@ -852,9 +841,9 @@ def history_row_html(myself, entry, tree):
     </div>
     <div class=\"author\">
     <span class=\"label\">Author: </span>%s
-    </div>""" % (myself, tree, entry["DATE"], revision_url,
-                 myself, tree, entry["DATE"], revision_url,
-                 msg, entry["AUTHOR"])
+    </div>""" % (myself, tree, entry.date, revision_url,
+                 myself, tree, entry.date, revision_url,
+                 msg, entry.author)
 
     t = db.trees.get(tree)
 
@@ -862,45 +851,44 @@ def history_row_html(myself, entry, tree):
         yield "</div>"
         return
 
-    if entry["FILES"]:
+    if entry.modified:
         yield "<div class=\"files\"><span class=\"label\">Modified: </span>"
-        yield web_paths(t, entry["FILES"])
+        yield web_paths(t, entry.modified)
         yield "</div>\n"
 
-    if entry["ADDED"]:
+    if entry.added:
         yield "<div class=\"files\"><span class=\"label\">Added: </span>"
-        yield web_paths(t, entry["ADDED"])
+        yield web_paths(t, entry.added)
         yield "</div>\n"
 
-    if entry["REMOVED"]:
+    if entry.removed:
         yield "<div class=\"files\"><span class=\"label\">Removed: </span>"
-        yield web_paths(t, entry["REMOVED"])
+        yield web_paths(t, entry.removed)
         yield "</div>\n"
 
     yield "</div>\n"
 
+
 def history_row_text(entry, tree):
     """show one row of history table"""
-    msg = cgi.escape(entry["MESSAGE"])
-    t = time.asctime(time.gmtime(entry["DATE"]))
-    age = util.dhm_time(time()-entry["DATE"])
+    msg = cgi.escape(entry.message)
+    t = time.asctime(time.gmtime(entry.date))
+    age = util.dhm_time(time()-entry.date)
 
-    yield "Author: %s\n" % entry["AUTHOR"]
-    if entry["REVISION"]:
-        yield "Revision: %s\n" % entry["REVISION"]
-    yield "Modified: %s\n" % entry["FILES"]
-    yield "Added: %s\n" % entry["ADDED"]
-    yield "Removed: %s\n" % entry["REMOVED"]
+    yield "Author: %s\n" % entry.author
+    if entry.revision:
+        yield "Revision: %s\n" % entry.revision
+    yield "Modified: %s\n" % entry.modified
+    yield "Added: %s\n" % entry.added
+    yield "Removed: %s\n" % entry.removed
     yield "\n\n%s\n\n\n" % msg
 
 
-def show_diff(cmd, diff, text_html):
+def show_diff(diff, text_html):
     if text_html == "html":
         diff = cgi.escape(diff)
         diff = diff_pretty(diff)
-        ret = "<!-- %s -->\n" % cmd
-        ret += "<pre>%s</pre>\n" % diff
-        return ret
+        return "<pre>%s</pre>\n" % diff
     else:
         return "%s\n" % diff
 
@@ -928,13 +916,11 @@ def buildApp(environ, start_response):
 
     if fn_name == 'text_diff':
         start_response('200 OK', [('Content-type', 'application/x-diff')])
-        (title, entry, tree, diffs) = history.diff(get_param(form, 'author'),
-              get_param(form, 'date'),
-              get_param(form, 'tree'),
-              get_param(form, 'revision'))
+        tree = get_param(form, 'tree')
+        t = db.trees[tree]
+        (entry, diff) = t.get_branch().diff(get_param(form, 'revision'))
         yield "".join(history_row_text(entry, tree))
-        for (cmd, diff) in diffs:
-            yield show_diff(cmd, diff, "text")
+        yield show_diff(diff, "text")
     elif fn_name == 'Text_Summary':
         start_response('200 OK', [('Content-type', 'text/plain')])
         yield "".join(view_summary(myself, 'text'))
@@ -973,7 +959,7 @@ def buildApp(environ, start_response):
             tree =  get_param(form, "tree")
             t = db.trees[tree]
             authors = set(["ALL"])
-            authors.update(history.authors(tree))
+            authors.update(t.get_branch().authors(tree))
 
             yield "<h2>Recent checkins for %s (%s branch %s)</h2>\n" % (
                 tree, t.scm, t.branch)
@@ -988,18 +974,23 @@ def buildApp(environ, start_response):
             yield "<input type='hidden' name='function', value='Recent Checkins'/>"
             yield "</form>"
 
-            for entry, tree in history.history(get_param(form, 'tree'), get_param(form, 'author')):
-                yield "".join(history_row_html(myself, entry, tree))
+            branch = t.get_branch()
+            author = get_param(form, 'author')
+
+            for entry in branch.log():
+                if author in ("ALL", "", entry.author):
+                    yield "".join(history_row_html(myself, entry, tree))
             yield "\n"
         elif fn_name == "diff":
-            (title, entry, tree, diffs) = history.diff(get_param(form, 'author'),
-                    get_param(form, 'date'),
-                    get_param(form, 'tree'),
-                    get_param(form, 'revision'))
+            t = db.trees[tree]
+            revision = get_param(form, 'revision')
+            (entry, diff) = t.get_branch().diff(revision)
+            # get information about the current diff
+            title = "GIT Diff in %s:%s for revision %s" % (
+                tree, t.branch, revision)
             yield "<h2>%s</h2>" % title
             yield "".join(history_row_html(myself, entry, tree))
-            for (cmd, diff) in diffs:
-                yield show_diff(cmd, diff, "html")
+            yield show_diff(diff, "html")
         elif os.getenv("PATH_INFO") not in (None, "", "/"):
             paths = os.getenv("PATH_INFO").split('/')
             if paths[1] == "recent":

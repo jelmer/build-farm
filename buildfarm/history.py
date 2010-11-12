@@ -20,10 +20,8 @@
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-from buildfarm import util
-
-import commands
-import os
+from dulwich.repo import Repo
+import subprocess
 
 BASEDIR = "/home/build/master"
 HISTORYDIR = "/home/build/master/cache"
@@ -31,69 +29,60 @@ TIMEZONE = "PST"
 TIMEOFFSET = 0
 UNPACKED_DIR = "/home/ftp/pub/unpacked"
 
-class History(object):
 
-    def __init__(self, db):
-        self.db = db
+class Branch(object):
 
-    def _log(self, tree):
-        return util.LoadStructure(os.path.join(HISTORYDIR, "history.%s" % tree))
+    def authors(self):
+        ret = set()
+        for rev in self.log():
+            ret.add(rev.author)
+        return ret
 
-    def diff(self, author, date, tree, revision):
-        """get recent git entries"""
-        # validate the tree
-        t = self.db.trees[tree]
+    def log(self):
+        raise NotImplementedError(self.log)
 
-        if t.scm == "git":
-            self._git_diff(t, revision, tree)
-        else:
-            raise Exception("Unknown VCS %s" % t.scm)
+    def diff(self, revision):
+        raise NotImplementedError(self.diff)
 
-    def _git_diff(self, t, revision, tree):
-        """show recent git entries"""
 
-        log = self._log(tree)
+class Revision(object):
 
-        # backwards? why? well, usually our users are looking for the newest
-        # stuff, so it's most likely to be found sooner
-        for i in range(len(log), 0, -1):
-            if log[i]["REVISION"] == revision:
-                entry = log[i]
-                break
-        else:
-            raise Exception("Unable to locate commit information revision[%s]." % revision)
+    def __init__(self, revision, date, author, message, modified=[], added=[], removed=[]):
+        self.revision = revision
+        self.date = date
+        self.author = author
+        self.message = message
+        self.modified = modified
+        self.added = added
+        self.removed = removed
 
-        # get information about the current diff
-        title = "GIT Diff in %s:%s for revision %s" % (
-            tree, t.branch, revision)
 
-        pwd = os.environ["PWD"]
-        ret = None
+class GitBranch(object):
+
+    def __init__(self, path, branch="master"):
+        self.repo = Repo(path)
+        self.branch = branch
+
+    def _revision_from_commit(self, commit):
+        # FIXME: modified/added/removed
+        return Revision(commit.id, commit.commit_time, commit.author, commit.message)
+
+    def log(self):
         try:
-            os.chdir(os.path.join(UNPACKED_DIR, tree))
-            cmd = "git diff %s^ %s ./" % (revision, revision)
-            ret = (title, entry, tree, [(cmd, commands.getoutput("%s 2> /dev/null" % cmd))])
+            commit = self.repo["refs/heads/%s" % self.branch]
+        except KeyError:
+            return
+        done = set()
+        pending_commits = [commit.id]
+        while pending_commits != []:
+             commit_id = pending_commits.pop(0)
+             commit = self.repo[commit_id]
+             yield self._revision_from_commit(commit)
+             done.add(commit.id)
+             # FIXME: Add sorted by commit_time
+             pending_commits.extend(commit.parents)
 
-        finally:
-            os.chdir(pwd)
-            return ret
-
-    def authors(self, tree):
-        log = self._log(tree)
-        authors = set()
-        for entry in log:
-            authors.add(entry["AUTHOR"])
-        return authors
-
-    def history(self, tree, author=None):
-        """get commit history for the given tree"""
-        log = self._log(tree)
-
-        # what? backwards? why is that? oh... I know... we want the newest first
-        for i in range(len(log), 0, -1):
-            entry = log[i]
-            if (author is None or
-                (author == "") or
-                (author == "ALL") or
-                (author == entry["AUTHOR"])):
-                yield entry, tree
+    def diff(self, revision):
+        commit = self.repo[revision]
+        x = subprocess.Popen(["git", "show", revision], cwd=self.repo.path, stdout=subprocess.PIPE)
+        return (self._revision_from_commit(commit), x.communicate()[0])

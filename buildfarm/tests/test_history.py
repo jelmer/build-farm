@@ -15,6 +15,36 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-import testtools
+from buildfarm.history import GitBranch
 
-from buildfarm import history
+from dulwich.repo import Repo
+
+import tempfile
+from testtools import TestCase
+from testtools.testcase import TestSkipped
+
+
+class GitBranchTests(TestCase):
+
+    def setUp(self):
+        super(GitBranchTests, self).setUp()
+        self.repo = Repo.init(tempfile.mkdtemp())
+
+    def test_log_empty(self):
+        branch = GitBranch(self.repo.path, "master")
+        self.assertEquals([], list(branch.log()))
+
+    def test_log_commits(self):
+        branch = GitBranch(self.repo.path, "master")
+        self.repo.do_commit("message", committer="Jelmer Vernooij")
+        log = list(branch.log())
+        self.assertEquals(1, len(log))
+        self.assertEquals("message", log[0].message)
+
+    def test_empty_diff(self):
+        branch = GitBranch(self.repo.path, "master")
+        revid = self.repo.do_commit("message", committer="Jelmer Vernooij")
+        entry, diff = list(branch.diff(revid))
+        self.assertEquals("message", entry.message)
+        raise TestSkipped("Must use alternative to git show")
+        self.assertEquals("", diff)

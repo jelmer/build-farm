@@ -34,6 +34,10 @@ class Tree(object):
         self.srcdir = srcdir
         self.scm = scm
 
+    def get_branch(self):
+        from buildfarm.history import GitBranch
+        return GitBranch(self.repo, self.branch)
+
     def __repr__(self):
         return "<%s %r>" % (self.__class__.__name__, self.name)
 
