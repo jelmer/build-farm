@@ -50,7 +50,7 @@ def read_trees_from_conf(path):
     """
     ret = {}
     cfp = ConfigParser.ConfigParser()
-    cfp.readfp(open(path))
+    cfp.read(path)
     for s in cfp.sections():
         ret[s] = Tree(name=s, **dict(cfp.items(s)))
     return ret
