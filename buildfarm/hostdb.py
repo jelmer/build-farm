@@ -18,6 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from buildfarm import setup_db
 
 import sqlite3
 import time
@@ -68,13 +69,7 @@ class HostDatabase(object):
         else:
             self.db = sqlite3.connect(filename)
         self.filename = filename
-        self.db.executescript("""
-            CREATE TABLE IF NOT EXISTS host ( name text, owner text, owner_email text, password text, ssh_access int, fqdn text, platform text, permission text, last_dead_mail int, join_time int );
-            CREATE UNIQUE INDEX IF NOT EXISTS unique_hostname ON host (name);
-            CREATE TABLE IF NOT EXISTS build ( id integer primary key autoincrement, tree text, revision text, host text, compiler text, checksum text, age int, status text, commit_revision text);
-            CREATE UNIQUE INDEX IF NOT EXISTS unique_checksum ON build (checksum);
-            CREATE TABLE IF NOT EXISTS test_run ( build int, test text, result text, output text);
-            """)
+        setup_db(self.db)
         self.db.commit()
 
     def createhost(self, name, platform=None, owner=None, owner_email=None, password=None, permission=None):

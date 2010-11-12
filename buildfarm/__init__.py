@@ -185,3 +185,13 @@ class CachingBuildFarm(BuildFarm):
         if not self.readonly:
             util.FileSave(cachefile, perc)
         return perc
+
+
+def setup_db(db):
+    db.executescript("""
+        CREATE TABLE IF NOT EXISTS host (name text, owner text, owner_email text, password text, ssh_access int, fqdn text, platform text, permission text, last_dead_mail int, join_time int);
+        CREATE UNIQUE INDEX IF NOT EXISTS unique_hostname ON host (name);
+        CREATE TABLE IF NOT EXISTS build (id integer primary key autoincrement, tree text, revision text, host text, compiler text, checksum text, age int, status text, commit_revision text);
+        CREATE UNIQUE INDEX IF NOT EXISTS unique_checksum ON build (checksum);
+        CREATE TABLE IF NOT EXISTS test_run (build int, test text, result text, output text);
+        """)

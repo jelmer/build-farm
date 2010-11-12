@@ -21,11 +21,12 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-
+from buildfarm import setup_db
 from cStringIO import StringIO
 import hashlib
 import os
 import re
+import sqlite3
 import time
 import util
 
@@ -483,18 +484,6 @@ class BuildResultStore(object):
     def get_previous_revision(self, tree, host, compiler, revision):
         raise NoSuchBuildError(tree, host, compiler, revision)
 
-"""
-    def get_previous_revision(self, tree, host, compiler, revision):
-        # Look up the database to find the previous status
-        $st = $dbh->prepare("SELECT status, revision, commit_revision FROM build WHERE tree = ? AND host = ? AND compiler = ? AND revision != ? AND commit_revision != ? ORDER BY id DESC LIMIT 1")
-        $st->execute( $tree, $host, $compiler, $rev, $commit)
-
-        while ( my @row = $st->fetchrow_array ) {
-            $old_status_html = @row[0]
-            $old_rev = @row[1]
-            $old_commit = @row[2]
-        """
-
 
 class CachingBuildResultStore(BuildResultStore):
 
@@ -515,3 +504,22 @@ class CachingBuildResultStore(BuildResultStore):
 
     def cache_fname(self, tree, host, compiler, rev):
         return os.path.join(self.cachedir, "build.%s.%s.%s-%s" % (tree, host, compiler, rev))
+
+
+class SQLCachingBuildResultStore(BuildResultStore):
+
+    def __init__(self, basedir, db=None):
+        super(SQLCachingBuildResultStore, self).__init__(basedir)
+
+        if db is None:
+            db = sqlite3.connect(":memory:")
+            setup_db(db)
+
+        self.db = db
+
+    def get_previous_revision(self, tree, host, compiler, revision):
+        cursor = self.db.execute("SELECT revision FROM build WHERE tree = ? AND host = ? AND compiler = ? AND revision != ? AND commit_revision != ? ORDER BY id DESC LIMIT 1", (tree, host, compiler, revision, revision))
+        row = cursor.fetchone()
+        if row is None:
+            raise NoSuchBuildError(tree, host, compiler, revision)
+        return row[0]

@@ -132,6 +132,9 @@ BUILD COMMIT REVISION: myrev
         build = data.Build(None, path[:-4], "tdb", "charis", "cc")
         self.assertRaises(Exception, self.x.upload_build, build)
 
+    def test_get_previous_revision(self):
+        self.assertRaises(data.NoSuchBuildError, self.x.get_previous_revision, "tdb", "charis", "cc", "12")
+
 
 
 class BuildResultStoreTests(BuildFarmTestCase,BuildResultStoreTestBase):
@@ -156,6 +159,15 @@ class CachingBuildResultStoreTests(BuildFarmTestCase,BuildResultStoreTestBase):
         self.assertEquals(
             self.x.cache_fname("mytree", "myhost", "cc", 123),
             "%s/cache/build.mytree.myhost.cc-123" % self.path)
+
+
+class SQLCachingBuildResultStoreTests(BuildFarmTestCase,BuildResultStoreTestBase):
+
+    def setUp(self):
+        super(SQLCachingBuildResultStoreTests, self).setUp()
+
+        self.x = data.SQLCachingBuildResultStore(
+            os.path.join(self.path, "data", "oldrevs"))
 
 
 class BuildStatusFromLogs(testtools.TestCase):
@@ -330,5 +342,3 @@ class CachingUploadBuildResultStoreTests(UploadBuildResultStoreTestBase,BuildFar
         self.assertEquals(
             self.x.cache_fname("mytree", "myhost", "cc"),
             "%s/cache/build.mytree.myhost.cc" % self.path)
-
-
