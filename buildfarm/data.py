@@ -33,11 +33,11 @@ import util
 
 class BuildSummary(object):
 
-    def __init__(self, host, tree, compiler, rev, status):
+    def __init__(self, host, tree, compiler, revision, status):
         self.host = host
         self.tree = tree
         self.compiler = compiler
-        self.rev = rev
+        self.revision = revision
         self.status = status
 
 
@@ -181,11 +181,11 @@ class Build(object):
         self.tree = tree
         self.host = host
         self.compiler = compiler
-        self.rev = rev
+        self.revision = rev
 
     def __repr__(self):
-        if self.rev:
-            return "<%s: revision %s of %s on %s using %s>" % (self.__class__.__name__, self.rev, self.tree, self.host, self.compiler)
+        if self.revision:
+            return "<%s: revision %s of %s on %s using %s>" % (self.__class__.__name__, self.revision, self.tree, self.host, self.compiler)
         else:
             return "<%s: %s on %s using %s>" % (self.__class__.__name__, self.tree, self.host, self.compiler)
 
@@ -284,8 +284,8 @@ class CachingBuild(Build):
     to calculate."""
 
     def revision_details(self):
-        if self.rev:
-            cachef = self._store.cache_fname(self.tree, self.host, self.compiler, self.rev)
+        if self.revision:
+            cachef = self._store.cache_fname(self.tree, self.host, self.compiler, self.revision)
         else:
             cachef = self._store.cache_fname(self.tree, self.host, self.compiler)
         st1 = os.stat("%s.log" % self.basename)
@@ -313,7 +313,7 @@ class CachingBuild(Build):
         return (revid, commit_revid, timestamp)
 
     def err_count(self):
-        cachef = self._store.cache_fname(self.tree, self.host, self.compiler, self.rev)
+        cachef = self._store.cache_fname(self.tree, self.host, self.compiler, self.revision)
         st1 = os.stat("%s.err" % self.basename)
 
         try:
@@ -333,8 +333,8 @@ class CachingBuild(Build):
         return ret
 
     def status(self):
-        if self.rev:
-            cachefile = self._store.cache_fname(self.tree, self.host, self.compiler, self.rev)+".status"
+        if self.revsion:
+            cachefile = self._store.cache_fname(self.tree, self.host, self.compiler, self.revision)+".status"
         else:
             cachefile = self._store.cache_fname(self.tree, self.host, self.compiler)+".status"
 
@@ -477,10 +477,6 @@ class BuildResultStore(object):
         if os.path.exists(build.basename+".err"):
             os.link(build.basename+".err", new_basename+".err")
 
-        # FIXME:
-        # $st = $dbh->prepare("INSERT INTO build (tree, revision, commit_revision, host, compiler, checksum, age, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
-        # $st->execute($tree, $rev, $commit, $host, $compiler, $checksum, $stat->ctime, $status_html)
-
     def get_previous_revision(self, tree, host, compiler, revision):
         raise NoSuchBuildError(tree, host, compiler, revision)
 
@@ -518,8 +514,12 @@ class SQLCachingBuildResultStore(BuildResultStore):
         self.db = db
 
     def get_previous_revision(self, tree, host, compiler, revision):
-        cursor = self.db.execute("SELECT revision FROM build WHERE tree = ? AND host = ? AND compiler = ? AND revision != ? AND commit_revision != ? ORDER BY id DESC LIMIT 1", (tree, host, compiler, revision, revision))
+        cursor = self.db.execute("SELECT revision FROM build WHERE tree = ? AND host = ? AND compiler = ? AND revision < ? ORDER BY id DESC LIMIT 1", (tree, host, compiler, revision))
         row = cursor.fetchone()
         if row is None:
             raise NoSuchBuildError(tree, host, compiler, revision)
         return row[0]
+
+    def upload_build(self, build):
+        super(SQLCachingBuildResultStore, self).upload_build(build)
+        self.db.execute("INSERT INTO build (tree, revision, commit_revision, host, compiler, checksum, age, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (build.tree, build.revision, build.revision, build.host, build.compiler, build.log_checksum(), build.age_mtime(), repr(build.status())))

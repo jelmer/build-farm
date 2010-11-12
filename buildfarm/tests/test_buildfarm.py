@@ -100,7 +100,7 @@ class BuildFarmTestBase(object):
         self.assertEquals("tdb", build.tree)
         self.assertEquals("charis", build.host)
         self.assertEquals("cc", build.compiler)
-        self.assertEquals("12", build.rev)
+        self.assertEquals("12", build.revision)
 
     def test_get_build_no_rev(self):
         path = self.create_mock_logfile("tdb", "charis", "cc", 
@@ -109,7 +109,7 @@ class BuildFarmTestBase(object):
         self.assertEquals("tdb", build.tree)
         self.assertEquals("charis", build.host)
         self.assertEquals("cc", build.compiler)
-        self.assertIs(None, build.rev)
+        self.assertIs(None, build.revision)
 
 
 class BuildFarmTests(BuildFarmTestBase, BuildFarmTestCase):
