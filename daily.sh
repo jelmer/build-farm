@@ -7,7 +7,7 @@ set -x
 date
 set -x
 sqlite3 `dirname $0`/hostdb.sqlite 'VACUUM;'
-cd `dirname $0` && ./mail-dead-hosts.pl
+cd `dirname $0` && ./mail-dead-hosts.py
 
 echo "deleting old file that are not used any more"
 find `dirname $0`/data/oldrevs -type f -mtime +10 -links 1 -print0 | xargs -i -0 rm -f \{\}
