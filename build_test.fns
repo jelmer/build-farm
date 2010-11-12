@@ -842,7 +842,7 @@ test_tree() {
 	if [ "$LCOV_REPORT" = "yes" ]; then
 		chmod u=rwX,g=rX,o=rX -R $builddir/coverage
 		rsync -rct -q --password-file=.password -z --timeout=200 \
-		$builddir/coverage/ $host@build.samba.org::lcov_data/$host/$tree/
+			$builddir/coverage/ $host@build.samba.org::lcov_data/$host/$tree/
 	fi
 
 	cd $test_root
