@@ -38,7 +38,7 @@ def check_and_send_mails(tree, host, compiler, cur, old):
     old_status = old.status()
 
     if not cur_status.regressed_since(old_status):
-        if opts.verbose >= 1:
+        if opts.verbose >= 3:
             print "... hasn't regressed since %s: %s" % (old_rev, old_status)
         return
 
@@ -83,7 +83,7 @@ The build may have been broken by one of the following commits:
 
 
 for build in buildfarm.get_new_builds():
-    if opts.verbose >= 1:
+    if opts.verbose >= 2:
         print "Processing %s..." % build,
 
     if not opts.dry_run:
@@ -91,7 +91,7 @@ for build in buildfarm.get_new_builds():
 
     (rev, rev_timestamp) = build.revision_details()
 
-    if opts.verbose >= 1:
+    if opts.verbose >= 2:
         print str(build.status())
 
     try:
@@ -114,7 +114,8 @@ for build in buildfarm.get_new_builds():
             check_and_send_mails(build.tree, build.host, build.compiler, build, prev_build)
 
     if not opts.dry_run:
-        build.remove()
+        # When the new web script is introduced, kill the build here:
+        # build.remove()
         buildfarm.commit()
 
 smtp.quit()

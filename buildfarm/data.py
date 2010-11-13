@@ -376,6 +376,7 @@ class BuildResultStore(object):
         os.link(build.basename+".log", new_basename+".log")
         if os.path.exists(build.basename+".err"):
             os.link(build.basename+".err", new_basename+".err")
+        return Build(new_basename, build.tree, build.host, build.compiler, rev)
 
     def get_previous_revision(self, tree, host, compiler, revision):
         raise NoSuchBuildError(tree, host, compiler, revision)
