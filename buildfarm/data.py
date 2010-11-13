@@ -21,12 +21,11 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-from buildfarm import setup_db
+from buildfarm import memory_store
 from cStringIO import StringIO
 import hashlib
 import os
 import re
-import sqlite3
 import time
 import util
 
@@ -443,15 +442,9 @@ class BuildResultStore(object):
                 # skip the current build
                 if stat.st_nlink == 2:
                     continue
-                build = self.get_build(tree, host, compiler, rev)
-                r = {
-                    "STATUS": build.status(),
-                    "REVISION": rev,
-                    "TIMESTAMP": build.age_ctime(),
-                    }
-                ret.append(r)
+                ret.append(self.get_build(tree, host, compiler, rev))
 
-        ret.sort(lambda a, b: cmp(a["TIMESTAMP"], b["TIMESTAMP"]))
+        ret.sort(lambda a, b: cmp(a.age_mtime(), b.age_mtime()))
 
         return ret
 
@@ -496,30 +489,29 @@ class CachingBuildResultStore(BuildResultStore):
 
 class SQLCachingBuildResultStore(BuildResultStore):
 
-    def __init__(self, basedir, db=None):
+    def __init__(self, basedir, store=None):
         super(SQLCachingBuildResultStore, self).__init__(basedir)
 
-        if db is None:
-            db = sqlite3.connect(":memory:")
-            setup_db(db)
+        if store is None:
+            store = memory_store()
 
-        self.db = db
+        self.store = store
 
     def get_previous_revision(self, tree, host, compiler, revision):
-        cursor = self.db.execute("SELECT id FROM build WHERE tree = ? AND host = ? AND compiler = ? AND commit_revision = ?", (tree, host, compiler, revision))
-        row = cursor.fetchone()
+        cursor = self.store.execute("SELECT id FROM build WHERE tree = ? AND host = ? AND compiler = ? AND commit_revision = ?", (tree, host, compiler, revision))
+        row = cursor.get_one()
         if row is None:
             raise NoSuchBuildError(tree, host, compiler, revision)
         dbid = row[0]
-        cursor = self.db.execute("SELECT commit_revision FROM build WHERE tree = ? AND host = ? AND compiler = ? AND id < ? ORDER BY id DESC LIMIT 1", (tree, host, compiler, dbid))
-        row = cursor.fetchone()
+        cursor = self.store.execute("SELECT commit_revision FROM build WHERE tree = ? AND host = ? AND compiler = ? AND id < ? ORDER BY id DESC LIMIT 1", (tree, host, compiler, dbid))
+        row = cursor.get_one()
         if row is None:
             raise NoSuchBuildError(tree, host, compiler, revision)
         return row[0]
 
     def get_latest_revision(self, tree, host, compiler):
-        cursor = self.db.execute("SELECT commit_revision FROM build WHERE tree = ? AND host = ? AND compiler = ? ORDER BY id DESC LIMIT 1", (tree, host, compiler))
-        row = cursor.fetchone()
+        cursor = self.store.execute("SELECT commit_revision FROM build WHERE tree = ? AND host = ? AND compiler = ? ORDER BY id DESC LIMIT 1", (tree, host, compiler))
+        row = cursor.get_one()
         if row is None:
             raise NoSuchBuildError(tree, host, compiler)
         return row[0]
@@ -527,4 +519,4 @@ class SQLCachingBuildResultStore(BuildResultStore):
     def upload_build(self, build):
         super(SQLCachingBuildResultStore, self).upload_build(build)
         rev, timestamp = build.revision_details()
-        self.db.execute("INSERT INTO build (tree, revision, commit_revision, host, compiler, checksum, age, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (build.tree, rev, rev, build.host, build.compiler, build.log_checksum(), timestamp, repr(build.status())))
+        self.store.execute("INSERT INTO build (tree, revision, commit_revision, host, compiler, checksum, age, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (build.tree, rev, rev, build.host, build.compiler, build.log_checksum(), timestamp, repr(build.status())))

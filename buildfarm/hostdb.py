@@ -20,7 +20,9 @@
 
 from buildfarm import setup_db
 
-import sqlite3
+import pysqlite2
+from storm.database import create_database
+from storm.store import Store
 import time
 
 
@@ -65,46 +67,46 @@ class HostDatabase(object):
 
     def __init__(self, filename=None):
         if filename is None:
-            self.db = sqlite3.connect(":memory:")
+            self.db = create_database("sqlite:")
         else:
-            self.db = sqlite3.connect(filename)
-        self.filename = filename
-        setup_db(self.db)
-        self.db.commit()
+            self.db = create_database("sqlite:" + filename)
+        self.store = Store(self.db)
+        setup_db(self.store)
+        self.store.flush()
 
     def createhost(self, name, platform=None, owner=None, owner_email=None, password=None, permission=None):
         try:
-            self.db.execute("INSERT INTO host (name, platform, owner, owner_email, password, permission, join_time) VALUES (?,?,?,?,?,?,?)",
+            self.store.execute("INSERT INTO host (name, platform, owner, owner_email, password, permission, join_time) VALUES (?,?,?,?,?,?,?)",
                     (name, platform, owner, owner_email, password, permission, time.time()))
-        except sqlite3.IntegrityError:
+        except (pysqlite2.dbapi2.IntegrityError,):
             raise HostAlreadyExists(name)
-        self.db.commit()
+        self.store.flush()
 
     def deletehost(self, name):
-        cursor = self.db.execute("DELETE FROM host WHERE name = ?", (name,))
+        cursor = self.store.execute("DELETE FROM host WHERE name = ?", (name,))
         if cursor.rowcount == 0:
             raise NoSuchHost(name)
-        self.db.commit()
+        self.store.flush()
 
     def hosts(self):
-        cursor = self.db.execute("SELECT name, owner, owner_email, password, platform, ssh_access, fqdn FROM host ORDER BY name")
-        for row in cursor.fetchall():
+        cursor = self.store.execute("SELECT name, owner, owner_email, password, platform, ssh_access, fqdn FROM host ORDER BY name")
+        for row in cursor:
             yield Host(name=row[0], owner=row[1], owner_email=row[2], password=row[3], platform=row[4], ssh_access=bool(row[5]), fqdn=row[6])
 
     def dead_hosts(self, age):
         dead_time = time.time() - age
-        cursor = self.db.execute("SELECT host.name AS host, host.owner AS owner, host.owner_email AS owner_email, MAX(age) AS last_update FROM host LEFT JOIN build ON ( host.name == build.host) WHERE ifnull(last_dead_mail, 0) < %d AND ifnull(join_time, 0) < %d GROUP BY host.name having ifnull(MAX(age),0) < %d" % (dead_time, dead_time, dead_time))
-        for row in cursor.fetchall():
+        cursor = self.store.execute("SELECT host.name AS host, host.owner AS owner, host.owner_email AS owner_email, MAX(age) AS last_update FROM host LEFT JOIN build ON ( host.name == build.host) WHERE ifnull(last_dead_mail, 0) < %d AND ifnull(join_time, 0) < %d GROUP BY host.name having ifnull(MAX(age),0) < %d" % (dead_time, dead_time, dead_time))
+        for row in cursor:
             yield Host(row[0], owner=row[1], owner_email=row[2], last_update=row[3])
 
     def host_ages(self):
-        cursor = self.db.execute("SELECT host.name AS host, host.owner AS owner, host.owner_email AS owner_email, MAX(age) AS last_update FROM host LEFT JOIN build ON ( host.name == build.host) GROUP BY host.name ORDER BY age")
-        for row in cursor.fetchall():
+        cursor = self.store.execute("SELECT host.name AS host, host.owner AS owner, host.owner_email AS owner_email, MAX(age) AS last_update FROM host LEFT JOIN build ON ( host.name == build.host) GROUP BY host.name ORDER BY age")
+        for row in cursor:
             yield Host(row[0], owner=row[1], owner_email=row[2], last_update=row[3])
 
     def sent_dead_mail(self, host):
-        self.db.execute("UPDATE host SET last_dead_mail = ? WHERE name = ?", (int(time.time()), host))
-        self.db.commit()
+        self.store.execute("UPDATE host SET last_dead_mail = ? WHERE name = ?", (int(time.time()), host))
+        self.store.flush()
 
     def host(self, name):
         for host in self.hosts():
@@ -113,18 +115,18 @@ class HostDatabase(object):
         return None
 
     def update_platform(self, name, new_platform):
-        cursor = self.db.execute("UPDATE host SET platform = ? WHERE name = ?", (new_platform, name))
+        cursor = self.store.execute("UPDATE host SET platform = ? WHERE name = ?", (new_platform, name))
         if cursor.rowcount == 0:
             raise NoSuchHost(name)
-        self.db.commit()
+        self.store.flush()
 
     def update_owner(self, name, new_owner, new_owner_email):
-        cursor = self.db.execute(
+        cursor = self.store.execute(
             "UPDATE host SET owner = ?, owner_email = ? WHERE name = ?", (new_owner,
             new_owner_email, name))
         if cursor.rowcount == 0:
             raise NoSuchHost(name)
-        self.db.commit()
+        self.store.flush()
 
     def create_rsync_secrets(self):
         """Write out the rsyncd.secrets"""

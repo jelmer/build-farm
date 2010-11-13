@@ -17,7 +17,8 @@
 
 from buildfarm import setup_db
 import os
-import sqlite3
+from storm import database
+from storm.store import Store
 from testtools import TestCase
 import shutil
 import tempfile
@@ -74,8 +75,9 @@ class BuildFarmTestCase(TestCase):
         for subdir in ["data", "data/upload", "data/oldrevs", "cache", "web", "lcov", "lcov/data"]:
             os.mkdir(os.path.join(self.path, subdir))
 
-        db = sqlite3.connect(os.path.join(self.path, "hostdb.sqlite"))
-        setup_db(db)
+        db = database.create_database("sqlite:"+os.path.join(self.path, "hostdb.sqlite"))
+        store = Store(db)
+        setup_db(store)
 
     def tearDown(self):
         shutil.rmtree(self.path)

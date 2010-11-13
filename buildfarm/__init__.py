@@ -20,7 +20,8 @@
 import ConfigParser
 import os
 import re
-import sqlite3
+from storm.database import create_database
+from storm.store import Store
 
 
 class Tree(object):
@@ -198,7 +199,7 @@ class SQLCachingBuildFarm(BuildFarm):
         if self.db is not None:
             return self.db
         else:
-            return sqlite3.connect(os.path.join(self.path, "hostdb.sqlite"))
+            return create_database("sqlite:" + os.path.join(self.path, "hostdb.sqlite"))
 
     def _open_build_results(self):
         from buildfarm import data
@@ -207,10 +208,15 @@ class SQLCachingBuildFarm(BuildFarm):
 
 
 def setup_db(db):
-    db.executescript("""
-        CREATE TABLE IF NOT EXISTS host (name text, owner text, owner_email text, password text, ssh_access int, fqdn text, platform text, permission text, last_dead_mail int, join_time int);
-        CREATE UNIQUE INDEX IF NOT EXISTS unique_hostname ON host (name);
-        CREATE TABLE IF NOT EXISTS build (id integer primary key autoincrement, tree text, revision text, host text, compiler text, checksum text, age int, status text, commit_revision text);
-        CREATE UNIQUE INDEX IF NOT EXISTS unique_checksum ON build (checksum);
-        CREATE TABLE IF NOT EXISTS test_run (build int, test text, result text, output text);
-        """)
+    db.execute("CREATE TABLE IF NOT EXISTS host (name text, owner text, owner_email text, password text, ssh_access int, fqdn text, platform text, permission text, last_dead_mail int, join_time int);", noresult=True)
+    db.execute("CREATE UNIQUE INDEX IF NOT EXISTS unique_hostname ON host (name);", noresult=True)
+    db.execute("CREATE TABLE IF NOT EXISTS build (id integer primary key autoincrement, tree text, revision text, host text, compiler text, checksum text, age int, status text, commit_revision text);", noresult=True)
+    db.execute("CREATE UNIQUE INDEX IF NOT EXISTS unique_checksum ON build (checksum);", noresult=True)
+    db.execute("CREATE TABLE IF NOT EXISTS test_run (build int, test text, result text, output text);", noresult=True)
+
+
+def memory_store():
+    db = create_database("sqlite:")
+    store = Store(db)
+    setup_db(store)
+    return store
