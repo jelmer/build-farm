@@ -47,7 +47,6 @@ import re
 import time
 
 import wsgiref.util
-standalone = 0
 webdir = os.path.dirname(__file__)
 basedir = os.path.abspath(os.path.join(webdir, ".."))
 
@@ -944,22 +943,6 @@ class BuildFarmApp(object):
         fn_name = get_param(form, 'function') or ''
         myself = wsgiref.util.application_uri(environ)
 
-        if standalone and environ['PATH_INFO']:
-            dir = os.path.join(os.path.dirname(__file__))
-            if re.match("^/[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)?", environ['PATH_INFO']):
-                static_file = "%s/%s" % (dir, environ['PATH_INFO'])
-                if os.path.exists(static_file):
-                    tab = environ['PATH_INFO'].split('.')
-                    if len(tab) > 1:
-                        extension = tab[-1]
-                        import mimetypes
-                        mimetypes.init()
-                        type = mimetypes.types_map[".%s" % extension]
-                        start_response('200 OK', [('Content-type', type)])
-                        data = open(static_file, 'rb').read()
-                        yield data
-                        return
-
         if fn_name == 'text_diff':
             start_response('200 OK', [('Content-type', 'application/x-diff')])
             tree = get_param(form, 'tree')
@@ -982,10 +965,7 @@ class BuildFarmApp(object):
             yield "    <meta name='description' contents='Home of the Samba Build Farm, the automated testing facility.'/>"
             yield "    <meta name='robots' contents='noindex'/>"
             yield "    <link rel='stylesheet' href='/build_farm.css' type='text/css' media='all'/>"
-            if standalone:
-                yield "    <link rel='stylesheet' href='common.css' type='text/css' media='all'/>"
-            else:
-                yield "    <link rel='stylesheet' href='http://master.samba.org/samba/style/common.css' type='text/css' media='all'/>"
+            yield "    <link rel='stylesheet' href='http://master.samba.org/samba/style/common.css' type='text/css' media='all'/>"
             yield "    <link rel='shortcut icon' href='http://www.samba.org/samba/images/favicon.ico'/>"
             yield "  </head>"
             yield "<body>"
@@ -1038,13 +1018,36 @@ if __name__ == '__main__':
     parser = optparse.OptionParser("[options]")
     parser.add_option("--standalone", help="Run as standalone server (useful for debugging)", action="store_true")
     parser.add_option("--cachedirname", help="Cache directory name", type=str)
+    parser.add_option("--port", help="Port to listen on (in standalone mode) [localhost:8000]", default="localhost:8000", type=str)
     opts, args = parser.parse_args()
     buildfarm = CachingBuildFarm(cachedirname=opts.cachedirname)
     buildApp = BuildFarmApp(buildfarm)
     if opts.standalone:
-        standalone = 1
         from wsgiref.simple_server import make_server
-        httpd = make_server('localhost', 8000, buildApp)
+
+        def standaloneApp(environ, start_response):
+            if environ['PATH_INFO']:
+                dir = os.path.join(os.path.dirname(__file__))
+                if re.match("^/[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)?", environ['PATH_INFO']):
+                    static_file = "%s/%s" % (dir, environ['PATH_INFO'])
+                    if os.path.exists(static_file):
+                        tab = environ['PATH_INFO'].split('.')
+                        if len(tab) > 1:
+                            extension = tab[-1]
+                            import mimetypes
+                            mimetypes.init()
+                            type = mimetypes.types_map[".%s" % extension]
+                            start_response('200 OK', [('Content-type', type)])
+                            data = open(static_file, 'rb').read()
+                            yield data
+                            return
+            yield "".join(buildApp(environ, start_response))
+        try:
+            (address, port) = opts.port.rsplit(":", 1)
+        except ValueError:
+            address = "localhost"
+            port = opts.port
+        httpd = make_server(address, int(port), standaloneApp)
         print "Serving on port 8000..."
         httpd.serve_forever()
     else:
