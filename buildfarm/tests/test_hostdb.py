@@ -90,10 +90,3 @@ class HostDatabaseTests(object):
         got = list(self.db.create_rsync_secrets())
         got.sort()
         self.assertEquals(expected, got)
-
-
-class StormHostDatabaseTests(testtools.TestCase, HostDatabaseTests):
-
-    def setUp(self):
-        super(StormHostDatabaseTests, self).setUp()
-        self.db = hostdb.StormHostDatabase()

@@ -15,7 +15,7 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-from buildfarm import setup_db
+from buildfarm.sqldb import setup_schema
 import os
 from storm import database
 from storm.store import Store
@@ -57,6 +57,14 @@ class BuildFarmTestCase(TestCase):
         finally:
             f.close()
 
+    def write_hosts(self, hosts):
+        f = open(os.path.join(self.path, "web", "hosts.list"), "w")
+        try:
+            for name, platform in hosts.iteritems():
+                f.write("%s: %s\n" % (name, platform))
+        finally:
+            f.close()
+
     def write_trees(self, trees):
         f = open(os.path.join(self.path, "web", "trees.conf"), "w")
         try:
@@ -77,7 +85,8 @@ class BuildFarmTestCase(TestCase):
 
         db = database.create_database("sqlite:"+os.path.join(self.path, "hostdb.sqlite"))
         store = Store(db)
-        setup_db(store)
+        setup_schema(store)
+        store.flush()
 
     def tearDown(self):
         shutil.rmtree(self.path)

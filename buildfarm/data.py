@@ -21,14 +21,11 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-from buildfarm import memory_store
 from cStringIO import StringIO
 import collections
 import hashlib
 import os
 import re
-from storm.locals import Desc, Int, Unicode, RawStr
-from storm.store import Store
 import time
 import util
 
@@ -360,24 +357,6 @@ class CachingBuild(Build):
         return ret
 
 
-class StormBuild(Build):
-    __storm_table__ = "build"
-
-    id = Int(primary=True)
-    tree = Unicode()
-    revision = RawStr()
-    host = Unicode()
-    compiler = Unicode()
-    checksum = RawStr()
-    age = Int()
-    status = Unicode()
-    commit_revision = RawStr()
-
-    def remove(self):
-        super(StormBuild, self).remove()
-        Store.of(self).remove(self)
-
-
 class UploadBuildResultStore(object):
 
     def __init__(self, path):
@@ -521,57 +500,3 @@ class CachingBuildResultStore(BuildResultStore):
 
     def cache_fname(self, tree, host, compiler, rev):
         return os.path.join(self.cachedir, "build.%s.%s.%s-%s" % (tree, host, compiler, rev))
-
-
-class SQLCachingBuildResultStore(BuildResultStore):
-
-    def __init__(self, basedir, store=None):
-        super(SQLCachingBuildResultStore, self).__init__(basedir)
-
-        if store is None:
-            store = memory_store()
-
-        self.store = store
-
-    def get_previous_revision(self, tree, host, compiler, revision):
-        result = self.store.find(StormBuild,
-            StormBuild.tree == unicode(tree),
-            StormBuild.host == unicode(host),
-            StormBuild.compiler == unicode(compiler),
-            StormBuild.commit_revision == revision)
-        cur_build = result.any()
-        if cur_build is None:
-            raise NoSuchBuildError(tree, host, compiler, revision)
-
-        result = self.store.find(StormBuild,
-            StormBuild.tree == unicode(tree),
-            StormBuild.host == unicode(host),
-            StormBuild.compiler == unicode(compiler),
-            StormBuild.commit_revision != revision,
-            StormBuild.id < cur_build.id)
-        result = result.order_by(Desc(StormBuild.id))
-        prev_build = result.first()
-        if prev_build is None:
-            raise NoSuchBuildError(tree, host, compiler, revision)
-        return prev_build.commit_revision
-
-    def get_latest_revision(self, tree, host, compiler):
-        result = self.store.find(StormBuild,
-            StormBuild.tree == unicode(tree),
-            StormBuild.host == unicode(host),
-            StormBuild.compiler == unicode(compiler))
-        result = result.order_by(Desc(StormBuild.id))
-        build = result.first()
-        if build is None:
-            raise NoSuchBuildError(tree, host, compiler)
-        return build.revision
-
-    def upload_build(self, build):
-        super(SQLCachingBuildResultStore, self).upload_build(build)
-        rev, timestamp = build.revision_details()
-        new_basename = self.build_fname(build.tree, build.host, build.compiler, rev)
-        new_build = StormBuild(new_basename, unicode(build.tree), unicode(build.host), unicode(build.compiler), rev)
-        new_build.checksum = build.log_checksum()
-        new_build.age = build.age_mtime()
-        new_build.status = unicode(str(build.status()))
-        self.store.add(new_build)

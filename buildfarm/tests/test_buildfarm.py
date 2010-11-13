@@ -18,7 +18,6 @@
 from buildfarm import (
     BuildFarm,
     CachingBuildFarm,
-    SQLCachingBuildFarm,
     data,
     read_trees_from_conf,
     )
@@ -79,6 +78,7 @@ class BuildFarmTestBase(object):
 
     def setUp(self):
         self.write_compilers(["cc"])
+        self.write_hosts({"myhost": "Fedora"})
         self.write_trees({"trivial": { "scm": "git", "repo": "git://foo", "branch": "master" }})
 
     def test_get_new_builds_empty(self):
@@ -128,10 +128,3 @@ class CachingBuildFarmTests(BuildFarmTestBase, BuildFarmTestCase):
         BuildFarmTestBase.setUp(self)
         self.x = CachingBuildFarm(self.path)
 
-
-class SQLCachingBuildFarmTests(BuildFarmTestBase, BuildFarmTestCase):
-
-    def setUp(self):
-        BuildFarmTestCase.setUp(self)
-        BuildFarmTestBase.setUp(self)
-        self.x = SQLCachingBuildFarm(self.path)

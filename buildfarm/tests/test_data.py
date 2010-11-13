@@ -162,35 +162,6 @@ class CachingBuildResultStoreTests(BuildFarmTestCase,BuildResultStoreTestBase):
             "%s/cache/build.mytree.myhost.cc-123" % self.path)
 
 
-class SQLCachingBuildResultStoreTests(BuildFarmTestCase,BuildResultStoreTestBase):
-
-    def setUp(self):
-        super(SQLCachingBuildResultStoreTests, self).setUp()
-
-        self.x = data.SQLCachingBuildResultStore(
-            os.path.join(self.path, "data", "oldrevs"))
-
-    def test_get_previous_revision_result(self):
-        path = self.create_mock_logfile("tdb", "charis", "cc", contents="""
-BUILD COMMIT REVISION: myrev
-""")
-        self.x.upload_build(data.Build(path[:-4], "tdb", "charis", "cc"))
-        path = self.create_mock_logfile("tdb", "charis", "cc", contents="""
-BUILD COMMIT REVISION: myotherrev
-""")
-        self.x.upload_build(data.Build(path[:-4], "tdb", "charis", "cc"))
-        self.assertRaises(data.NoSuchBuildError, self.x.get_previous_revision, "tdb", "charis", "cc", "unknown")
-        self.assertRaises(data.NoSuchBuildError, self.x.get_previous_revision, "tdb", "charis", "cc", "myrev")
-        self.assertEquals("myrev", self.x.get_previous_revision("tdb", "charis", "cc", "myotherrev"))
-
-    def test_get_latest_revision(self):
-        path = self.create_mock_logfile("tdb", "charis", "cc", "22", contents="""
-BUILD COMMIT REVISION: myrev
-""")
-        self.x.upload_build(data.Build(path[:-4], "tdb", "charis", "cc"))
-        self.assertEquals("myrev", self.x.get_latest_revision("tdb", "charis", "cc"))
-
-
 class BuildStatusFromLogs(testtools.TestCase):
 
     def parse_logs(self, log, err):

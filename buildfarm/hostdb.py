@@ -18,10 +18,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from buildfarm import memory_store
-
-import pysqlite2
-from storm.locals import Bool, Int, Unicode, RawStr
 import time
 
 
@@ -135,67 +131,29 @@ class HostDatabase(object):
         pass
 
 
-class StormHost(Host):
-    __storm_table__ = "host"
+class PlainTextHostDatabase(HostDatabase):
 
-    name = Unicode(primary=True)
-    owner_name = Unicode(name="owner")
-    owner_email = Unicode()
-    password = Unicode()
-    ssh_access = Bool()
-    fqdn = RawStr()
-    platform = Unicode()
-    permission = Unicode()
-    last_dead_mail = Int()
-    join_time = Int()
+    def __init__(self, hosts):
+        self._hosts = hosts
 
-    def _set_owner(self, value):
-        if value is None:
-            self.owner_name = None
-            self.owner_email = None
-        else:
-            (self.owner_name, self.owner_email) = value
-
-    def _get_owner(self):
-        if self.owner_name is None:
-            return None
-        else:
-            return (self.owner_name, self.owner_email)
-
-    owner = property(_get_owner, _set_owner)
-
-
-class StormHostDatabase(HostDatabase):
-
-    def __init__(self, store=None):
-        if store is None:
-            self.store = memory_store()
-        else:
-            self.store = store
-
-    def createhost(self, name, platform=None, owner=None, owner_email=None, password=None, permission=None):
-        newhost = StormHost(unicode(name), owner=owner, owner_email=owner_email, password=password, permission=permission, platform=platform)
+    @classmethod
+    def from_file(cls, path):
+        ret = {}
+        f = open(path, 'r')
         try:
-            self.store.add(newhost)
-            self.store.flush()
-        except pysqlite2.dbapi2.IntegrityError:
-            raise HostAlreadyExists(name)
-        return newhost
-
-    def deletehost(self, name):
-        """Remove a host."""
-        host = self.host(name)
-        self.store.remove(host)
+            for l in f:
+                (host, platform) = l.split(":", 1)
+                ret[host] = platform.strip()
+        finally:
+            f.close()
+        return cls(ret)
 
     def hosts(self):
-        """Retrieve an iterable over all hosts."""
-        return self.store.find(StormHost).order_by(StormHost.name)
+        for name, platform in self._hosts.iteritems():
+            yield Host(name, platform=platform)
 
     def host(self, name):
-        ret = self.hosts().find(StormHost.name==name).one()
-        if ret is None:
+        try:
+            return Host(name=name, platform=self._hosts[name])
+        except KeyError:
             raise NoSuchHost(name)
-        return ret
-
-    def commit(self):
-        self.store.commit()
