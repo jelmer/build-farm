@@ -163,14 +163,12 @@ def format_subunit_reason(reason):
     return "<div class=\"reason\">%s</div>" % reason
 
 
-def print_log_pretty(log):
-    # prints the log in a visually appealing manner
-    global indice
-    indice = 0
+class LogPrettyPrinter(object):
 
-    # do some pretty printing for the actions
-    def pretty_print(m):
-        global indice
+    def __init__(self):
+        self.indice = 0
+
+    def _pretty_print(self, m):
         output = m.group(1)
         actionName = m.group(2)
         status = m.group(3)
@@ -178,37 +176,19 @@ def print_log_pretty(log):
         if actionName == 'cc_checker':
              output = print_log_cc_checker(output)
 
-        indice += 1
-        return make_collapsible_html('action', actionName, output, indice, status)
-
-    pattern = re.compile("(Running action\s+([\w\-]+)$(?:\s^.*$)*?\sACTION\ (PASSED|FAILED):\ ([\w\-]+)$)", re.M)
-    log = pattern.sub(pretty_print, log)
+        self.indice += 1
+        return make_collapsible_html('action', actionName, output, self.indice, status)
 
     # log is already CGI-escaped, so handle '>' in test name by handling &gt
-    def format_stage(m):
-        indice += 1
-        return make_collapsible_html('test', m.group(1), m.group(2), indice, m.group(3))
+    def _format_stage(self, m):
+        self.indice += 1
+        return make_collapsible_html('test', m.group(1), m.group(2), self.indice, m.group(3))
 
-    log = re.sub("""
-          --==--==--==--==--==--==--==--==--==--==--.*?
-          Running\ test\ ([\w\-=,_:\ /.&;]+).*?
-          --==--==--==--==--==--==--==--==--==--==--
-              (.*?)
-          ==========================================.*?
-          TEST\ (FAILED|PASSED|SKIPPED):.*?
-          ==========================================\s+
-        """, format_stage, log)
+    def _format_skip_testsuite(self, m):
+        self.indice += 1
+        return make_collapsible_html('test', m.group(1), '', self.indice, 'skipped')
 
-    def format_skip_testsuite(m):
-        global indice
-        indice += 1
-        return make_collapsible_html('test', m.group(1), '', indice, 'skipped')
-
-    log = re.sub("skip-testsuite: ([\w\-=,_:\ /.&; \(\)]+).*?",
-            format_skip_testsuite, log)
-
-    def format_testsuite(m):
-        global indice
+    def _format_testsuite(self, m):
         testName = m.group(1)
         content = m.group(2)
         status = subunit_to_buildfarm_result(m.group(3))
@@ -216,23 +196,44 @@ def print_log_pretty(log):
             errorReason = format_subunit_reason(m.group(4))
         else:
             errorReason = ""
-        indice += 1
-        return make_collapsible_html('test', testName, content+errorReason, indice, status)
+        self.indice += 1
+        return make_collapsible_html('test', testName, content+errorReason, self.indice, status)
 
-    pattern = re.compile("^testsuite: (.+)$\s((?:^.*$\s)*?)testsuite-(\w+): .*?(?:(\[$\s(?:^.*$\s)*?^\]$)|$)", re.M)
-    log = pattern.sub(format_testsuite, log)
+    def _format_test(self, m):
+        self.indice += 1
+        return make_collapsible_html('test', m.group(1), m.group(2)+format_subunit_reason(m.group(4)), self.indice, subunit_to_buildfarm_result(m.group(3)))
 
-    def format_test(m):
-        id += 1
-        return make_collapsible_html('test', m.group(1), m.group(2)+format_subunit_reason(m.group(4)), id, subunit_to_buildfarm_result(m.group(3)))
+    def pretty_print(self, log):
+        # do some pretty printing for the actions
+        pattern = re.compile("(Running action\s+([\w\-]+)$(?:\s^.*$)*?\sACTION\ (PASSED|FAILED):\ ([\w\-]+)$)", re.M)
+        log = pattern.sub(self._pretty_print, log)
 
-    log = re.sub("""
-          ^test: ([\w\-=,_:\ /.&; \(\)]+).*?
-          (.*?)
-          (success|xfail|failure|skip): [\w\-=,_:\ /.&; \(\)]+( \[.*?\])?.*?
-       """, format_test, log)
+        log = re.sub("""
+              --==--==--==--==--==--==--==--==--==--==--.*?
+              Running\ test\ ([\w\-=,_:\ /.&;]+).*?
+              --==--==--==--==--==--==--==--==--==--==--
+                  (.*?)
+              ==========================================.*?
+              TEST\ (FAILED|PASSED|SKIPPED):.*?
+              ==========================================\s+
+            """, self._format_stage, log)
 
-    return "<pre>%s</pre>" % log
+        log = re.sub("skip-testsuite: ([\w\-=,_:\ /.&; \(\)]+).*?",
+                self._format_skip_testsuite, log)
+
+        pattern = re.compile("^testsuite: (.+)$\s((?:^.*$\s)*?)testsuite-(\w+): .*?(?:(\[$\s(?:^.*$\s)*?^\]$)|$)", re.M)
+        log = pattern.sub(self._format_testsuite, log)
+        log = re.sub("""
+              ^test: ([\w\-=,_:\ /.&; \(\)]+).*?
+              (.*?)
+              (success|xfail|failure|skip): [\w\-=,_:\ /.&; \(\)]+( \[.*?\])?.*?
+           """, self._format_test, log)
+
+        return "<pre>%s</pre>" % log
+
+
+def print_log_pretty(log):
+    return LogPrettyPrinter().pretty_print(log)
 
 
 def print_log_cc_checker(input):
