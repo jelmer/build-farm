@@ -29,11 +29,13 @@ from dulwich.repo import Repo
 class Branch(object):
     """A version control branch."""
 
-    def authors(self):
+    def authors(self, limit=None):
         """Determine all authors that have contributed to this project.
         """
         ret = set()
-        for rev in self.log():
+        for i, rev in enumerate(self.log()):
+            if i == limit:
+                break
             ret.add(rev.author)
         return ret
 

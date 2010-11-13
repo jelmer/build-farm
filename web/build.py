@@ -52,6 +52,7 @@ basedir = os.path.abspath(os.path.join(webdir, ".."))
 
 UNPACKED_BASE = "http://svn.samba.org/ftp/unpacked"
 GITWEB_BASE = "http://gitweb.samba.org"
+HISTORY_HORIZON = 1000
 
 # this is automatically filled in
 deadhosts = []
@@ -875,7 +876,7 @@ class RecentCheckinsPage(BuildFarmPage):
     def render(self, myself, tree, author=None):
         t = self.buildfarm.trees[tree]
         authors = set(["ALL"])
-        authors.update(t.get_branch().authors(tree))
+        authors.update(t.get_branch().authors(limit=HISTORY_HORIZON))
 
         yield "<h2>Recent checkins for %s (%s branch %s)</h2>\n" % (
             tree, t.scm, t.branch)
