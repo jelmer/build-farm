@@ -878,11 +878,13 @@ class RecentCheckinsPage(BuildFarmPage):
     def render(self, myself, tree, author=None):
         t = self.buildfarm.trees[tree]
         interesting = list()
-        authors = set(["ALL"])
+        authors = {"ALL": "ALL"}
         branch = t.get_branch()
+        re_author = re.compile("^(.*) <(.*)>$")
         for entry in branch.log(limit=HISTORY_HORIZON):
-            authors.add(entry.author)
-            if author in ("ALL", "", entry.author):
+            m = re_author.match(entry.author)
+            authors[m.group(2)] = m.group(1)
+            if author in ("ALL", "", m.group(2)):
                 interesting.append(entry)
 
         yield "<h2>Recent checkins for %s (%s branch %s)</h2>\n" % (
@@ -890,8 +892,8 @@ class RecentCheckinsPage(BuildFarmPage):
         yield "<form method='GET'>"
         yield "Select Author: "
         yield "<select name='author'>"
-        for name in sorted(authors):
-            yield "<option>%s</option>" % name
+        for email in sorted(authors):
+            yield "<option value='%s'>%s</option>" % (email, authors[email])
         yield "</select>"
         yield "<input type='submit' name='sub_function' value='Refresh'/>"
         yield "<input type='hidden' name='tree' value='%s'/>" % tree
