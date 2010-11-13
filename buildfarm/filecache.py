@@ -24,6 +24,8 @@ from buildfarm import (
 from buildfarm.data import (
     Build,
     BuildResultStore,
+    BuildStageResult,
+    BuildStatus,
     NoSuchBuildError,
     UploadBuildResultStore,
     check_dir_exists,
