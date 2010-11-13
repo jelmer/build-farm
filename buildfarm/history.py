@@ -29,33 +29,24 @@ from dulwich.repo import Repo
 class Branch(object):
     """A version control branch."""
 
-    def authors(self, limit=None):
-        """Determine all authors that have contributed to this project.
-        """
-        ret = set()
-        for rev in self.log(limit=limit):
-            ret.add(rev.author)
-        return ret
-
     def log(self, limit=None):
         raise NotImplementedError(self.log)
 
     def diff(self, revision):
         raise NotImplementedError(self.diff)
 
+    def changes_summary(self, revision):
+        raise NotImplementedError(self.changes_summary)
+
 
 class Revision(object):
 
-    def __init__(self, revision, date, committer, author, message, modified=[], added=[],
-            removed=[]):
+    def __init__(self, revision, date, committer, author, message):
         self.revision = revision
         self.date = date
         self.author = author
         self.committer = committer
         self.message = message
-        self.modified = modified
-        self.added = added
-        self.removed = removed
 
 
 class GitBranch(Branch):
@@ -73,20 +64,9 @@ class GitBranch(Branch):
         return self.store.tree_changes(parent_tree, commit.tree)
 
     def _revision_from_commit(self, commit):
-        added = set()
-        modified = set()
-        removed = set()
-        for ((oldpath, newpath), (oldmode, newmode), (oldsha, newsha)) in self._changes_for(commit):
-            if oldpath is None:
-                added.add(newpath)
-            elif newpath is None:
-                removed.add(oldpath)
-            else:
-                modified.add(newpath)
         return Revision(commit.id, commit.commit_time,
             committer=commit.committer, author=commit.author,
-            message=commit.message, modified=modified, removed=removed,
-            added=added)
+            message=commit.message)
 
     def log(self, from_rev=None, exclude_revs=None, limit=None):
         if from_rev is None:
@@ -109,6 +89,20 @@ class GitBranch(Branch):
                  if exclude_revs is not None and p in exclude_revs:
                      continue
                  pending_commits.append(p)
+
+    def changes_summary(self, revision):
+        commit = self.repo[revision]
+        added = set()
+        modified = set()
+        removed = set()
+        for ((oldpath, newpath), (oldmode, newmode), (oldsha, newsha)) in self._changes_for(commit):
+            if oldpath is None:
+                added.add(newpath)
+            elif newpath is None:
+                removed.add(oldpath)
+            else:
+                modified.add(newpath)
+        return (added, modified, removed)
 
     def diff(self, revision):
         commit = self.repo[revision]

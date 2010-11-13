@@ -46,10 +46,3 @@ class GitBranchTests(TestCase):
         entry, diff = list(branch.diff(revid))
         self.assertEquals("message", entry.message)
         self.assertEquals("", diff)
-
-    def test_authors_empty(self):
-        branch = GitBranch(self.repo.path, "master")
-        self.assertEquals(set(), branch.authors())
-        revid = self.repo.do_commit("message", committer="Jelmer Vernooij <jelmer@samba.org>")
-        self.assertEquals(set(["Jelmer Vernooij <jelmer@samba.org>"]),
-            branch.authors())

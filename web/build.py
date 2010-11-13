@@ -361,7 +361,7 @@ def web_paths(t, paths):
         raise Exception("Unknown scm %s" % t.scm)
 
 
-def history_row_html(myself, entry, tree):
+def history_row_html(myself, entry, tree, changes):
     """show one row of history table"""
     msg = cgi.escape(entry.message)
     t = time.asctime(time.gmtime(entry.date))
@@ -395,25 +395,27 @@ def history_row_html(myself, entry, tree):
                  myself, tree.name, entry.date, revision_url,
                  msg, entry.author)
 
-    if entry.modified:
+    (added, modified, removed) = changes
+
+    if modified:
         yield "<div class=\"files\"><span class=\"label\">Modified: </span>"
-        yield web_paths(tree, entry.modified)
+        yield web_paths(tree, modified)
         yield "</div>\n"
 
-    if entry.added:
+    if added:
         yield "<div class=\"files\"><span class=\"label\">Added: </span>"
-        yield web_paths(tree, entry.added)
+        yield web_paths(tree, added)
         yield "</div>\n"
 
-    if entry.removed:
+    if removed:
         yield "<div class=\"files\"><span class=\"label\">Removed: </span>"
-        yield web_paths(tree, entry.removed)
+        yield web_paths(tree, removed)
         yield "</div>\n"
 
     yield "</div>\n"
 
 
-def history_row_text(entry, tree):
+def history_row_text(entry, tree, changes):
     """show one row of history table"""
     msg = cgi.escape(entry.message)
     t = time.asctime(time.gmtime(entry.date))
@@ -422,9 +424,10 @@ def history_row_text(entry, tree):
     yield "Author: %s\n" % entry.author
     if entry.revision:
         yield "Revision: %s\n" % entry.revision
-    yield "Modified: %s\n" % entry.modified
-    yield "Added: %s\n" % entry.added
-    yield "Removed: %s\n" % entry.removed
+    (added, modified, removed) = changes
+    yield "Modified: %s\n" % modified
+    yield "Added: %s\n" % added
+    yield "Removed: %s\n" % removed
     yield "\n\n%s\n\n\n" % msg
 
 
@@ -863,21 +866,30 @@ class DiffPage(BuildFarmPage):
 
     def render(self, myself, tree, revision):
         t = self.buildfarm.trees[tree]
-        (entry, diff) = t.get_branch().diff(revision)
+        branch = t.get_branch()
+        (entry, diff) = branch.diff(revision)
         # get information about the current diff
         title = "GIT Diff in %s:%s for revision %s" % (
             tree, t.branch, revision)
         yield "<h2>%s</h2>" % title
-        yield "".join(history_row_html(myself, entry, t))
+        changes = branch.changes_summary(revision)
+        yield "".join(history_row_html(myself, entry, t, changes))
         yield show_diff(diff, "html")
 
 
 class RecentCheckinsPage(BuildFarmPage):
 
+    limit = 40
+
     def render(self, myself, tree, author=None):
         t = self.buildfarm.trees[tree]
+        interesting = list()
         authors = set(["ALL"])
-        authors.update(t.get_branch().authors(limit=HISTORY_HORIZON))
+        branch = t.get_branch()
+        for entry in branch.log(limit=HISTORY_HORIZON):
+            authors.add(entry.author)
+            if author in ("ALL", "", entry.author):
+                interesting.append(entry)
 
         yield "<h2>Recent checkins for %s (%s branch %s)</h2>\n" % (
             tree, t.scm, t.branch)
@@ -892,13 +904,10 @@ class RecentCheckinsPage(BuildFarmPage):
         yield "<input type='hidden' name='function', value='Recent Checkins'/>"
         yield "</form>"
 
-        branch = t.get_branch()
-
-        for entry in branch.log(limit=HISTORY_HORIZON):
-            if author in ("ALL", "", entry.author):
-                yield "".join(history_row_html(myself, entry, t))
+        for entry in interesting[:self.limit]:
+            changes = branch.changes_summary(entry.revision)
+            yield "".join(history_row_html(myself, entry, t, changes))
         yield "\n"
-
 
 
 class BuildFarmApp(object):
@@ -947,8 +956,11 @@ class BuildFarmApp(object):
             start_response('200 OK', [('Content-type', 'application/x-diff')])
             tree = get_param(form, 'tree')
             t = self.buildfarm.trees[tree]
-            (entry, diff) = t.get_branch().diff(get_param(form, 'revision'))
-            yield "".join(history_row_text(entry, tree))
+            branch = t.get_branch()
+            revision = get_param(form, 'revision')
+            (entry, diff) = branch.diff(revision)
+            changes = branch.changes_summary(revision)
+            yield "".join(history_row_text(entry, tree, changes))
             yield show_diff(diff, "text")
         elif fn_name == 'Text_Summary':
             start_response('200 OK', [('Content-type', 'text/plain')])
