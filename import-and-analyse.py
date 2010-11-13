@@ -86,8 +86,11 @@ for build in buildfarm.get_new_builds():
     if opts.verbose >= 2:
         print "Processing %s..." % build,
 
+    if build in buildfarm.builds:
+        continue
+
     if not opts.dry_run:
-        buildfarm.builds.upload_build(build)
+        build = buildfarm.builds.upload_build(build)
 
     (rev, rev_timestamp) = build.revision_details()
 

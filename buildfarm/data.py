@@ -331,6 +331,18 @@ class BuildResultStore(object):
         """
         self.path = path
 
+    def __contains__(self, build):
+        try:
+            if build.revision:
+                rev = build.revision
+            else:
+                rev, timestamp = build.revision_details()
+            self.get_build(build.tree, build.host, build.compiler, rev)
+        except NoSuchBuildError:
+            return False
+        else:
+            return True
+
     def get_build(self, tree, host, compiler, rev):
         basename = self.build_fname(tree, host, compiler, rev)
         logf = "%s.log" % basename

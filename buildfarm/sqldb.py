@@ -55,6 +55,9 @@ class StormBuild(Build):
     status = Unicode()
     commit_revision = RawStr()
 
+    def log_checksum(self):
+        return self.checksum
+
     def remove(self):
         super(StormBuild, self).remove()
         Store.of(self).remove(self)
@@ -136,6 +139,9 @@ class StormCachingBuildResultStore(BuildResultStore):
 
         self.store = store
 
+    def __contains__(self, build):
+        return (self._get_by_checksum(build) is not None)
+
     def get_previous_revision(self, tree, host, compiler, revision):
         result = self.store.find(StormBuild,
             StormBuild.tree == unicode(tree),
@@ -169,9 +175,11 @@ class StormCachingBuildResultStore(BuildResultStore):
             raise NoSuchBuildError(tree, host, compiler)
         return build.revision
 
+    def _get_by_checksum(self, build):
+        return self.store.find(StormBuild, StormBuild.checksum == build.log_checksum()).one()
+
     def upload_build(self, build):
-        result = self.store.find(StormBuild, StormBuild.checksum == build.log_checksum())
-        existing_build = result.one()
+        existing_build = self._get_by_checksum(build)
         if existing_build is not None:
             # Already present
             assert build.tree == existing_build.tree
