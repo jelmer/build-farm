@@ -63,9 +63,13 @@ class Host(object):
         self.ssh_access = ssh_access
         self.last_update = last_update
         self.fqdn = fqdn
+        self.last_dead_mail = None
 
     def __cmp__(self, other):
         return cmp(self.name, other.name)
+
+    def dead_mail_sent(self):
+        self.last_dead_mail = int(time.time())
 
 
 class StormHost(Host):
@@ -120,8 +124,6 @@ class HostDatabase(object):
 
     def deletehost(self, name):
         host = self.host(name)
-        if host is None:
-            raise NoSuchHost(name)
         self.store.remove(host)
 
     def hosts(self):
@@ -138,26 +140,22 @@ class HostDatabase(object):
         for row in cursor:
             yield Host(row[0], owner=row[1], owner_email=row[2], last_update=row[3])
 
-    def sent_dead_mail(self, host):
-        self.store.execute("UPDATE host SET last_dead_mail = ? WHERE name = ?", (int(time.time()), host))
-        self.store.flush()
-
     def host(self, name):
-        return self.hosts().find(StormHost.name==name).one()
+        ret = self.hosts().find(StormHost.name==name).one()
+        if ret is None:
+            raise NoSuchHost(name)
+        return ret
 
     def update_platform(self, name, new_platform):
-        host = self.host(unicode(name))
-        if host is None:
-            raise NoSuchHost(name)
+        host = self.host(name)
         host.platform = new_platform
 
     def update_owner(self, name, new_owner, new_owner_email):
-        cursor = self.store.execute(
-            "UPDATE host SET owner = ?, owner_email = ? WHERE name = ?", (new_owner,
-            new_owner_email, name))
-        if cursor.rowcount == 0:
-            raise NoSuchHost(name)
-        self.store.flush()
+        host = self.host(name)
+        if new_owner is None:
+            host.owner = None
+        else:
+            host.owner = (new_owner, new_owner_email)
 
     def create_rsync_secrets(self):
         """Write out the rsyncd.secrets"""

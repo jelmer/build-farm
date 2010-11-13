@@ -63,8 +63,8 @@ class DatabaseTests(unittest.TestCase):
         self.db.update_platform(name=u"foo", new_platform=u"Debian")
 
     def test_update_platform_doesnt_exist(self):
-        self.assertRaises(hostdb.NoSuchHost, self.db.update_platform, name="foo",
-            new_platform="Debian")
+        self.assertRaises(hostdb.NoSuchHost, self.db.update_platform, name=u"foo",
+            new_platform=u"Debian")
 
     def test_update_owner(self):
         host = self.db.createhost(name=u"foo", owner=u"Jelmer", owner_email=u"jelmer@samba.org")
@@ -72,8 +72,8 @@ class DatabaseTests(unittest.TestCase):
             new_owner_email=u"mat@samba.org")
 
     def test_update_owner_doesnt_exist(self):
-        self.assertRaises(hostdb.NoSuchHost, self.db.update_owner, name="foo",
-            new_owner="Mat", new_owner_email="mat@samba.org")
+        self.assertRaises(hostdb.NoSuchHost, self.db.update_owner, name=u"foo",
+            new_owner=u"Mat", new_owner_email=u"mat@samba.org")
 
     def test_create_hosts_list(self):
         self.db.createhost(name=u"foo", owner=u"Jelmer", owner_email=u"jelmer@samba.org",

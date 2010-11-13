@@ -79,7 +79,11 @@ if op == "remove":
         update_hosts_list()
 elif op == "modify":
     hostname = raw_input("Please enter hostname to modify: ")
-    host = db.host(hostname)
+    try:
+        host = db.host(hostname)
+    except hostdb.NoSuchHost, e:
+        print "No such host '%s'" % e.name
+        sys.exit(1)
     print "Owner: %s <%s>" % host.owner
     print "Platform: %s" % host.platform
     print ""
@@ -180,7 +184,11 @@ Thanks, your friendly Samba build farm administrator <build@samba.org>""" % owne
         update_hosts_list()
 elif op == "info":
     hostname = raw_input("Hostname: ")
-    host = db.host(hostname)
+    try:
+        host = db.host(hostname)
+    except hostdb.NoSuchHost, e:
+        print "No such host '%s'" % e.name
+        sys.exit(1)
     if host.fqdn:
         opt_fqdn = " (%s)" % host.fqdn
     else:

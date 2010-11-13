@@ -75,5 +75,5 @@ The Build Farm administration team.
         print msg.as_string()
     else:
         smtp.send(msg["From"], [msg["To"]], msg.as_string())
-        db.sent_dead_mail(host.name)
+        host.dead_mail_sent()
 smtp.quit()
