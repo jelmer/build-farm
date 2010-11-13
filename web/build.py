@@ -282,15 +282,16 @@ def view_recent_builds(myself, tree, sort_by):
                 age_ctime = build.age_ctime()
                 (revision, revision_time) = build.revision_details()
                 if revision:
-                    all_builds.append([age_ctime,
-                                        host.platform.encode("utf-8"),
-                                        "<a href='%s?function=View+Host;host=%s;tree=%s;compiler=%s#%s'>%s</a>"
-                                            % (myself, host.name.encode("utf-8"),
-                                               tree, compiler, host.name.encode("utf-8"),
-                                               host.name.encode("utf-8")),
-                                        compiler, tree, status, build.status(),
-                                        revision_link(myself, revision, tree),
-                                        revision_time])
+                    all_builds.append([
+                        age_ctime,
+                        host.platform.encode("utf-8"),
+                        "<a href='%s?function=View+Host;host=%s;tree=%s;compiler=%s#%s'>%s</a>"
+                            % (myself, host.name.encode("utf-8"),
+                               tree, compiler, host.name.encode("utf-8"),
+                               host.name.encode("utf-8")),
+                        compiler, tree, status, build.status(),
+                        revision_link(myself, revision, tree),
+                        revision_time])
 
     all_builds.sort(cmp_funcs[sort_by])
 
