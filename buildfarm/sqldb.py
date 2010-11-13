@@ -172,6 +172,15 @@ class StormCachingBuildResultStore(BuildResultStore):
     def upload_build(self, build):
         super(StormCachingBuildResultStore, self).upload_build(build)
         rev, timestamp = build.revision_details()
+        result = self.store.find(StormBuild, StormBuild.checksum == build.log_checksum())
+        existing_build = result.one()
+        if existing_build is not None:
+            # Already present
+            assert build.tree == existing_build.tree
+            assert build.host == existing_build.host
+            assert build.compiler == existing_build.compiler
+            assert rev == existing_build.revision
+            return
         new_basename = self.build_fname(build.tree, build.host, build.compiler, rev)
         new_build = StormBuild(new_basename, unicode(build.tree), unicode(build.host), unicode(build.compiler), rev)
         new_build.checksum = build.log_checksum()

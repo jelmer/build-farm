@@ -39,7 +39,7 @@ def check_and_send_mails(tree, host, compiler, cur, old):
 
     if not cur_status.regressed_since(old_status):
         if opts.verbose >= 1:
-            print "the build didn't get worse since %r" % old_status
+            print "... hasn't regressed since %s: %s" % (old_rev, old_status)
         return
 
     recipients = set()
@@ -95,16 +95,16 @@ for build in buildfarm.get_new_builds():
         print str(build.status())
 
     try:
-        prev_rev = buildfarm.builds.get_previous_revision(build.tree, build.host, build.compiler, rev)
-    except data.NoSuchBuildError:
-        try:
+        if opts.dry_run:
             # Perhaps this is a dry run and rev is not in the database yet?
             prev_rev = buildfarm.builds.get_latest_revision(build.tree, build.host, build.compiler)
-        except data.NoSuchBuildError:
-            if opts.verbose >= 1:
-                print "Unable to find previous build for %s,%s,%s" % (build.tree, build.host, build.compiler)
-            # Can't send a nastygram until there are 2 builds..
-            continue
+        else:
+            prev_rev = buildfarm.builds.get_previous_revision(build.tree, build.host, build.compiler, rev)
+    except data.NoSuchBuildError:
+        if opts.verbose >= 1:
+            print "Unable to find previous build for %s,%s,%s" % (build.tree, build.host, build.compiler)
+        # Can't send a nastygram until there are 2 builds..
+        continue
     else:
         prev_build = buildfarm.get_build(build.tree, build.host, build.compiler, prev_rev)
         check_and_send_mails(build.tree, build.host, build.compiler, build, prev_build)
