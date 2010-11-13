@@ -22,7 +22,7 @@ from buildfarm import setup_db
 
 import pysqlite2
 from storm.database import create_database
-from storm.locals import Bool, Int, Unicode
+from storm.locals import Bool, Int, Unicode, RawStr
 from storm.store import Store
 import time
 
@@ -47,12 +47,17 @@ class Host(object):
     """A host in the buildfarm."""
 
     def __init__(self, name, owner=None, owner_email=None, password=None, platform=None,
-                 ssh_access=False, last_update=None, fqdn=None):
+                 ssh_access=False, last_update=None, fqdn=None, join_time=None, permission=None):
         self.name = name
         if owner:
             self.owner = (owner, owner_email)
         else:
             self.owner = None
+        if join_time is None:
+            self.join_time = time.time()
+        else:
+            self.join_time = join_time
+        self.permission = permission
         self.password = password
         self.platform = platform
         self.ssh_access = ssh_access
@@ -66,16 +71,31 @@ class Host(object):
 class StormHost(Host):
     __storm_table__ = "host"
 
-    name = Unicode()
-    owner = Unicode()
+    name = Unicode(primary=True)
+    owner_name = Unicode(name="owner")
     owner_email = Unicode()
     password = Unicode()
     ssh_access = Bool()
-    fqdn = Unicode()
+    fqdn = RawStr()
     platform = Unicode()
     permission = Unicode()
     last_dead_mail = Int()
     join_time = Int()
+
+    def _set_owner(self, value):
+        if value is None:
+            self.owner_name = None
+            self.owner_email = None
+        else:
+            (self.owner_name, self.owner_email) = value
+
+    def _get_owner(self):
+        if self.owner_name is None:
+            return None
+        else:
+            return (self.owner_name, self.owner_email)
+
+    owner = property(_get_owner, _set_owner)
 
 
 class HostDatabase(object):
@@ -91,23 +111,21 @@ class HostDatabase(object):
         self.store.flush()
 
     def createhost(self, name, platform=None, owner=None, owner_email=None, password=None, permission=None):
+        newhost = StormHost(unicode(name), owner=owner, owner_email=owner_email, password=password, permission=permission, platform=platform)
         try:
-            self.store.execute("INSERT INTO host (name, platform, owner, owner_email, password, permission, join_time) VALUES (?,?,?,?,?,?,?)",
-                    (name, platform, owner, owner_email, password, permission, time.time()))
-        except (pysqlite2.dbapi2.IntegrityError,):
+            self.store.add(newhost)
+            self.store.flush()
+        except pysqlite2.dbapi2.IntegrityError:
             raise HostAlreadyExists(name)
-        self.store.flush()
 
     def deletehost(self, name):
-        cursor = self.store.execute("DELETE FROM host WHERE name = ?", (name,))
-        if cursor.rowcount == 0:
+        host = self.host(name)
+        if host is None:
             raise NoSuchHost(name)
-        self.store.flush()
+        self.store.remove(host)
 
     def hosts(self):
-        cursor = self.store.execute("SELECT name, owner, owner_email, password, platform, ssh_access, fqdn FROM host ORDER BY name")
-        for row in cursor:
-            yield Host(name=row[0], owner=row[1], owner_email=row[2], password=row[3], platform=row[4], ssh_access=bool(row[5]), fqdn=row[6])
+        return self.store.find(StormHost).order_by(StormHost.name)
 
     def dead_hosts(self, age):
         dead_time = time.time() - age
@@ -125,16 +143,13 @@ class HostDatabase(object):
         self.store.flush()
 
     def host(self, name):
-        for host in self.hosts():
-            if host.name == name:
-                return host
-        return None
+        return self.hosts().find(StormHost.name==name).one()
 
     def update_platform(self, name, new_platform):
-        cursor = self.store.execute("UPDATE host SET platform = ? WHERE name = ?", (new_platform, name))
-        if cursor.rowcount == 0:
+        host = self.host(unicode(name))
+        if host is None:
             raise NoSuchHost(name)
-        self.store.flush()
+        host.platform = new_platform
 
     def update_owner(self, name, new_owner, new_owner_email):
         cursor = self.store.execute(
@@ -163,4 +178,4 @@ class HostDatabase(object):
         """Write out the web/"""
 
         for host in self.hosts():
-            yield "%s: %s\n" % (host.name, host.platform)
+            yield "%s: %s\n" % (host.name.encode("utf-8"), host.platform.encode("utf-8"))
