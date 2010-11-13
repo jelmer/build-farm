@@ -508,7 +508,7 @@ class ViewBuildPage(BuildFarmPage):
         if rev:
             assert re.match("^[0-9a-fA-F]*$", rev)
 
-        f = build.read_log()
+        f = build.read_log(limit=HISTORY_HORIZON)
         try:
             log = f.read()
         finally:

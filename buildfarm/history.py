@@ -33,13 +33,11 @@ class Branch(object):
         """Determine all authors that have contributed to this project.
         """
         ret = set()
-        for i, rev in enumerate(self.log()):
-            if i == limit:
-                break
+        for rev in self.log(limit):
             ret.add(rev.author)
         return ret
 
-    def log(self):
+    def log(self, limit=None):
         raise NotImplementedError(self.log)
 
     def diff(self, revision):
@@ -48,11 +46,12 @@ class Branch(object):
 
 class Revision(object):
 
-    def __init__(self, revision, date, author, message, modified=[], added=[],
+    def __init__(self, revision, date, committer, author, message, modified=[], added=[],
             removed=[]):
         self.revision = revision
         self.date = date
         self.author = author
+        self.committer = committer
         self.message = message
         self.modified = modified
         self.added = added
@@ -84,11 +83,12 @@ class GitBranch(Branch):
                 removed.add(oldpath)
             else:
                 modified.add(newpath)
-        return Revision(commit.id, commit.commit_time, commit.author,
-            commit.message, modified=modified, removed=removed,
+        return Revision(commit.id, commit.commit_time,
+            committer=commit.committer, author=commit.author,
+            message=commit.message, modified=modified, removed=removed,
             added=added)
 
-    def log(self, from_rev=None, exclude_revs=None):
+    def log(self, from_rev=None, exclude_revs=None, limit=None):
         if from_rev is None:
             try:
                 commit = self.repo["refs/heads/%s" % self.branch]
@@ -104,6 +104,8 @@ class GitBranch(Branch):
              commit = self.repo[commit_id]
              yield self._revision_from_commit(commit)
              done.add(commit.id)
+             if len(done) >= limit:
+                 return
              # FIXME: Add sorted by commit_time
              for p in commit.parents:
                  if exclude_revs is not None and p in exclude_revs:
