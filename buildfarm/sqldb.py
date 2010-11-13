@@ -52,7 +52,7 @@ class StormBuild(Build):
     compiler = Unicode()
     checksum = RawStr()
     age = Int()
-    status = Unicode()
+    status_str = Unicode(name="status")
     commit_revision = RawStr()
 
     def log_checksum(self):
