@@ -45,7 +45,7 @@ def check_and_send_mails(tree, host, compiler, cur, old):
     recipients = set()
     change_log = ""
 
-    for rev in t.get_branch().log(from_rev=cur.rev, exclude_revs=set([old.rev])):
+    for rev in t.get_branch().log(from_rev=cur.revision, exclude_revs=set([old.revision])):
         recipients.add(rev.author)
         recipients.add(rev.committer)
         change_log += """
@@ -75,7 +75,7 @@ The build may have been broken by one of the following commits:
     msg = MIMEText(body)
     msg["Subject"] = "BUILD of %s:%s BROKEN on %s with %s AT REVISION %s" % (tree, t.branch, host, compiler, cur_rev)
     msg["From"] = "\"Build Farm\" <build@samba.org>"
-    msg["To"] = ",".join(recipients.keys())
+    msg["To"] = ",".join(recipients)
     if not opts.dry_run:
         smtp.send(msg["From"], [msg["To"]], msg.as_string())
     else:
@@ -121,7 +121,6 @@ for build in buildfarm.get_new_builds():
             if opts.verbose >= 1:
                 print "Previous build %s has disappeared" % prev_build
         else:
-            assert build.log_checksum() != prev_build.log_checksum()
             check_and_send_mails(build.tree, build.host, build.compiler, build, prev_build)
 
     if not opts.dry_run:
