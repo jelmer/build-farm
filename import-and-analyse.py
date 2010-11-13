@@ -83,9 +83,6 @@ The build may have been broken by one of the following commits:
 
 
 for build in buildfarm.get_new_builds():
-    if opts.verbose >= 2:
-        print "Processing %s..." % build,
-
     if build in buildfarm.builds:
         continue
 
@@ -103,6 +100,7 @@ for build in buildfarm.get_new_builds():
         continue
 
     if opts.verbose >= 2:
+        print "%s... " % build,
         print str(build.status())
 
     try:
