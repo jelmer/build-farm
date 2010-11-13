@@ -376,6 +376,3 @@ class BuildResultStore(object):
 
     def get_latest_revision(self, tree, host, compiler):
         raise NoSuchBuildError(tree, host, compiler)
-
-
-

@@ -1048,7 +1048,7 @@ if __name__ == '__main__':
             address = "localhost"
             port = opts.port
         httpd = make_server(address, int(port), standaloneApp)
-        print "Serving on port 8000..."
+        print "Serving on %s:%d..." % (address, int(port))
         httpd.serve_forever()
     else:
         import wsgiref.handlers
