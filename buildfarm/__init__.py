@@ -100,14 +100,14 @@ class BuildFarm(object):
 
     def _open_hostdb(self):
         from buildfarm import hostdb
-        db = create_database("sqlite:" + os.path.join(self.path, "hostdb.sqlite"))
-        store = Store(db)
-        setup_db(store)
-        return hostdb.StormHostDatabase(store)
+        return hostdb.HostDatabase()
 
     def _load_compilers(self):
         from buildfarm import util
         return set(util.load_list(os.path.join(self.webdir, "compilers.list")))
+
+    def commit(self):
+        pass
 
     def lcov_status(self, tree):
         """get status of build"""
@@ -193,20 +193,29 @@ class CachingBuildFarm(BuildFarm):
 
 class SQLCachingBuildFarm(BuildFarm):
 
-    def __init__(self, path=None, db=None):
-        self.db = db
+    def __init__(self, path=None, store=None):
+        self.store = store
         super(SQLCachingBuildFarm, self).__init__(path)
 
-    def _get_db(self):
-        if self.db is not None:
-            return self.db
+    def _get_store(self):
+        if self.store is not None:
+            return self.store
         else:
-            return create_database("sqlite:" + os.path.join(self.path, "hostdb.sqlite"))
+            db = create_database("sqlite:" + os.path.join(self.path, "hostdb.sqlite"))
+            self.store = Store(db)
+            return self.store
+
+    def _open_hostdb(self):
+        from buildfarm import hostdb
+        return hostdb.StormHostDatabase(self._get_store())
 
     def _open_build_results(self):
         from buildfarm import data
         return data.SQLCachingBuildResultStore(os.path.join(self.path, "data", "oldrevs"),
-            self.db)
+            self._get_store())
+
+    def commit(self):
+        self.store.commit()
 
 
 def setup_db(db):

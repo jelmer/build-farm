@@ -113,5 +113,6 @@ for build in buildfarm.get_new_builds():
 
     if not opts.dry_run:
         build.remove()
+        buildfarm.commit()
 
 smtp.quit()

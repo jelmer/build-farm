@@ -18,12 +18,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from buildfarm import setup_db
+from buildfarm import memory_store
 
 import pysqlite2
-from storm.database import create_database
 from storm.locals import Bool, Int, Unicode, RawStr
-from storm.store import Store
 import time
 
 
@@ -133,6 +131,9 @@ class HostDatabase(object):
         for host in self.hosts():
             yield "%s: %s\n" % (host.name.encode("utf-8"), host.platform.encode("utf-8"))
 
+    def commit(self):
+        pass
+
 
 class StormHost(Host):
     __storm_table__ = "host"
@@ -163,16 +164,12 @@ class StormHost(Host):
 
     owner = property(_get_owner, _set_owner)
 
-    last_update = Select(
-
 
 class StormHostDatabase(HostDatabase):
 
     def __init__(self, store=None):
         if store is None:
-            db = create_database("sqlite:")
-            self.store = Store(db)
-            setup_db(self.store)
+            self.store = memory_store()
         else:
             self.store = store
 
@@ -200,4 +197,5 @@ class StormHostDatabase(HostDatabase):
             raise NoSuchHost(name)
         return ret
 
-
+    def commit(self):
+        self.store.commit()

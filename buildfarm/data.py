@@ -27,7 +27,7 @@ import collections
 import hashlib
 import os
 import re
-from storm.locals import Desc, Int, Unicode
+from storm.locals import Desc, Int, Unicode, RawStr
 from storm.store import Store
 import time
 import util
@@ -193,10 +193,13 @@ class Build(object):
         else:
             return "<%s: %s on %s using %s>" % (self.__class__.__name__, self.tree, self.host, self.compiler)
 
-    def remove(self):
+    def remove_logs(self):
         os.unlink(self.basename + ".log")
         if os.path.exists(self.basename+".err"):
             os.unlink(self.basename+".err")
+
+    def remove(self):
+        self.remove_logs()
 
     ###################
     # the mtime age is used to determine if builds are still happening
@@ -362,13 +365,13 @@ class StormBuild(Build):
 
     id = Int(primary=True)
     tree = Unicode()
-    revision = Unicode()
+    revision = RawStr()
     host = Unicode()
     compiler = Unicode()
-    checksum = Unicode()
+    checksum = RawStr()
     age = Int()
     status = Unicode()
-    commit_revision = Unicode()
+    commit_revision = RawStr()
 
     def remove(self):
         super(StormBuild, self).remove()
@@ -482,6 +485,12 @@ class BuildResultStore(object):
             raise Exception("Unable to find revision in %r log" % build)
 
         new_basename = self.build_fname(build.tree, build.host, build.compiler, rev)
+        try:
+            existing_build = self.get_build(build.tree, build.host, build.compiler, rev)
+        except NoSuchBuildError:
+            pass
+        else:
+            existing_build.remove_logs()
         os.link(build.basename+".log", new_basename+".log")
         if os.path.exists(build.basename+".err"):
             os.link(build.basename+".err", new_basename+".err")
@@ -529,8 +538,8 @@ class SQLCachingBuildResultStore(BuildResultStore):
             StormBuild.tree == unicode(tree),
             StormBuild.host == unicode(host),
             StormBuild.compiler == unicode(compiler),
-            StormBuild.commit_revision == unicode(revision))
-        cur_build = result.one()
+            StormBuild.commit_revision == revision)
+        cur_build = result.any()
         if cur_build is None:
             raise NoSuchBuildError(tree, host, compiler, revision)
 
@@ -538,9 +547,10 @@ class SQLCachingBuildResultStore(BuildResultStore):
             StormBuild.tree == unicode(tree),
             StormBuild.host == unicode(host),
             StormBuild.compiler == unicode(compiler),
+            StormBuild.commit_revision != revision,
             StormBuild.id < cur_build.id)
         result = result.order_by(Desc(StormBuild.id))
-        prev_build = result.one()
+        prev_build = result.first()
         if prev_build is None:
             raise NoSuchBuildError(tree, host, compiler, revision)
         return prev_build.commit_revision
@@ -551,13 +561,17 @@ class SQLCachingBuildResultStore(BuildResultStore):
             StormBuild.host == unicode(host),
             StormBuild.compiler == unicode(compiler))
         result = result.order_by(Desc(StormBuild.id))
-        if result.is_empty():
+        build = result.first()
+        if build is None:
             raise NoSuchBuildError(tree, host, compiler)
-        return result.one().revision
+        return build.revision
 
     def upload_build(self, build):
         super(SQLCachingBuildResultStore, self).upload_build(build)
         rev, timestamp = build.revision_details()
         new_basename = self.build_fname(build.tree, build.host, build.compiler, rev)
-        new_build = StormBuild(new_basename, unicode(build.tree), unicode(build.host), unicode(build.compiler), unicode(rev))
+        new_build = StormBuild(new_basename, unicode(build.tree), unicode(build.host), unicode(build.compiler), rev)
+        new_build.checksum = build.log_checksum()
+        new_build.age = build.age_mtime()
+        new_build.status = unicode(str(build.status()))
         self.store.add(new_build)

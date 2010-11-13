@@ -74,6 +74,7 @@ The Build Farm administration team.
     if opts.dry_run:
         print msg.as_string()
     else:
-        smtp.send(msg["From"], [msg["To"]], msg.as_string())
+        smtp.sendmail(msg["From"], [msg["To"]], msg.as_string())
         host.dead_mail_sent()
+db.commit()
 smtp.quit()
