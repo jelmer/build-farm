@@ -130,7 +130,7 @@ class BuildFarm(object):
         return perc
 
     def get_build(self, tree, host, compiler, rev=None):
-        if rev:
+        if rev is not None:
             return self.builds.get_build(tree, host, compiler, rev)
         else:
             return self.upload_builds.get_build(tree, host, compiler)

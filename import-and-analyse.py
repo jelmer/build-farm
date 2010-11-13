@@ -115,11 +115,13 @@ for build in buildfarm.get_new_builds():
         # Can't send a nastygram until there are 2 builds..
     else:
         try:
-            prev_build = buildfarm.get_build(build.tree, build.host, build.compiler, prev_rev)
+            assert prev_rev is not None
+            prev_build = buildfarm.builds.get_build(build.tree, build.host, build.compiler, prev_rev)
         except data.NoSuchBuildError:
             if opts.verbose >= 1:
                 print "Previous build %s has disappeared" % prev_build
         else:
+            assert build.log_checksum() != prev_build.log_checksum()
             check_and_send_mails(build.tree, build.host, build.compiler, build, prev_build)
 
     if not opts.dry_run:
