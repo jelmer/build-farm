@@ -106,5 +106,5 @@ class GitBranch(object):
         commit = self.repo[revision]
         f = StringIO()
         for (oldpath, newpath), (oldmode, newmode), (oldsha, newsha) in self._changes_for(commit):
-            write_blob_diff((oldpath, oldmode, self.store[oldsha]), (newpath, newmode, self.store[newsha]))
+            write_blob_diff(f, (oldpath, oldmode, self.store[oldsha]), (newpath, newmode, self.store[newsha]))
         return (self._revision_from_commit(commit), f.getvalue())

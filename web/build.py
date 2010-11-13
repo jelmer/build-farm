@@ -1,12 +1,16 @@
 #!/usr/bin/python
 # This CGI script presents the results of the build_farm build
+
+# Copyright (C) Jelmer Vernooij <jelmer@samba.org>     2010
+# Copyright (C) Matthieu Patou <mat@matws.net>         2010
+#
+# Based on the original web/build.pl:
 #
 # Copyright (C) Andrew Tridgell <tridge@samba.org>     2001-2005
 # Copyright (C) Andrew Bartlett <abartlet@samba.org>   2001
 # Copyright (C) Vance Lankhaar  <vance@samba.org>      2002-2005
 # Copyright (C) Martin Pool <mbp@samba.org>            2001
-# Copyright (C) Jelmer Vernooij <jelmer@samba.org>     2007-2010
-# Copyright (C) Matthieu Patou <mat@matws.net>         2010-2010
+# Copyright (C) Jelmer Vernooij <jelmer@samba.org>     2007
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -32,6 +36,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from buildfarm import (
     CachingBuildFarm,
     data,
+    hostdb,
     util,
     )
 
@@ -44,16 +49,6 @@ standalone = 0
 webdir = os.path.dirname(__file__)
 basedir = os.path.abspath(os.path.join(webdir, ".."))
 
-buildfarm = CachingBuildFarm()
-
-db = data.BuildResultStore(basedir)
-hostsdb = buildfarm.hostdb
-
-compilers = buildfarm.compilers
-# host.properties are unicode object and the framework expect string object
-hosts = dict([(host.name.encode("utf-8"), host) for host in hostsdb.hosts()])
-trees = buildfarm.trees
-OLDAGE = buildfarm.OLDAGE
 
 UNPACKED_BASE = "http://svn.samba.org/ftp/unpacked"
 GITWEB_BASE = "http://gitweb.samba.org"
@@ -123,13 +118,6 @@ def build_status_html(myself, build):
     return build_link(myself, build.tree, build.host, build.compiler, build.revision, status)
 
 
-def red_age(age):
-    """show an age as a string"""
-    if age > OLDAGE:
-        return "<span clsas='old'>%s</span>" % util.dhm_time(age)
-    return util.dhm_time(age)
-
-
 def build_status_vals(status):
     """translate a status into a set of int representing status"""
     status = util.strip_html(status)
@@ -140,89 +128,6 @@ def build_status_vals(status):
     status = status.replace("PANIC", "1")
 
     return status.split("/")
-
-
-def view_summary(myself, output_type):
-    """view build summary"""
-    i = 0
-    cols = 2
-    broken = 0
-    broken_count = {}
-    panic_count = {}
-    host_count = {}
-
-    # zero broken and panic counters
-    for tree in trees:
-        broken_count[tree] = 0
-        panic_count[tree] = 0
-        host_count[tree] = 0
-
-    # set up a variable to store the broken builds table's code, so we can
-    # output when we want
-    broken_table = ""
-    last_host = ""
-
-    # for the text report, include the current time
-    if output_type == 'text':
-        t = time.gmtime()
-        yield "Build status as of %s\n\n" % t
-
-    for host in hosts.values():
-        for compiler in compilers:
-            for tree in trees:
-                try:
-                    build = buildfarm.get_build(tree, host.name.encode("utf-8"), compiler)
-                    status = build_status_html(myself, build)
-                except data.NoSuchBuildError:
-                    continue
-                age_mtime = build.age_mtime()
-                host_count[tree]+=1
-
-                if "status failed" in status:
-                    broken_count[tree]+=1
-                    if "PANIC" in status:
-                        panic_count[tree]+=1
-
-    if output_type == 'text':
-        yield "Build counts:\n"
-        yield "%-12s %-6s %-6s %-6s\n" % ("Tree", "Total", "Broken", "Panic")
-    else:
-        yield "<div id='build-counts' class='build-section'>"
-        yield "<h2>Build counts:</h2>"
-        yield "<table class='real'>"
-        yield "<thead><tr><th>Tree</th><th>Total</th><th>Broken</th><th>Panic</th><th>Test coverage</th></tr></thead>"
-        yield "<tbody>"
-
-    for tree in sorted(trees.keys()):
-        if output_type == 'text':
-            yield "%-12s %-6s %-6s %-6s\n" % (tree, host_count[tree],
-                    broken_count[tree], panic_count[tree])
-        else:
-            yield "<tr>"
-            yield "<td>%s</td>" % tree_link(myself, tree)
-            yield "<td>%s</td>" % host_count[tree]
-            yield "<td>%s</td>" % broken_count[tree]
-            if panic_count[tree]:
-                    yield "<td class='panic'>"
-            else:
-                    yield "<td>"
-            yield "%d</td>" % panic_count[tree]
-            try:
-                lcov_status = buildfarm.lcov_status(tree)
-            except data.NoSuchBuildError:
-                yield "<td></td>"
-            else:
-                if lcov_status is not None:
-                    yield "<td><a href=\"/lcov/data/%s/%s\">%s %%</a></td>" % (buildfarm.LCOVHOST, tree, lcov_status)
-                else:
-                    yield "<td></td>"
-            yield "</tr>"
-
-    if output_type == 'text':
-        yield "\n"
-    else:
-        yield "</tbody></table>"
-        yield "</div>"
 
 
 def revision_link(myself, revision, tree):
@@ -237,333 +142,6 @@ def revision_link(myself, revision, tree):
         rev_short = re.sub("(^.{7}).*", "\\1(git)", rev_short)
 
     return "<a href='%s?function=diff;tree=%s;revision=%s' title='View Diff for %s'>%s</a>" % (myself, tree, revision, revision, rev_short)
-
-
-def tree_link(myself, tree):
-    # return a link to a particular tree
-    branch = ""
-    if tree in trees:
-        branch = ":%s" % trees[tree].branch
-
-    return "<a href='%s?function=Recent+Builds;tree=%s' title='View recent builds for %s'>%s%s</a>" % (myself, tree, tree, tree, branch)
-
-
-def view_recent_builds(myself, tree, sort_by):
-    """Draw the "recent builds" view"""
-    i = 0
-    cols = 2
-    broken = 0
-    last_host = ""
-    all_builds = []
-
-    cmp_funcs = {
-        "revision": lambda a, b: cmp(a[7], b[7]),
-        "age": lambda a, b: cmp(a[0], b[0]),
-        "host": lambda a, b: cmp(a[2], b[2]),
-        "platform": lambda a, b: cmp(a[1], b[1]),
-        "compiler": lambda a, b: cmp(a[3], b[3]),
-        "status": lambda a, b: cmp(a[6], b[6]),
-        }
-
-    assert tree in trees, "not a build tree"
-    assert sort_by in cmp_funcs, "not a valid sort"
-
-    t = trees[tree]
-
-    for host in hosts.values():
-        for compiler in compilers:
-            try:
-                build = buildfarm.get_build(tree, host.name.encode("utf-8"), compiler)
-                status = build_status_html(myself, build)
-            except data.NoSuchBuildError:
-                pass
-            else:
-                age_mtime = build.age_mtime()
-                age_ctime = build.age_ctime()
-                (revision, revision_time) = build.revision_details()
-                if revision:
-                    all_builds.append([
-                        age_ctime,
-                        host.platform.encode("utf-8"),
-                        "<a href='%s?function=View+Host;host=%s;tree=%s;compiler=%s#%s'>%s</a>"
-                            % (myself, host.name.encode("utf-8"),
-                               tree, compiler, host.name.encode("utf-8"),
-                               host.name.encode("utf-8")),
-                        compiler, tree, status, build.status(),
-                        revision_link(myself, revision, tree),
-                        revision_time])
-
-    all_builds.sort(cmp_funcs[sort_by])
-
-    sorturl = "%s?tree=%s;function=Recent+Builds" % (myself, tree)
-
-    yield "<div id='recent-builds' class='build-section'>"
-    yield "<h2>Recent builds of %s (%s branch %s)</h2>" % (tree, t.scm, t.branch)
-    yield "<table class='real'>"
-    yield "<thead>"
-    yield "<tr>"
-    yield "<th><a href='%s;sortby=age' title='Sort by build age'>Age</a></th>" % sorturl
-    yield "<th><a href='%s;sortby=revision' title='Sort by build revision'>Revision</a></th>" % sorturl
-    yield "<th>Tree</th>"
-    yield "<th><a href='%s;sortby=platform' title='Sort by platform'>Platform</a></th>" % sorturl
-    yield "<th><a href='%s;sortby=host' title='Sort by host'>Host</a></th>" % sorturl
-    yield "<th><a href='%s;sortby=compiler' title='Sort by compiler'>Compiler</a></th>" % sorturl
-    yield "<th><a href='%s;sortby=status' title='Sort by status'>Status</a></th>" % sorturl
-    yield "<tbody>"
-
-    for build in all_builds:
-        yield "<tr>"
-        yield "<td>%s</td>" % util.dhm_time(build[0])
-        yield "<td>%s</td>" % build[7]
-        yield "<td>%s</td>" % build[4]
-        yield "<td>%s</td>" % build[1]
-        yield "<td>%s</td>" % build[2]
-        yield "<td>%s</td>" % build[3]
-        yield "<td>%s</td>" % build[5]
-        yield "</tr>"
-    yield "</tbody></table>"
-    yield "</div>"
-
-
-def draw_dead_hosts(output_type, *deadhosts):
-    """Draw the "dead hosts" table"""
-
-    # don't output anything if there are no dead hosts
-    if len(deadhosts) == 0:
-        return
-
-    # don't include in text report
-    if output_type == "text":
-        return
-
-    yield "<div class='build-section' id='dead-hosts'>"
-    yield "<h2>Dead Hosts:</h2>"
-    yield "<table class='real'>"
-    yield "<thead><tr><th>Host</th><th>OS</th><th>Min Age</th></tr></thead>"
-    yield "<tbody>"
-
-    for host in deadhosts:
-        age_ctime = db.host_age(host)
-        yield "<tr><td>%s</td><td>%s</td><td>%s</td></tr>" %\
-                (host,hosts[host].platform.encode("utf-8"),
-                 util.dhm_time(age_ctime))
-
-    yield "</tbody></table>"
-    yield "</div>"
-
-
-def show_oldrevs(myself, tree, host, compiler):
-    """show the available old revisions, if any"""
-    revs = db.get_old_revs(tree, host, compiler)
-
-    if len(revs) == 0:
-        return
-
-    yield "<h2>Older builds:</h2>"
-
-    yield "<table class='real'>"
-    yield "<thead><tr><th>Revision</th><th>Status</th></tr></thead>"
-    yield "<tbody>"
-
-    lastrev = ""
-    for rev in revs:
-        s = html_build_status(rev["STATUS"])
-        revision = rev["REVISION"]
-        s = s.replace(revision, "0")
-        if s == lastrev:
-            continue
-        lastrev = s
-        yield "<tr><td>%s</td><td>%s</td></tr>" % (revision_link(myself, revision, tree), build_link(myself, tree, host, compiler, rev["REVISION"], html_build_status(rev["STATUS"])))
-
-    if lastrev != "":
-        # Only print table if there was any actual data
-        yield "</tbody></table>"
-
-
-def view_build(myself, tree, host, compiler, rev, plain_logs=False):
-    """view one build in detail"""
-    # ensure the params are valid before using them
-    assert host in hosts, "unknown host %s" % host
-    assert compiler in compilers, "unknown compiler %s" % compiler
-    assert tree in trees, "not a build tree %s" % tree
-
-    uname = ""
-    cflags = ""
-    config = ""
-    build = buildfarm.get_build(tree, host, compiler, rev)
-    age_mtime = build.age_mtime()
-    (revision, revision_time) = build.revision_details()
-    status = build_status_html(myself, build)
-
-    if rev:
-        assert re.match("^[0-9a-fA-F]*$", rev)
-
-    f = build.read_log()
-    try:
-        log = f.read()
-    finally:
-        f.close()
-    f = build.read_err()
-    try:
-        err = f.read()
-    finally:
-        f.close()
-
-    if log:
-        log = cgi.escape(log)
-
-        m = re.search("(.*)", log)
-        if m:
-            uname = m.group(1)
-        m = re.search("CFLAGS=(.*)", log)
-        if m:
-            cflags = m.group(1)
-        m = re.search("configure options: (.*)", log)
-        if m:
-            config = m.group(1)
-
-    if err:
-        err = cgi.escape(err)
-    yield '<h2>Host information:</h2>'
-
-    host_web_file = "../web/%s.html" % host
-    if os.path.exists(host_web_file):
-        yield util.FileLoad(host_web_file)
-
-    yield "<table class='real'>\n"
-    yield "<tr><td>Host:</td><td><a href='%s?function=View+Host;host=%s;tree=%s;"\
-          "compiler=%s#'>%s</a> - %s</td></tr>\n" %\
-            (myself, host, tree, compiler, host, hosts[host].platform.encode("utf-8"))
-    yield "<tr><td>Uname:</td><td>%s</td></tr>\n" % uname
-    yield "<tr><td>Tree:</td><td>%s</td></tr>\n" % tree_link(myself, tree)
-    yield "<tr><td>Build Revision:</td><td>%s</td></tr>\n" % revision_link(myself, revision, tree)
-    yield "<tr><td>Build age:</td><td><div class='age'>%s</div></td></tr>\n" % red_age(age_mtime)
-    yield "<tr><td>Status:</td><td>%s</td></tr>\n" % status
-    yield "<tr><td>Compiler:</td><td>%s</td></tr>\n" % compiler
-    yield "<tr><td>CFLAGS:</td><td>%s</td></tr>\n" % cflags
-    yield "<tr><td>configure options:</td><td>%s</td></tr>\n" % config
-    yield "</table>\n"
-
-    yield "".join(show_oldrevs(myself, tree, host, compiler))
-
-    # check the head of the output for our magic string
-    rev_var = ""
-    if rev:
-        rev_var = ";revision=%s" % rev
-
-    yield "<div id='log'>"
-
-    if not plain_logs:
-        yield "<p>Switch to the <a href='%s?function=View+Build;host=%s;tree=%s"\
-              ";compiler=%s%s;plain=true' title='Switch to bland, non-javascript,"\
-              " unstyled view'>Plain View</a></p>" % (myself, host, tree, compiler, rev_var)
-
-        yield "<div id='actionList'>"
-        # These can be pretty wide -- perhaps we need to
-        # allow them to wrap in some way?
-        if err == "":
-            yield "<h2>No error log available</h2>\n"
-        else:
-            yield "<h2>Error log:</h2>"
-            yield make_collapsible_html('action', "Error Output", "\n%s" % err, "stderr-0", "errorlog")
-
-        if log == "":
-            yield "<h2>No build log available</h2>"
-        else:
-            yield "<h2>Build log:</h2>\n"
-            yield print_log_pretty(log)
-
-        yield "<p><small>Some of the above icons derived from the <a href='http://www.gnome.org'>Gnome Project</a>'s stock icons.</small></p>"
-        yield "</div>"
-    else:
-        yield "<p>Switch to the <a href='%s?function=View+Build;host=%s;tree=%s;"\
-              "compiler=%s%s' title='Switch to colourful, javascript-enabled, styled"\
-              " view'>Enhanced View</a></p>" % (myself, host, tree, compiler, rev_var)
-        if err == "":
-            yield "<h2>No error log available</h2>"
-        else:
-            yield '<h2>Error log:</h2>\n'
-            yield '<div id="errorLog"><pre>%s</pre></div>' % err
-        if log == "":
-            yield '<h2>No build log available</h2>'
-        else:
-            yield '<h2>Build log:</h2>\n'
-            yield '<div id="buildLog"><pre>%s</pre></div>' % log
-
-    yield '</div>'
-
-
-def view_host(myself, output_type, *requested_hosts):
-    """print the host's table of information"""
-
-    if output_type == 'text':
-        yield "Host summary:\n"
-    else:
-        yield "<div class='build-section' id='build-summary'>"
-        yield '<h2>Host summary:</h2>'
-
-    for host in requested_hosts:
-        assert host in hosts, "unknown host"
-
-    for host in requested_hosts:
-        # make sure we have some data from it
-        if not host in hosts:
-            if output_type == 'text':
-                yield "<!-- skipping %s -->" % host
-            continue
-
-        row = 0
-
-        for compiler in compilers:
-            for tree in sorted(trees.keys()):
-                try:
-                    build = buildfarm.get_build(tree, host, compiler)
-                except data.NoSuchBuildError:
-                    pass
-                else:
-                    (revision, revision_time) = build.revision_details()
-                    age_mtime = build.age_mtime()
-                    age_ctime = build.age_ctime()
-                    warnings = build.err_count()
-                    status = build_status_html(myself, build)
-                    if row == 0:
-                        if output_type == 'text':
-                            yield "%-12s %-10s %-10s %-10s %-10s\n" % (
-                                    "Tree", "Compiler", "Build Age", "Status", "Warnings")
-                        else:
-                            yield "<div class='host summary'>"
-                            yield "<a id='host' name='host'/>"
-                            yield "<h3>%s - %s</h3>" % (host, hosts[host].platform.encode("utf-8"))
-                            yield "<table class='real'>"
-                            yield "<thead><tr><th>Target</th><th>Build<br/>Revision</th><th>Build<br />Age</th><th>Status<br />config/build<br />install/test</th><th>Warnings</th></tr></thead>"
-                            yield "<tbody>"
-
-                    if output_type == 'text':
-                        yield "%-12s %-10s %-10s %-10s %-10s\n" % (
-                                tree, compiler, util.dhm_time(age_mtime),
-                                util.strip_html(status), warnings)
-                    else:
-                        yield "<tr>"
-                        yield "<td><span class='tree'>" + tree_link(myself, tree) +"</span>/" + compiler + "</td>"
-                        yield "<td>" + revision_link(myself, revision, tree) + "</td>"
-                        yield "<td><div class='age'>" + red_age(age_mtime) + "</div></td>"
-                        yield "<td><div class='status'>%s</div></td>" % status
-                        yield "<td>%s</td>" % warnings
-                        yield "</tr>"
-                    row+=1
-        if row != 0:
-            if output_type == 'text':
-                yield "\n"
-            else:
-                yield "</tbody></table>"
-                yield "</div>"
-        else:
-            deadhosts.append(host)
-
-    if output_type != 'text':
-        yield "</div>"
-
-    yield "".join(draw_dead_hosts(output_type, *deadhosts))
 
 
 def subunit_to_buildfarm_result(subunit_result):
@@ -742,32 +320,6 @@ def make_collapsible_html(type, title, output, id, status=""):
     ret += "</div></div>"
     return ret
 
-def main_menu():
-    """main page"""
-
-    yield "<form method='GET'>"
-    yield "<div id='build-menu'>"
-    yield "<select name='host'>"
-    for name, host in hosts.iteritems():
-        yield "<option value='%s'>%s -- %s</option>\n" % (name, host.platform.encode("utf-8"), name)
-    yield "</select>"
-    yield "<select name='tree'>"
-    for tree, t in trees.iteritems():
-        yield "<option value='%s'>%s:%s</option>\n" % (tree, tree, t.branch)
-    yield "</select>"
-    yield "<select name='compiler'>"
-    for compiler in compilers:
-        yield "<option>%s</option>\n" % compiler
-    yield "</select>"
-    yield "<br/>"
-    yield "<input type='submit' name='function' value='View Build'/>"
-    yield "<input type='submit' name='function' value='View Host'/>"
-    yield "<input type='submit' name='function' value='Recent Checkins'/>"
-    yield "<input type='submit' name='function' value='Summary'/>"
-    yield "<input type='submit' name='function' value='Recent Builds'/>"
-    yield "</div>"
-    yield "</form>"
-
 
 def diff_pretty(diff):
     """pretty up a diff -u"""
@@ -776,21 +328,21 @@ def diff_pretty(diff):
     lines = diff.splitlines()
 
     line_types = {
-            '^diff.*': 'diff_diff',
-            '^=.*': 'diff_separator',
-            '^Index:.*': 'diff_index',
-            '^index.*': 'diff_index',
-            '^\-.*': 'diff_removed',
-            '^\+.*': 'diff_added',
-            '^@@.*': 'diff_fragment_header'
+            'diff': 'diff_diff',
+            '=': 'diff_separator',
+            'Index:': 'diff_index',
+            'index': 'diff_index',
+            '-': 'diff_removed',
+            '+': 'diff_added',
+            '@@': 'diff_fragment_header'
             }
 
     for line in lines:
-        for r in line_types.iterkeys():
-            if r in line:
-                line = "<span class=\"%s\">%s</span>" % (line_types[r], line)
+        for r, cls in line_types.iteritems():
+            if line.startswith(r):
+                line = "<span class=\"%s\">%s</span>" % (cls, line)
                 continue
-        ret += line
+        ret += line + "\n"
 
     return ret
 
@@ -810,7 +362,7 @@ def history_row_html(myself, entry, tree):
     """show one row of history table"""
     msg = cgi.escape(entry.message)
     t = time.asctime(time.gmtime(entry.date))
-    age = util.dhm_time(time()-entry.date)
+    age = util.dhm_time(time.time()-entry.date)
 
     t = t.replace(" ", "&nbsp;")
 
@@ -836,29 +388,23 @@ def history_row_html(myself, entry, tree):
     </div>
     <div class=\"author\">
     <span class=\"label\">Author: </span>%s
-    </div>""" % (myself, tree, entry.date, revision_url,
-                 myself, tree, entry.date, revision_url,
+    </div>""" % (myself, tree.name, entry.date, revision_url,
+                 myself, tree.name, entry.date, revision_url,
                  msg, entry.author)
-
-    t = db.trees.get(tree)
-
-    if t is None:
-        yield "</div>"
-        return
 
     if entry.modified:
         yield "<div class=\"files\"><span class=\"label\">Modified: </span>"
-        yield web_paths(t, entry.modified)
+        yield web_paths(tree, entry.modified)
         yield "</div>\n"
 
     if entry.added:
         yield "<div class=\"files\"><span class=\"label\">Added: </span>"
-        yield web_paths(t, entry.added)
+        yield web_paths(tree, entry.added)
         yield "</div>\n"
 
     if entry.removed:
         yield "<div class=\"files\"><span class=\"label\">Removed: </span>"
-        yield web_paths(t, entry.removed)
+        yield web_paths(tree, entry.removed)
         yield "</div>\n"
 
     yield "</div>\n"
@@ -868,7 +414,7 @@ def history_row_text(entry, tree):
     """show one row of history table"""
     msg = cgi.escape(entry.message)
     t = time.asctime(time.gmtime(entry.date))
-    age = util.dhm_time(time()-entry.date)
+    age = util.dhm_time(time.time()-entry.date)
 
     yield "Author: %s\n" % entry.author
     if entry.revision:
@@ -888,121 +434,609 @@ def show_diff(diff, text_html):
         return "%s\n" % diff
 
 
-def buildApp(environ, start_response):
-    form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
-    fn_name = get_param(form, 'function') or ''
-    myself = wsgiref.util.application_uri(environ)
+class BuildFarmPage(object):
 
-    if standalone and environ['PATH_INFO']:
-        dir = os.path.join(os.path.dirname(__file__))
-        if re.match("^/[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)?", environ['PATH_INFO']):
-            static_file = "%s/%s" % (dir, environ['PATH_INFO'])
-            if os.path.exists(static_file):
-                tab = environ['PATH_INFO'].split('.')
-                if len(tab) > 1:
-                    extension = tab[-1]
-                    import mimetypes
-                    mimetypes.init()
-                    type = mimetypes.types_map[".%s" % extension]
-                    start_response('200 OK', [('Content-type', type)])
-                    data = open(static_file, 'rb').read()
-                    yield data
-                    return
+    def __init__(self, buildfarm):
+        self.buildfarm = buildfarm
 
-    if fn_name == 'text_diff':
-        start_response('200 OK', [('Content-type', 'application/x-diff')])
-        tree = get_param(form, 'tree')
-        t = db.trees[tree]
-        (entry, diff) = t.get_branch().diff(get_param(form, 'revision'))
-        yield "".join(history_row_text(entry, tree))
-        yield show_diff(diff, "text")
-    elif fn_name == 'Text_Summary':
-        start_response('200 OK', [('Content-type', 'text/plain')])
-        yield "".join(view_summary(myself, 'text'))
-    else:
-        start_response('200 OK', [('Content-type', 'text/html')])
+    def red_age(self, age):
+        """show an age as a string"""
+        if age > self.buildfarm.OLDAGE:
+            return "<span clsas='old'>%s</span>" % util.dhm_time(age)
+        return util.dhm_time(age)
 
-        yield "<html>"
-        yield "  <head>"
-        yield "    <title>samba.org build farm</title>"
-        yield "    <script language='javascript' src='/build_farm.js'></script>"
-        yield "    <meta name='keywords' contents='Samba SMB CIFS Build Farm'/>"
-        yield "    <meta name='description' contents='Home of the Samba Build Farm, the automated testing facility.'/>"
-        yield "    <meta name='robots' contents='noindex'/>"
-        yield "    <link rel='stylesheet' href='/build_farm.css' type='text/css' media='all'/>"
-        if standalone:
-            yield "    <link rel='stylesheet' href='common.css' type='text/css' media='all'/>"
+    def tree_link(self, myself, tree):
+        # return a link to a particular tree
+        branch = ""
+        if tree in self.buildfarm.trees:
+            branch = ":%s" % self.buildfarm.trees[tree].branch
+
+        return "<a href='%s?function=Recent+Builds;tree=%s' title='View recent builds for %s'>%s%s</a>" % (myself, tree, tree, tree, branch)
+
+    def render(self, output_type):
+        raise NotImplementedError(self.render)
+
+
+class ViewBuildPage(BuildFarmPage):
+
+    def show_oldrevs(self, myself, tree, host, compiler):
+        """show the available old revisions, if any"""
+        revs = self.buildfarm.builds.get_old_revs(tree, host, compiler)
+
+        if len(revs) == 0:
+            return
+
+        yield "<h2>Older builds:</h2>"
+
+        yield "<table class='real'>"
+        yield "<thead><tr><th>Revision</th><th>Status</th></tr></thead>"
+        yield "<tbody>"
+
+        lastrev = ""
+        for rev in revs:
+            s = html_build_status(rev["STATUS"])
+            revision = rev["REVISION"]
+            s = s.replace(revision, "0")
+            if s == lastrev:
+                continue
+            lastrev = s
+            yield "<tr><td>%s</td><td>%s</td></tr>" % (revision_link(myself, revision, tree), build_link(myself, tree, host, compiler, rev["REVISION"], html_build_status(rev["STATUS"])))
+
+        if lastrev != "":
+            # Only print table if there was any actual data
+            yield "</tbody></table>"
+
+    def render(self, myself, tree, host, compiler, rev, plain_logs=False):
+        """view one build in detail"""
+        # ensure the params are valid before using them
+        #assert host in self.buildfarm.hostdb, "unknown host %s" % host
+        assert compiler in self.buildfarm.compilers, "unknown compiler %s" % compiler
+        assert tree in self.buildfarm.trees, "not a build tree %s" % tree
+
+        uname = ""
+        cflags = ""
+        config = ""
+        build = buildfarm.get_build(tree, host, compiler, rev)
+        age_mtime = build.age_mtime()
+        (revision, revision_time) = build.revision_details()
+        status = build_status_html(myself, build)
+
+        if rev:
+            assert re.match("^[0-9a-fA-F]*$", rev)
+
+        f = build.read_log()
+        try:
+            log = f.read()
+        finally:
+            f.close()
+        f = build.read_err()
+        try:
+            err = f.read()
+        finally:
+            f.close()
+
+        if log:
+            log = cgi.escape(log)
+
+            m = re.search("(.*)", log)
+            if m:
+                uname = m.group(1)
+            m = re.search("CFLAGS=(.*)", log)
+            if m:
+                cflags = m.group(1)
+            m = re.search("configure options: (.*)", log)
+            if m:
+                config = m.group(1)
+
+        if err:
+            err = cgi.escape(err)
+        yield '<h2>Host information:</h2>'
+
+        host_web_file = "../web/%s.html" % host
+        if os.path.exists(host_web_file):
+            yield util.FileLoad(host_web_file)
+
+        yield "<table class='real'>\n"
+        yield "<tr><td>Host:</td><td><a href='%s?function=View+Host;host=%s;tree=%s;"\
+              "compiler=%s#'>%s</a> - %s</td></tr>\n" %\
+                (myself, host, tree, compiler, host, self.buildfarm.hostdb.host(host).platform.encode("utf-8"))
+        yield "<tr><td>Uname:</td><td>%s</td></tr>\n" % uname
+        yield "<tr><td>Tree:</td><td>%s</td></tr>\n" % self.tree_link(myself, tree)
+        yield "<tr><td>Build Revision:</td><td>%s</td></tr>\n" % revision_link(myself, revision, tree)
+        yield "<tr><td>Build age:</td><td><div class='age'>%s</div></td></tr>\n" % self.red_age(age_mtime)
+        yield "<tr><td>Status:</td><td>%s</td></tr>\n" % status
+        yield "<tr><td>Compiler:</td><td>%s</td></tr>\n" % compiler
+        yield "<tr><td>CFLAGS:</td><td>%s</td></tr>\n" % cflags
+        yield "<tr><td>configure options:</td><td>%s</td></tr>\n" % config
+        yield "</table>\n"
+
+        yield "".join(self.show_oldrevs(myself, tree, host, compiler))
+
+        # check the head of the output for our magic string
+        rev_var = ""
+        if rev:
+            rev_var = ";revision=%s" % rev
+
+        yield "<div id='log'>"
+
+        if not plain_logs:
+            yield "<p>Switch to the <a href='%s?function=View+Build;host=%s;tree=%s"\
+                  ";compiler=%s%s;plain=true' title='Switch to bland, non-javascript,"\
+                  " unstyled view'>Plain View</a></p>" % (myself, host, tree, compiler, rev_var)
+
+            yield "<div id='actionList'>"
+            # These can be pretty wide -- perhaps we need to
+            # allow them to wrap in some way?
+            if err == "":
+                yield "<h2>No error log available</h2>\n"
+            else:
+                yield "<h2>Error log:</h2>"
+                yield make_collapsible_html('action', "Error Output", "\n%s" % err, "stderr-0", "errorlog")
+
+            if log == "":
+                yield "<h2>No build log available</h2>"
+            else:
+                yield "<h2>Build log:</h2>\n"
+                yield print_log_pretty(log)
+
+            yield "<p><small>Some of the above icons derived from the <a href='http://www.gnome.org'>Gnome Project</a>'s stock icons.</small></p>"
+            yield "</div>"
         else:
-            yield "    <link rel='stylesheet' href='http://master.samba.org/samba/style/common.css' type='text/css' media='all'/>"
-        yield "    <link rel='shortcut icon' href='http://www.samba.org/samba/images/favicon.ico'/>"
-        yield "  </head>"
-        yield "<body>"
+            yield "<p>Switch to the <a href='%s?function=View+Build;host=%s;tree=%s;"\
+                  "compiler=%s%s' title='Switch to colourful, javascript-enabled, styled"\
+                  " view'>Enhanced View</a></p>" % (myself, host, tree, compiler, rev_var)
+            if err == "":
+                yield "<h2>No error log available</h2>"
+            else:
+                yield '<h2>Error log:</h2>\n'
+                yield '<div id="errorLog"><pre>%s</pre></div>' % err
+            if log == "":
+                yield '<h2>No build log available</h2>'
+            else:
+                yield '<h2>Build log:</h2>\n'
+                yield '<div id="buildLog"><pre>%s</pre></div>' % log
 
-        yield util.FileLoad(os.path.join(webdir, "header2.html"))
-        yield "".join(main_menu())
-        yield util.FileLoad(os.path.join(webdir, "header3.html"))
-        if fn_name == "View_Build":
-            plain_logs = (get_param(form, "plain") is not None and get_param(form, "plain").lower() in ("yes", "1", "on", "true", "y"))
-            yield "".join(view_build(myself, get_param(form, "tree"), get_param(form, "host"),
-                get_param(form, "compiler"), get_param(form, "revision"), plain_logs))
-        elif fn_name == "View_Host":
-            yield "".join(view_host(myself, "html", get_param(form, 'host')))
-        elif fn_name == "Recent_Builds":
-            yield "".join(view_recent_builds(myself, get_param(form, "tree"), get_param(form, "sortby") or "revision"))
-        elif fn_name == "Recent_Checkins":
-            # validate the tree
-            tree =  get_param(form, "tree")
-            t = buildfarm.trees[tree]
-            authors = set(["ALL"])
-            authors.update(t.get_branch().authors(tree))
+        yield '</div>'
 
-            yield "<h2>Recent checkins for %s (%s branch %s)</h2>\n" % (
-                tree, t.scm, t.branch)
-            yield "<form method='GET'>"
-            yield "Select Author: "
-            yield "<select name='author'>"
-            for name in sorted(authors):
-                yield "<option>%s</option>" % name
-            yield "</select>"
-            yield "<input type='submit' name='sub_function' value='Refresh'/>"
-            yield "<input type='hidden' name='tree' value='%s'/>" % tree
-            yield "<input type='hidden' name='function', value='Recent Checkins'/>"
-            yield "</form>"
 
-            branch = t.get_branch()
-            author = get_param(form, 'author')
+class ViewRecentBuildsPage(BuildFarmPage):
 
-            for entry in branch.log():
-                if author in ("ALL", "", entry.author):
-                    yield "".join(history_row_html(myself, entry, tree))
+    def render(self, myself, tree, sort_by):
+        """Draw the "recent builds" view"""
+        i = 0
+        cols = 2
+        broken = 0
+        last_host = ""
+        all_builds = []
+
+        cmp_funcs = {
+            "revision": lambda a, b: cmp(a[7], b[7]),
+            "age": lambda a, b: cmp(a[0], b[0]),
+            "host": lambda a, b: cmp(a[2], b[2]),
+            "platform": lambda a, b: cmp(a[1], b[1]),
+            "compiler": lambda a, b: cmp(a[3], b[3]),
+            "status": lambda a, b: cmp(a[6], b[6]),
+            }
+
+        assert tree in self.buildfarm.trees, "not a build tree"
+        assert sort_by in cmp_funcs, "not a valid sort"
+
+        t = self.buildfarm.trees[tree]
+
+        for host in self.buildfarm.hostdb.hosts():
+            for compiler in self.buildfarm.compilers:
+                try:
+                    build = buildfarm.get_build(tree, host.name.encode("utf-8"), compiler)
+                    status = build_status_html(myself, build)
+                except data.NoSuchBuildError:
+                    pass
+                else:
+                    age_mtime = build.age_mtime()
+                    age_ctime = build.age_ctime()
+                    (revision, revision_time) = build.revision_details()
+                    if revision:
+                        all_builds.append([
+                            age_ctime,
+                            host.platform.encode("utf-8"),
+                            "<a href='%s?function=View+Host;host=%s;tree=%s;compiler=%s#%s'>%s</a>"
+                                % (myself, host.name.encode("utf-8"),
+                                   tree, compiler, host.name.encode("utf-8"),
+                                   host.name.encode("utf-8")),
+                            compiler, tree, status, build.status(),
+                            revision_link(myself, revision, tree),
+                            revision_time])
+
+        all_builds.sort(cmp_funcs[sort_by])
+
+        sorturl = "%s?tree=%s;function=Recent+Builds" % (myself, tree)
+
+        yield "<div id='recent-builds' class='build-section'>"
+        yield "<h2>Recent builds of %s (%s branch %s)</h2>" % (tree, t.scm, t.branch)
+        yield "<table class='real'>"
+        yield "<thead>"
+        yield "<tr>"
+        yield "<th><a href='%s;sortby=age' title='Sort by build age'>Age</a></th>" % sorturl
+        yield "<th><a href='%s;sortby=revision' title='Sort by build revision'>Revision</a></th>" % sorturl
+        yield "<th>Tree</th>"
+        yield "<th><a href='%s;sortby=platform' title='Sort by platform'>Platform</a></th>" % sorturl
+        yield "<th><a href='%s;sortby=host' title='Sort by host'>Host</a></th>" % sorturl
+        yield "<th><a href='%s;sortby=compiler' title='Sort by compiler'>Compiler</a></th>" % sorturl
+        yield "<th><a href='%s;sortby=status' title='Sort by status'>Status</a></th>" % sorturl
+        yield "<tbody>"
+
+        for build in all_builds:
+            yield "<tr>"
+            yield "<td>%s</td>" % util.dhm_time(build[0])
+            yield "<td>%s</td>" % build[7]
+            yield "<td>%s</td>" % build[4]
+            yield "<td>%s</td>" % build[1]
+            yield "<td>%s</td>" % build[2]
+            yield "<td>%s</td>" % build[3]
+            yield "<td>%s</td>" % build[5]
+            yield "</tr>"
+        yield "</tbody></table>"
+        yield "</div>"
+
+
+class ViewHostPage(BuildFarmPage):
+
+    def render(self, myself, output_type, *requested_hosts):
+        """print the host's table of information"""
+
+        if output_type == 'text':
+            yield "Host summary:\n"
+        else:
+            yield "<div class='build-section' id='build-summary'>"
+            yield '<h2>Host summary:</h2>'
+
+        for host in requested_hosts:
+            # make sure we have some data from it
+            try:
+                self.buildfarm.hostdb.host(host)
+            except hostdb.NoSuchHost:
+                continue
+
+            row = 0
+
+            for compiler in self.buildfarm.compilers:
+                for tree in sorted(self.buildfarm.trees.keys()):
+                    try:
+                        build = buildfarm.get_build(tree, host, compiler)
+                    except data.NoSuchBuildError:
+                        pass
+                    else:
+                        (revision, revision_time) = build.revision_details()
+                        age_mtime = build.age_mtime()
+                        age_ctime = build.age_ctime()
+                        warnings = build.err_count()
+                        status = build_status_html(myself, build)
+                        if row == 0:
+                            if output_type == 'text':
+                                yield "%-12s %-10s %-10s %-10s %-10s\n" % (
+                                        "Tree", "Compiler", "Build Age", "Status", "Warnings")
+                            else:
+                                yield "<div class='host summary'>"
+                                yield "<a id='host' name='host'/>"
+                                yield "<h3>%s - %s</h3>" % (host, self.buildfarm.hostdb.host(host).platform.encode("utf-8"))
+                                yield "<table class='real'>"
+                                yield "<thead><tr><th>Target</th><th>Build<br/>Revision</th><th>Build<br />Age</th><th>Status<br />config/build<br />install/test</th><th>Warnings</th></tr></thead>"
+                                yield "<tbody>"
+
+                        if output_type == 'text':
+                            yield "%-12s %-10s %-10s %-10s %-10s\n" % (
+                                    tree, compiler, util.dhm_time(age_mtime),
+                                    util.strip_html(status), warnings)
+                        else:
+                            yield "<tr>"
+                            yield "<td><span class='tree'>" + self.tree_link(myself, tree) +"</span>/" + compiler + "</td>"
+                            yield "<td>" + revision_link(myself, revision, tree) + "</td>"
+                            yield "<td><div class='age'>" + self.red_age(age_mtime) + "</div></td>"
+                            yield "<td><div class='status'>%s</div></td>" % status
+                            yield "<td>%s</td>" % warnings
+                            yield "</tr>"
+                        row+=1
+            if row != 0:
+                if output_type == 'text':
+                    yield "\n"
+                else:
+                    yield "</tbody></table>"
+                    yield "</div>"
+            else:
+                deadhosts.append(host)
+
+        if output_type != 'text':
+            yield "</div>"
+            yield "".join(self.draw_dead_hosts(*deadhosts))
+
+    def draw_dead_hosts(self, *deadhosts):
+        """Draw the "dead hosts" table"""
+
+        # don't output anything if there are no dead hosts
+        if len(deadhosts) == 0:
+            return
+
+        yield "<div class='build-section' id='dead-hosts'>"
+        yield "<h2>Dead Hosts:</h2>"
+        yield "<table class='real'>"
+        yield "<thead><tr><th>Host</th><th>OS</th><th>Min Age</th></tr></thead>"
+        yield "<tbody>"
+
+        for host in deadhosts:
+            age_ctime = self.buildfarm.hostdb.host_age(host)
+            yield "<tr><td>%s</td><td>%s</td><td>%s</td></tr>" %\
+                    (host, self.buildfarm.hostdb.host(host).platform.encode("utf-8"),
+                     util.dhm_time(age_ctime))
+
+        yield "</tbody></table>"
+        yield "</div>"
+
+
+class ViewSummaryPage(BuildFarmPage):
+
+    def render(self, myself, output_type):
+        """view build summary"""
+        i = 0
+        cols = 2
+        broken = 0
+        broken_count = {}
+        panic_count = {}
+        host_count = {}
+
+        # zero broken and panic counters
+        for tree in self.buildfarm.trees:
+            broken_count[tree] = 0
+            panic_count[tree] = 0
+            host_count[tree] = 0
+
+        # set up a variable to store the broken builds table's code, so we can
+        # output when we want
+        broken_table = ""
+        last_host = ""
+
+        # for the text report, include the current time
+        if output_type == 'text':
+            t = time.gmtime()
+            yield "Build status as of %s\n\n" % t
+
+        for host in self.buildfarm.hostdb.hosts():
+            for compiler in self.buildfarm.compilers:
+                for tree in self.buildfarm.trees:
+                    try:
+                        build = buildfarm.get_build(tree, host.name.encode("utf-8"), compiler)
+                        status = build_status_html(myself, build)
+                    except data.NoSuchBuildError:
+                        continue
+                    age_mtime = build.age_mtime()
+                    host_count[tree]+=1
+
+                    if "status failed" in status:
+                        broken_count[tree]+=1
+                        if "PANIC" in status:
+                            panic_count[tree]+=1
+
+        if output_type == 'text':
+            yield "Build counts:\n"
+            yield "%-12s %-6s %-6s %-6s\n" % ("Tree", "Total", "Broken", "Panic")
+        else:
+            yield "<div id='build-counts' class='build-section'>"
+            yield "<h2>Build counts:</h2>"
+            yield "<table class='real'>"
+            yield "<thead><tr><th>Tree</th><th>Total</th><th>Broken</th><th>Panic</th><th>Test coverage</th></tr></thead>"
+            yield "<tbody>"
+
+        for tree in sorted(self.buildfarm.trees.keys()):
+            if output_type == 'text':
+                yield "%-12s %-6s %-6s %-6s\n" % (tree, host_count[tree],
+                        broken_count[tree], panic_count[tree])
+            else:
+                yield "<tr>"
+                yield "<td>%s</td>" % self.tree_link(myself, tree)
+                yield "<td>%s</td>" % host_count[tree]
+                yield "<td>%s</td>" % broken_count[tree]
+                if panic_count[tree]:
+                        yield "<td class='panic'>"
+                else:
+                        yield "<td>"
+                yield "%d</td>" % panic_count[tree]
+                try:
+                    lcov_status = buildfarm.lcov_status(tree)
+                except data.NoSuchBuildError:
+                    yield "<td></td>"
+                else:
+                    if lcov_status is not None:
+                        yield "<td><a href=\"/lcov/data/%s/%s\">%s %%</a></td>" % (buildfarm.LCOVHOST, tree, lcov_status)
+                    else:
+                        yield "<td></td>"
+                yield "</tr>"
+
+        if output_type == 'text':
             yield "\n"
-        elif fn_name == "diff":
-            t = db.trees[tree]
-            revision = get_param(form, 'revision')
-            (entry, diff) = t.get_branch().diff(revision)
-            # get information about the current diff
-            title = "GIT Diff in %s:%s for revision %s" % (
-                tree, t.branch, revision)
-            yield "<h2>%s</h2>" % title
-            yield "".join(history_row_html(myself, entry, tree))
-            yield show_diff(diff, "html")
-        elif os.getenv("PATH_INFO") not in (None, "", "/"):
-            paths = os.getenv("PATH_INFO").split('/')
-            if paths[1] == "recent":
-                yield "".join(view_recent_builds(myself, paths[2], get_param(form, 'sortby') or 'revision'))
-            elif paths[1] == "host":
-                yield "".join(view_host(myself, "html", paths[2]))
         else:
-            yield "".join(view_summary(myself, 'html'))
-        yield util.FileLoad(os.path.join(webdir, "footer.html"))
-        yield "</body>"
-        yield "</html>"
+            yield "</tbody></table>"
+            yield "</div>"
+
+
+class DiffPage(BuildFarmPage):
+
+    def render(self, myself, tree, revision):
+        t = self.buildfarm.trees[tree]
+        (entry, diff) = t.get_branch().diff(revision)
+        # get information about the current diff
+        title = "GIT Diff in %s:%s for revision %s" % (
+            tree, t.branch, revision)
+        yield "<h2>%s</h2>" % title
+        yield "".join(history_row_html(myself, entry, t))
+        yield show_diff(diff, "html")
+
+
+class RecentCheckinsPage(BuildFarmPage):
+
+    def render(self, myself, tree, author=None):
+        t = self.buildfarm.trees[tree]
+        authors = set(["ALL"])
+        authors.update(t.get_branch().authors(tree))
+
+        yield "<h2>Recent checkins for %s (%s branch %s)</h2>\n" % (
+            tree, t.scm, t.branch)
+        yield "<form method='GET'>"
+        yield "Select Author: "
+        yield "<select name='author'>"
+        for name in sorted(authors):
+            yield "<option>%s</option>" % name
+        yield "</select>"
+        yield "<input type='submit' name='sub_function' value='Refresh'/>"
+        yield "<input type='hidden' name='tree' value='%s'/>" % tree
+        yield "<input type='hidden' name='function', value='Recent Checkins'/>"
+        yield "</form>"
+
+        branch = t.get_branch()
+
+        for entry in branch.log():
+            if author in ("ALL", "", entry.author):
+                yield "".join(history_row_html(myself, entry, t))
+        yield "\n"
+
+
+
+class BuildFarmApp(object):
+
+    def __init__(self, buildfarm):
+        self.buildfarm = buildfarm
+        self.db = data.BuildResultStore(basedir)
+        self.hostsdb = buildfarm.hostdb
+
+        self.compilers = buildfarm.compilers
+        # host.properties are unicode object and the framework expect string object
+        self.hosts = dict([(host.name.encode("utf-8"), host) for host in self.hostsdb.hosts()])
+
+    def main_menu(self):
+        """main page"""
+
+        yield "<form method='GET'>"
+        yield "<div id='build-menu'>"
+        yield "<select name='host'>"
+        for name, host in self.hosts.iteritems():
+            yield "<option value='%s'>%s -- %s</option>\n" % (name, host.platform.encode("utf-8"), name)
+        yield "</select>"
+        yield "<select name='tree'>"
+        for tree, t in self.buildfarm.trees.iteritems():
+            yield "<option value='%s'>%s:%s</option>\n" % (tree, tree, t.branch)
+        yield "</select>"
+        yield "<select name='compiler'>"
+        for compiler in self.buildfarm.compilers:
+            yield "<option>%s</option>\n" % compiler
+        yield "</select>"
+        yield "<br/>"
+        yield "<input type='submit' name='function' value='View Build'/>"
+        yield "<input type='submit' name='function' value='View Host'/>"
+        yield "<input type='submit' name='function' value='Recent Checkins'/>"
+        yield "<input type='submit' name='function' value='Summary'/>"
+        yield "<input type='submit' name='function' value='Recent Builds'/>"
+        yield "</div>"
+        yield "</form>"
+
+    def __call__(self, environ, start_response):
+        form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
+        fn_name = get_param(form, 'function') or ''
+        myself = wsgiref.util.application_uri(environ)
+
+        if standalone and environ['PATH_INFO']:
+            dir = os.path.join(os.path.dirname(__file__))
+            if re.match("^/[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)?", environ['PATH_INFO']):
+                static_file = "%s/%s" % (dir, environ['PATH_INFO'])
+                if os.path.exists(static_file):
+                    tab = environ['PATH_INFO'].split('.')
+                    if len(tab) > 1:
+                        extension = tab[-1]
+                        import mimetypes
+                        mimetypes.init()
+                        type = mimetypes.types_map[".%s" % extension]
+                        start_response('200 OK', [('Content-type', type)])
+                        data = open(static_file, 'rb').read()
+                        yield data
+                        return
+
+        if fn_name == 'text_diff':
+            start_response('200 OK', [('Content-type', 'application/x-diff')])
+            tree = get_param(form, 'tree')
+            t = self.buildfarm.trees[tree]
+            (entry, diff) = t.get_branch().diff(get_param(form, 'revision'))
+            yield "".join(history_row_text(entry, tree))
+            yield show_diff(diff, "text")
+        elif fn_name == 'Text_Summary':
+            start_response('200 OK', [('Content-type', 'text/plain')])
+            page = ViewSummaryPage(self.buildfarm)
+            yield "".join(page.render(myself, 'text'))
+        else:
+            start_response('200 OK', [('Content-type', 'text/html')])
+
+            yield "<html>"
+            yield "  <head>"
+            yield "    <title>samba.org build farm</title>"
+            yield "    <script language='javascript' src='/build_farm.js'></script>"
+            yield "    <meta name='keywords' contents='Samba SMB CIFS Build Farm'/>"
+            yield "    <meta name='description' contents='Home of the Samba Build Farm, the automated testing facility.'/>"
+            yield "    <meta name='robots' contents='noindex'/>"
+            yield "    <link rel='stylesheet' href='/build_farm.css' type='text/css' media='all'/>"
+            if standalone:
+                yield "    <link rel='stylesheet' href='common.css' type='text/css' media='all'/>"
+            else:
+                yield "    <link rel='stylesheet' href='http://master.samba.org/samba/style/common.css' type='text/css' media='all'/>"
+            yield "    <link rel='shortcut icon' href='http://www.samba.org/samba/images/favicon.ico'/>"
+            yield "  </head>"
+            yield "<body>"
+
+            yield util.FileLoad(os.path.join(webdir, "header2.html"))
+            yield "".join(self.main_menu())
+            yield util.FileLoad(os.path.join(webdir, "header3.html"))
+            if fn_name == "View_Build":
+                plain_logs = (get_param(form, "plain") is not None and get_param(form, "plain").lower() in ("yes", "1", "on", "true", "y"))
+                tree = get_param(form, "tree")
+                host = get_param(form, "host")
+                compiler = get_param(form, "compiler")
+                page = ViewBuildPage(self.buildfarm)
+                yield "".join(page.render(myself, tree, host, compiler, get_param(form, "revision"), plain_logs))
+            elif fn_name == "View_Host":
+                page = ViewHostPage(self.buildfarm)
+                yield "".join(page.render(myself, "html", get_param(form, 'host')))
+            elif fn_name == "Recent_Builds":
+                page = ViewRecentBuildsPage(self.buildfarm)
+                yield "".join(page.render(myself, get_param(form, "tree"), get_param(form, "sortby") or "revision"))
+            elif fn_name == "Recent_Checkins":
+                # validate the tree
+                tree =  get_param(form, "tree")
+                author = get_param(form, 'author')
+                page = RecentCheckinsPage(self.buildfarm)
+                yield "".join(page.render(myself, tree, author))
+            elif fn_name == "diff":
+                tree =  get_param(form, "tree")
+                revision = get_param(form, 'revision')
+                page = DiffPage(self.buildfarm)
+                yield "".join(page.render(myself, tree, revision))
+            elif os.getenv("PATH_INFO") not in (None, "", "/"):
+                paths = os.getenv("PATH_INFO").split('/')
+                if paths[1] == "recent":
+                    page = ViewRecentBuildsPage(self.buildfarm)
+                    yield "".join(page.render(myself, paths[2], get_param(form, 'sortby') or 'revision'))
+                elif paths[1] == "host":
+                    page = ViewHostPage(self.buildfarm)
+                    yield "".join(page.render(myself, "html", paths[2]))
+            else:
+                page = ViewSummaryPage(self.buildfarm)
+                yield "".join(page.render(myself, 'html'))
+            yield util.FileLoad(os.path.join(webdir, "footer.html"))
+            yield "</body>"
+            yield "</html>"
+
 
 if __name__ == '__main__':
     import optparse
     parser = optparse.OptionParser("[options]")
     parser.add_option("--standalone", help="Run as standalone server (useful for debugging)", action="store_true")
+    parser.add_option("--cachedirname", help="Cache directory name", type=str)
     opts, args = parser.parse_args()
+    buildfarm = CachingBuildFarm(cachedirname=opts.cachedirname)
+    buildApp = BuildFarmApp(buildfarm)
     if opts.standalone:
         standalone = 1
         from wsgiref.simple_server import make_server
