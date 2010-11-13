@@ -87,7 +87,7 @@ The build may have been broken by one of the following commits:
     msg["From"] = "\"Build Farm\" <build@samba.org>"
     msg["To"] = ",".join(recipients)
     if not opts.dry_run:
-        smtp.send(msg["From"], [msg["To"]], msg.as_string())
+        smtp.sendmail(msg["From"], [msg["To"]], msg.as_string())
     else:
         print msg.as_string()
 
