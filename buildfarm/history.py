@@ -57,7 +57,7 @@ class Revision(object):
         self.removed = removed
 
 
-class GitBranch(object):
+class GitBranch(Branch):
 
     def __init__(self, path, branch="master"):
         self.repo = Repo(path)
