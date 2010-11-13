@@ -147,21 +147,6 @@ class BuildResultStoreTests(BuildFarmTestCase,BuildResultStoreTestBase):
             os.path.join(self.path, "data", "oldrevs"))
 
 
-class CachingBuildResultStoreTests(BuildFarmTestCase,BuildResultStoreTestBase):
-
-    def setUp(self):
-        super(CachingBuildResultStoreTests, self).setUp()
-
-        self.x = data.CachingBuildResultStore(
-            os.path.join(self.path, "data", "oldrevs"),
-            os.path.join(self.path, "cache"))
-
-    def test_cache_fname(self):
-        self.assertEquals(
-            self.x.cache_fname("mytree", "myhost", "cc", 123),
-            "%s/cache/build.mytree.myhost.cc-123" % self.path)
-
-
 class BuildStatusFromLogs(testtools.TestCase):
 
     def parse_logs(self, log, err):
@@ -321,16 +306,4 @@ class UploadBuildResultStoreTests(UploadBuildResultStoreTestBase,BuildFarmTestCa
             os.path.join(self.path, "data", "upload"))
 
 
-class CachingUploadBuildResultStoreTests(UploadBuildResultStoreTestBase,BuildFarmTestCase):
 
-    def setUp(self):
-        super(CachingUploadBuildResultStoreTests, self).setUp()
-
-        self.x = data.CachingUploadBuildResultStore(
-            os.path.join(self.path, "data", "upload"),
-            os.path.join(self.path, "cache"))
-
-    def test_cache_fname(self):
-        self.assertEquals(
-            self.x.cache_fname("mytree", "myhost", "cc"),
-            "%s/cache/build.mytree.myhost.cc" % self.path)

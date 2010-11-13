@@ -27,7 +27,6 @@ import hashlib
 import os
 import re
 import time
-import util
 
 
 class BuildSummary(object):
@@ -277,82 +276,6 @@ class Build(object):
         return len(file.readlines())
 
 
-class CachingBuild(Build):
-    """Build subclass that caches some of the results that are expensive
-    to calculate."""
-
-    def __init__(self, store, *args, **kwargs):
-        self._store = store
-        super(CachingBuild, self).__init__(*args, **kwargs)
-        if self.revision:
-            self.cache_basename = self._store.cache_fname(self.tree, self.host, self.compiler, self.revision)
-        else:
-            self.cache_basename = self._store.cache_fname(self.tree, self.host, self.compiler)
-
-    def revision_details(self):
-        st1 = os.stat("%s.log" % self.basename)
-
-        try:
-            st2 = os.stat("%s.revision" % self.cache_basename)
-        except OSError:
-            # File does not exist
-            st2 = None
-
-        # the ctime/mtime asymmetry is needed so we don't get fooled by
-        # the mtime update from rsync
-        if st2 and st1.st_ctime <= st2.st_mtime:
-            (revid, timestamp) = util.FileLoad("%s.revision" % self.cache_basename).split(":", 2)
-            if timestamp == "":
-                timestamp = None
-            if revid == "":
-                revid = None
-            return (revid, timestamp)
-        (revid, timestamp) = super(CachingBuild, self).revision_details()
-        if not self._store.readonly:
-            util.FileSave("%s.revision" % self.cache_basename, "%s:%s" % (revid, timestamp or ""))
-        return (revid, timestamp)
-
-    def err_count(self):
-        st1 = os.stat("%s.err" % self.basename)
-
-        try:
-            st2 = os.stat("%s.errcount" % self.cache_basename)
-        except OSError:
-            # File does not exist
-            st2 = None
-
-        if st2 and st1.st_ctime <= st2.st_mtime:
-            return util.FileLoad("%s.errcount" % self.cache_basename)
-
-        ret = super(CachingBuild, self).err_count()
-
-        if not self._store.readonly:
-            util.FileSave("%s.errcount" % self.cache_basename, str(ret))
-
-        return ret
-
-    def status(self):
-        cachefile = self.cache_basename + ".status"
-
-        st1 = os.stat("%s.log" % self.basename)
-
-        try:
-            st2 = os.stat(cachefile)
-        except OSError:
-            # No such file
-            st2 = None
-
-        if st2 and st1.st_ctime <= st2.st_mtime:
-            return eval(util.FileLoad(cachefile))
-
-        ret = super(CachingBuild, self).status()
-
-        if not self._store.readonly:
-            util.FileSave(cachefile, repr(ret))
-
-        return ret
-
-
 class UploadBuildResultStore(object):
 
     def __init__(self, path):
@@ -390,28 +313,6 @@ class UploadBuildResultStore(object):
         if not os.path.exists(logf):
             raise NoSuchBuildError(tree, host, compiler)
         return Build(basename, tree, host, compiler)
-
-
-class CachingUploadBuildResultStore(UploadBuildResultStore):
-
-    def __init__(self, basedir, cachedir, readonly=False):
-        """Open the database.
-
-        :param readonly: Whether to avoid saving cache files
-        """
-        super(CachingUploadBuildResultStore, self).__init__(basedir)
-        self.cachedir = cachedir
-        self.readonly = readonly
-
-    def cache_fname(self, tree, host, compiler):
-        return os.path.join(self.cachedir, "build.%s.%s.%s" % (tree, host, compiler))
-
-    def get_build(self, tree, host, compiler):
-        basename = self.build_fname(tree, host, compiler)
-        logf = "%s.log" % basename
-        if not os.path.exists(logf):
-            raise NoSuchBuildError(tree, host, compiler)
-        return CachingBuild(self, basename, tree, host, compiler)
 
 
 class BuildResultStore(object):
@@ -477,22 +378,4 @@ class BuildResultStore(object):
         raise NoSuchBuildError(tree, host, compiler)
 
 
-class CachingBuildResultStore(BuildResultStore):
 
-    def __init__(self, basedir, cachedir, readonly=False):
-        super(CachingBuildResultStore, self).__init__(basedir)
-
-        self.cachedir = cachedir
-        check_dir_exists("cache", self.cachedir)
-
-        self.readonly = readonly
-
-    def get_build(self, tree, host, compiler, rev):
-        basename = self.build_fname(tree, host, compiler, rev)
-        logf = "%s.log" % basename
-        if not os.path.exists(logf):
-            raise NoSuchBuildError(tree, host, compiler, rev)
-        return CachingBuild(self, basename, tree, host, compiler, rev)
-
-    def cache_fname(self, tree, host, compiler, rev):
-        return os.path.join(self.cachedir, "build.%s.%s.%s-%s" % (tree, host, compiler, rev))
