@@ -97,7 +97,10 @@ bla
 BUILD COMMIT TIME: 3 August 2010
 """)
         build = self.x.get_build("tdb", "charis", "cc", "12")
-        self.assertEquals(("43", "3 August 2010"), build.revision_details())
+        (rev, timestamp) = build.revision_details()
+        self.assertIsInstance(rev, str)
+        self.assertIsInstance(timestamp, str)
+        self.assertEquals(("43", "3 August 2010"), (rev, timestamp))
 
     def test_revision_details_no_timestamp(self):
         self.create_mock_logfile("tdb", "charis", "cc", rev="12", contents="""

@@ -69,8 +69,18 @@ See http://build.samba.org/?function=View+Build;host=%(host)s;tree=%(tree)s;comp
 The build may have been broken by one of the following commits:
 
 %(change_log)s
-    """ % {"tree": tree, "host": host, "compiler": compiler, "change_log": change_log, "scm": t.scm, "branch": t.branch,
-            "cur_rev": cur_rev, "old_rev": old_rev, "cur_status": cur_status, "old_status": old_status }
+    """ % {
+        "tree": tree.encode("utf-8"),
+        "host": host.encode("utf-8"),
+        "compiler": compiler.encode("utf-8"),
+        "change_log": change_log,
+        "scm": t.scm,
+        "branch": t.branch,
+        "cur_rev": cur_rev,
+        "old_rev": old_rev,
+        "cur_status": cur_status,
+        "old_status": old_status,
+        }
 
     msg = MIMEText(body)
     msg["Subject"] = "BUILD of %s:%s BROKEN on %s with %s AT REVISION %s" % (tree, t.branch, host, compiler, cur_rev)
