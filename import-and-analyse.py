@@ -90,9 +90,17 @@ for build in buildfarm.get_new_builds():
         continue
 
     if not opts.dry_run:
-        build = buildfarm.builds.upload_build(build)
+        try:
+            build = buildfarm.builds.upload_build(build)
+        except data.MissingRevisionInfo:
+            print "No revision info in %r, skipping" % build
+            continue
 
-    (rev, rev_timestamp) = build.revision_details()
+    try:
+        (rev, rev_timestamp) = build.revision_details()
+    except data.MissingRevisionInfo:
+        print "No revision info in %r, skipping" % build
+        continue
 
     if opts.verbose >= 2:
         print str(build.status())

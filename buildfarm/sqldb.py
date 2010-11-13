@@ -192,7 +192,7 @@ class StormCachingBuildResultStore(BuildResultStore):
         new_build = StormBuild(new_basename, unicode(build.tree), unicode(build.host), unicode(build.compiler), rev)
         new_build.checksum = build.log_checksum()
         new_build.age = build.age_mtime()
-        new_build.status = unicode(str(build.status()))
+        new_build.status_str = unicode(str(build.status()))
         self.store.add(new_build)
         return new_build
 

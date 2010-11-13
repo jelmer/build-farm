@@ -42,6 +42,13 @@ class BuildSummary(object):
 BuildStageResult = collections.namedtuple("BuildStageResult", "name result")
 
 
+class MissingRevisionInfo(Exception):
+    """Revision info could not be found in the build log."""
+
+    def __init__(self, build):
+        self.build = build
+
+
 class BuildStatus(object):
 
     def __init__(self, stages=None, other_failures=None):
@@ -259,6 +266,9 @@ class Build(object):
         finally:
             f.close()
 
+        if revid is None:
+            raise MissingRevisionInfo(self)
+
         return (revid, timestamp)
 
     def status(self):
@@ -374,9 +384,6 @@ class BuildResultStore(object):
 
     def upload_build(self, build):
         (rev, rev_timestamp) = build.revision_details()
-
-        if not rev:
-            raise Exception("Unable to find revision in %r log" % build)
 
         new_basename = self.build_fname(build.tree, build.host, build.compiler, rev)
         try:
