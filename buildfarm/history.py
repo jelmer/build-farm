@@ -33,7 +33,7 @@ class Branch(object):
         """Determine all authors that have contributed to this project.
         """
         ret = set()
-        for rev in self.log(limit):
+        for rev in self.log(limit=limit):
             ret.add(rev.author)
         return ret
 
@@ -94,8 +94,6 @@ class GitBranch(Branch):
                 commit = self.repo["refs/heads/%s" % self.branch]
             except KeyError:
                 return
-            from_rev = commit.id
-        else:
             from_rev = commit.id
         done = set()
         pending_commits = [from_rev]

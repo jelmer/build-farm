@@ -10,7 +10,7 @@
 # Copyright (C) Andrew Bartlett <abartlet@samba.org>   2001
 # Copyright (C) Vance Lankhaar  <vance@samba.org>      2002-2005
 # Copyright (C) Martin Pool <mbp@samba.org>            2001
-# Copyright (C) Jelmer Vernooij <jelmer@samba.org>     2007
+# Copyright (C) Jelmer Vernooij <jelmer@samba.org>     2007-2009
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -508,7 +508,7 @@ class ViewBuildPage(BuildFarmPage):
         if rev:
             assert re.match("^[0-9a-fA-F]*$", rev)
 
-        f = build.read_log(limit=HISTORY_HORIZON)
+        f = build.read_log()
         try:
             log = f.read()
         finally:
@@ -895,7 +895,7 @@ class RecentCheckinsPage(BuildFarmPage):
 
         branch = t.get_branch()
 
-        for entry in branch.log():
+        for entry in branch.log(limit=HISTORY_HORIZON):
             if author in ("ALL", "", entry.author):
                 yield "".join(history_row_html(myself, entry, t))
         yield "\n"
