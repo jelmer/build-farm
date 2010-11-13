@@ -26,7 +26,7 @@ from cStringIO import StringIO
 import hashlib
 import os
 import re
-from storm.locals import Int, Unicode
+from storm.locals import Desc, Int, Unicode
 import time
 import util
 
@@ -180,10 +180,10 @@ class Build(object):
         self.tree = tree
         self.host = host
         self.compiler = compiler
-        self.revision = rev
+        self.commit_revision = self.revision = rev
 
     def __repr__(self):
-        if self.revision:
+        if self.revision is not None:
             return "<%s: revision %s of %s on %s using %s>" % (self.__class__.__name__, self.revision, self.tree, self.host, self.compiler)
         else:
             return "<%s: %s on %s using %s>" % (self.__class__.__name__, self.tree, self.host, self.compiler)
@@ -355,7 +355,7 @@ class CachingBuild(Build):
 class StormBuild(Build):
     __storm_table__ = "build"
 
-    id = Int(primary=True, readonly=True)
+    id = Int(primary=True)
     tree = Unicode()
     revision = Unicode()
     host = Unicode()
@@ -516,25 +516,39 @@ class SQLCachingBuildResultStore(BuildResultStore):
         self.store = store
 
     def get_previous_revision(self, tree, host, compiler, revision):
-        cursor = self.store.execute("SELECT id FROM build WHERE tree = ? AND host = ? AND compiler = ? AND commit_revision = ?", (tree, host, compiler, revision))
-        row = cursor.get_one()
-        if row is None:
+        result = self.store.find(StormBuild,
+            StormBuild.tree == unicode(tree),
+            StormBuild.host == unicode(host),
+            StormBuild.compiler == unicode(compiler),
+            StormBuild.commit_revision == unicode(revision))
+        cur_build = result.one()
+        if cur_build is None:
             raise NoSuchBuildError(tree, host, compiler, revision)
-        dbid = row[0]
-        cursor = self.store.execute("SELECT commit_revision FROM build WHERE tree = ? AND host = ? AND compiler = ? AND id < ? ORDER BY id DESC LIMIT 1", (tree, host, compiler, dbid))
-        row = cursor.get_one()
-        if row is None:
+
+        result = self.store.find(StormBuild,
+            StormBuild.tree == unicode(tree),
+            StormBuild.host == unicode(host),
+            StormBuild.compiler == unicode(compiler),
+            StormBuild.id < cur_build.id)
+        result = result.order_by(Desc(StormBuild.id))
+        prev_build = result.one()
+        if prev_build is None:
             raise NoSuchBuildError(tree, host, compiler, revision)
-        return row[0]
+        return prev_build.commit_revision
 
     def get_latest_revision(self, tree, host, compiler):
-        cursor = self.store.execute("SELECT commit_revision FROM build WHERE tree = ? AND host = ? AND compiler = ? ORDER BY id DESC LIMIT 1", (tree, host, compiler))
-        row = cursor.get_one()
-        if row is None:
+        result = self.store.find(StormBuild,
+            StormBuild.tree == unicode(tree),
+            StormBuild.host == unicode(host),
+            StormBuild.compiler == unicode(compiler))
+        result = result.order_by(Desc(StormBuild.id))
+        if result.is_empty():
             raise NoSuchBuildError(tree, host, compiler)
-        return row[0]
+        return result.one().revision
 
     def upload_build(self, build):
         super(SQLCachingBuildResultStore, self).upload_build(build)
         rev, timestamp = build.revision_details()
-        self.store.execute("INSERT INTO build (tree, revision, commit_revision, host, compiler, checksum, age, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (build.tree, rev, rev, build.host, build.compiler, build.log_checksum(), timestamp, repr(build.status())))
+        new_basename = self.build_fname(build.tree, build.host, build.compiler, rev)
+        new_build = StormBuild(new_basename, unicode(build.tree), unicode(build.host), unicode(build.compiler), unicode(rev))
+        self.store.add(new_build)
