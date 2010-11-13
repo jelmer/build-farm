@@ -99,8 +99,12 @@ for build in buildfarm.get_new_builds():
     try:
         prev_rev = buildfarm.builds.get_previous_revision(build.tree, build.host, build.compiler, rev)
     except data.NoSuchBuildError:
-        # Can't send a nastygram until there are 2 builds..
-        continue
+        try:
+            # Perhaps this is a dry run and rev is not in the database yet?
+            prev_rev = buildfarm.builds.get_latest_revision(build.tree, build.host, build.compiler)
+        except data.NoSuchBuildError:
+            # Can't send a nastygram until there are 2 builds..
+            continue
     else:
         prev_build = buildfarm.get_build(build.tree, build.host, build.compiler, prev_rev)
         check_and_send_mails(build.tree, build.host, build.compiler, build, prev_build)

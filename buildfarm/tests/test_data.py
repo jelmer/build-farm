@@ -134,6 +134,8 @@ BUILD COMMIT REVISION: myrev
     def test_get_previous_revision(self):
         self.assertRaises(data.NoSuchBuildError, self.x.get_previous_revision, "tdb", "charis", "cc", "12")
 
+    def test_get_latest_revision_none(self):
+        self.assertRaises(data.NoSuchBuildError, self.x.get_latest_revision, "tdb", "charis", "cc")
 
 
 class BuildResultStoreTests(BuildFarmTestCase,BuildResultStoreTestBase):
@@ -180,6 +182,13 @@ BUILD COMMIT REVISION: myotherrev
         self.assertRaises(data.NoSuchBuildError, self.x.get_previous_revision, "tdb", "charis", "cc", "unknown")
         self.assertRaises(data.NoSuchBuildError, self.x.get_previous_revision, "tdb", "charis", "cc", "myrev")
         self.assertEquals("myrev", self.x.get_previous_revision("tdb", "charis", "cc", "myotherrev"))
+
+    def test_get_latest_revision(self):
+        path = self.create_mock_logfile("tdb", "charis", "cc", "22", contents="""
+BUILD COMMIT REVISION: myrev
+""")
+        self.x.upload_build(data.Build(None, path[:-4], "tdb", "charis", "cc"))
+        self.assertEquals("myrev", self.x.get_latest_revision("tdb", "charis", "cc"))
 
 
 class BuildStatusFromLogs(testtools.TestCase):

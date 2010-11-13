@@ -469,6 +469,9 @@ class BuildResultStore(object):
     def get_previous_revision(self, tree, host, compiler, revision):
         raise NoSuchBuildError(tree, host, compiler, revision)
 
+    def get_latest_revision(self, tree, host, compiler):
+        raise NoSuchBuildError(tree, host, compiler)
+
 
 class CachingBuildResultStore(BuildResultStore):
 
@@ -512,6 +515,13 @@ class SQLCachingBuildResultStore(BuildResultStore):
         row = cursor.fetchone()
         if row is None:
             raise NoSuchBuildError(tree, host, compiler, revision)
+        return row[0]
+
+    def get_latest_revision(self, tree, host, compiler):
+        cursor = self.db.execute("SELECT commit_revision FROM build WHERE tree = ? AND host = ? AND compiler = ? ORDER BY id DESC LIMIT 1", (tree, host, compiler))
+        row = cursor.fetchone()
+        if row is None:
+            raise NoSuchBuildError(tree, host, compiler)
         return row[0]
 
     def upload_build(self, build):
