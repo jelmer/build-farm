@@ -115,8 +115,7 @@ def html_build_status(status):
 
 
 def build_status_html(myself, build):
-    rawstatus = build.status()
-    status = html_build_status(rawstatus)
+    status = html_build_status(build.status())
     return build_link(myself, build.tree, build.host, build.compiler, build.revision, status)
 
 
@@ -467,9 +466,9 @@ class ViewBuildPage(BuildFarmPage):
 
     def show_oldrevs(self, myself, tree, host, compiler):
         """show the available old revisions, if any"""
-        revs = self.buildfarm.builds.get_old_revs(tree, host, compiler)
+        old_rev_builds  = self.buildfarm.builds.get_old_revs(tree, host, compiler)
 
-        if len(revs) == 0:
+        if len(old_rev_builds) == 0:
             return
 
         yield "<h2>Older builds:</h2>"
@@ -478,24 +477,19 @@ class ViewBuildPage(BuildFarmPage):
         yield "<thead><tr><th>Revision</th><th>Status</th></tr></thead>"
         yield "<tbody>"
 
-        lastrev = ""
-        for rev in revs:
-            s = html_build_status(rev["STATUS"])
-            revision = rev["REVISION"]
-            s = s.replace(revision, "0")
-            if s == lastrev:
-                continue
-            lastrev = s
-            yield "<tr><td>%s</td><td>%s</td></tr>" % (revision_link(myself, revision, tree), build_link(myself, tree, host, compiler, rev["REVISION"], html_build_status(rev["STATUS"])))
+        for build in old_rev_builds:
+            revision = build.revision
+            yield "<tr><td>%s</td><td>%s</td></tr>" % (
+                revision_link(myself, revision, tree),
+                build_link(myself, tree, host, compiler, revision,
+                    html_build_status(build.status())))
 
-        if lastrev != "":
-            # Only print table if there was any actual data
-            yield "</tbody></table>"
+        yield "</tbody></table>"
 
     def render(self, myself, tree, host, compiler, rev, plain_logs=False):
         """view one build in detail"""
         # ensure the params are valid before using them
-        #assert host in self.buildfarm.hostdb, "unknown host %s" % host
+        self.buildfarm.hostdb.host(host)
         assert compiler in self.buildfarm.compilers, "unknown compiler %s" % compiler
         assert tree in self.buildfarm.trees, "not a build tree %s" % tree
 
