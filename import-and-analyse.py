@@ -103,6 +103,8 @@ for build in buildfarm.get_new_builds():
             # Perhaps this is a dry run and rev is not in the database yet?
             prev_rev = buildfarm.builds.get_latest_revision(build.tree, build.host, build.compiler)
         except data.NoSuchBuildError:
+            if opts.verbose >= 1:
+                print "Unable to find previous build for %s,%s,%s" % (build.tree, build.host, build.compiler)
             # Can't send a nastygram until there are 2 builds..
             continue
     else:
