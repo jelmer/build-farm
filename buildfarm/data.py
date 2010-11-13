@@ -71,6 +71,12 @@ class BuildStatus(object):
         """Check if this build has regressed since another build."""
         if "disk full" in self.other_failures:
             return False
+        if "timeout" in self.other_failures and "timeout" in other.other_failures:
+            # When the timeout happens exactly can differ slightly, so it's okay
+            # if the numbers are a bit different..
+            return False
+        if "panic" in self.other_failures and not "panic" in other.other_failures:
+            return True
         return cmp(self._status_tuple(), other._status_tuple())
 
     def __cmp__(self, other):
