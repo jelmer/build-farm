@@ -163,6 +163,8 @@ class StormHost(Host):
 
     owner = property(_get_owner, _set_owner)
 
+    last_update = Select(
+
 
 class StormHostDatabase(HostDatabase):
 

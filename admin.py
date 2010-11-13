@@ -75,6 +75,7 @@ if op == "remove":
         print "No such host '%s'" % e.name
         sys.exit(1)
     else:
+        db.commit()
         update_rsyncd_secrets()
         update_hosts_list()
 elif op == "modify":
@@ -93,10 +94,12 @@ elif op == "modify":
     if mod_op == "platform":
         platform = raw_input("Enter new platform: ")
         host.update_platform(platform.decode("utf-8"))
+        db.commit()
     elif mod_op == "owner":
         owner = raw_input("Enter new owner's name: ")
         owner_email = raw_input("Enter new owner's e-mail address: ")
         host.update_owner(owner.decode("utf-8"), owner_email.decode("utf-8"))
+        db.commit()
     else:
         print "Unknown subcommand %s" % mod_op
         sys.exit(1)
@@ -133,6 +136,8 @@ elif op == "add":
     except hostdb.HostAlreadyExists, e:
         print "A host with the name %s already exists." % e.name
         sys.exit(1)
+    else:
+        db.commit()
 
     body = """
 Welcome to the Samba.org build farm.  
@@ -198,9 +203,6 @@ elif op == "info":
     print "Host: %s%s" % (host.name, opt_fqdn)
     print "Platform: %s" % host.platform
     print "Owner: %s <%s>" % host.owner
-
-    # Don't run the update of the text files
-    sys.exit(0)
 elif op == "list":
     for host in db.host_ages():
         if host.last_update:

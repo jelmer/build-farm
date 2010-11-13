@@ -23,10 +23,12 @@
 
 from buildfarm import memory_store
 from cStringIO import StringIO
+import collections
 import hashlib
 import os
 import re
 from storm.locals import Desc, Int, Unicode
+from storm.store import Store
 import time
 import util
 
@@ -39,6 +41,9 @@ class BuildSummary(object):
         self.compiler = compiler
         self.revision = revision
         self.status = status
+
+
+BuildStageResult = collections.namedtuple("BuildStageResult", "name result")
 
 
 class BuildStatus(object):
@@ -64,7 +69,7 @@ class BuildStatus(object):
         return False
 
     def _status_tuple(self):
-        return [v for (k, v) in self.stages]
+        return tuple([sr.result for sr in self.stages])
 
     def regressed_since(self, other):
         """Check if this build has regressed since another build."""
@@ -111,16 +116,16 @@ def build_status_from_logs(log, err):
     for l in log:
         m = re.match("^([A-Z_]+) STATUS:(\s*\d+)$", l)
         if m:
-            stages.append((m.group(1), int(m.group(2).strip())))
+            stages.append(BuildStageResult(m.group(1), int(m.group(2).strip())))
             if m.group(1) == "TEST":
                 test_seen = 1
             continue
         m = re.match("^ACTION (PASSED|FAILED):\s+test$", l)
         if m and not test_seen:
             if m.group(1) == "PASSED":
-                stages.append(("TEST", 0))
+                stages.append(BuildStageResult("TEST", 0))
             else:
-                stages.append(("TEST", 1))
+                stages.append(BuildStageResult("TEST", 1))
             continue
 
         if l.startswith("No space left on device"):
@@ -145,19 +150,19 @@ def build_status_from_logs(log, err):
         if "No space left on device" in l:
             ret.other_failures.add("disk full")
 
-    def map_stage(name, result):
-        if name != "TEST":
-            return (name, result)
+    def map_stage(sr):
+        if sr.name != "TEST":
+            return sr
         # TEST is special
         if test_successes + test_failures == 0:
             # No granular test output
-            return ("TEST", result)
-        if result == 1 and test_failures == 0:
+            return BuildStageResult("TEST", sr.result)
+        if sr.result == 1 and test_failures == 0:
             ret.other_failures.add("inconsistent test result")
-            return ("TEST", -1)
-        return ("TEST", test_failures)
+            return BuildStageResult("TEST", -1)
+        return BuildStageResult("TEST", test_failures)
 
-    ret.stages = [map_stage(name, result) for (name, result) in stages]
+    ret.stages = map(map_stage, stages)
     return ret
 
 
@@ -364,6 +369,10 @@ class StormBuild(Build):
     age = Int()
     status = Unicode()
     commit_revision = Unicode()
+
+    def remove(self):
+        super(StormBuild, self).remove()
+        Store.of(self).remove(self)
 
 
 class UploadBuildResultStore(object):
