@@ -100,8 +100,10 @@ class BuildFarm(object):
 
     def _open_hostdb(self):
         from buildfarm import hostdb
-        return hostdb.HostDatabase(
-            os.path.join(self.path, "hostdb.sqlite"))
+        db = create_database("sqlite:" + os.path.join(self.path, "hostdb.sqlite"))
+        store = Store(db)
+        setup_db(store)
+        return hostdb.StormHostDatabase(store)
 
     def _load_compilers(self):
         from buildfarm import util
@@ -131,9 +133,9 @@ class BuildFarm(object):
             return self.upload_builds.get_build(tree, host, compiler)
 
     def get_new_builds(self):
-        hosts = set([host.name for host in self.hostdb.hosts()])
+        hostnames = set([host.name for host in self.hostdb.hosts()])
         for build in self.upload_builds.get_new_builds():
-            if build.tree in self.trees and build.compiler in self.compilers and build.host in hosts:
+            if build.tree in self.trees and build.compiler in self.compilers and build.host in hostnames:
                 yield build
 
 

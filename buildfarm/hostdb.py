@@ -71,6 +71,16 @@ class Host(object):
     def dead_mail_sent(self):
         self.last_dead_mail = int(time.time())
 
+    def update_platform(self, new_platform):
+        self.platform = new_platform
+
+    def update_owner(self, new_owner, new_owner_email):
+        if new_owner is None:
+            self.owner = None
+            self.owner_email = None
+        else:
+            self.owner = (new_owner, new_owner_email)
+
 
 class StormHost(Host):
     __storm_table__ = "host"
@@ -105,29 +115,17 @@ class StormHost(Host):
 class HostDatabase(object):
     """Host database."""
 
-    def __init__(self, filename=None):
-        if filename is None:
-            self.db = create_database("sqlite:")
-        else:
-            self.db = create_database("sqlite:" + filename)
-        self.store = Store(self.db)
-        setup_db(self.store)
-        self.store.flush()
-
     def createhost(self, name, platform=None, owner=None, owner_email=None, password=None, permission=None):
-        newhost = StormHost(unicode(name), owner=owner, owner_email=owner_email, password=password, permission=permission, platform=platform)
-        try:
-            self.store.add(newhost)
-            self.store.flush()
-        except pysqlite2.dbapi2.IntegrityError:
-            raise HostAlreadyExists(name)
+        """Create a new host."""
+        raise NotImplementedError(self.createhost)
 
     def deletehost(self, name):
-        host = self.host(name)
-        self.store.remove(host)
+        """Remove a host."""
+        raise NotImplementedError(self.deletehost)
 
     def hosts(self):
-        return self.store.find(StormHost).order_by(StormHost.name)
+        """Retrieve an iterable over all hosts."""
+        raise NotImplementedError(self.hosts)
 
     def dead_hosts(self, age):
         dead_time = time.time() - age
@@ -145,17 +143,6 @@ class HostDatabase(object):
         if ret is None:
             raise NoSuchHost(name)
         return ret
-
-    def update_platform(self, name, new_platform):
-        host = self.host(name)
-        host.platform = new_platform
-
-    def update_owner(self, name, new_owner, new_owner_email):
-        host = self.host(name)
-        if new_owner is None:
-            host.owner = None
-        else:
-            host.owner = (new_owner, new_owner_email)
 
     def create_rsync_secrets(self):
         """Write out the rsyncd.secrets"""
@@ -177,3 +164,33 @@ class HostDatabase(object):
 
         for host in self.hosts():
             yield "%s: %s\n" % (host.name.encode("utf-8"), host.platform.encode("utf-8"))
+
+
+class StormHostDatabase(HostDatabase):
+
+    def __init__(self, store=None):
+        if store is None:
+            db = create_database("sqlite:")
+            self.store = Store(db)
+            setup_db(self.store)
+        else:
+            self.store = store
+
+    def createhost(self, name, platform=None, owner=None, owner_email=None, password=None, permission=None):
+        newhost = StormHost(unicode(name), owner=owner, owner_email=owner_email, password=password, permission=permission, platform=platform)
+        try:
+            self.store.add(newhost)
+            self.store.flush()
+        except pysqlite2.dbapi2.IntegrityError:
+            raise HostAlreadyExists(name)
+        return newhost
+
+    def deletehost(self, name):
+        """Remove a host."""
+        host = self.host(name)
+        self.store.remove(host)
+
+    def hosts(self):
+        """Retrieve an iterable over all hosts."""
+        return self.store.find(StormHost).order_by(StormHost.name)
+

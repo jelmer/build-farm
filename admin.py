@@ -92,19 +92,11 @@ elif op == "modify":
         mod_op = "platform"
     if mod_op == "platform":
         platform = raw_input("Enter new platform: ")
-        try:
-            db.update_platform(hostname, platform)
-        except hostdb.NoSuchHost, e:
-            print "No such host: %s" % e.name
-            sys.exit(1)
+        host.update_platform(platform.decode("utf-8"))
     elif mod_op == "owner":
         owner = raw_input("Enter new owner's name: ")
         owner_email = raw_input("Enter new owner's e-mail address: ")
-        try:
-            db.update_owner(hostname, owner, owner_email)
-        except hostdb.NoSuchHost, e:
-            print "No such host: %s" % e.name
-            sys.exit(1)
+        host.update_owner(owner.decode("utf-8"), owner_email.decode("utf-8"))
     else:
         print "Unknown subcommand %s" % mod_op
         sys.exit(1)

@@ -15,12 +15,12 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-import unittest
-
 from buildfarm import hostdb
 
+import testtools
 
-class HostTests(unittest.TestCase):
+
+class HostTests(testtools.TestCase):
 
     def test_create_simple(self):
         host = hostdb.Host(name=u"foo")
@@ -33,11 +33,7 @@ class HostTests(unittest.TestCase):
         self.assertEquals(u"foo", host.name)
 
 
-class DatabaseTests(unittest.TestCase):
-
-    def setUp(self):
-        super(DatabaseTests, self).setUp()
-        self.db = hostdb.HostDatabase()
+class HostDatabaseTests(object):
 
     def test_createhost(self):
         self.db.createhost(u"charis", u"linux", u"Jelmer", u"jelmer@samba.org", u"bla", u"Pemrission?")
@@ -60,20 +56,11 @@ class DatabaseTests(unittest.TestCase):
     def test_update_platform(self):
         host = self.db.createhost(name=u"foo", owner=u"Jelmer",
             owner_email=u"jelmer@samba.org")
-        self.db.update_platform(name=u"foo", new_platform=u"Debian")
-
-    def test_update_platform_doesnt_exist(self):
-        self.assertRaises(hostdb.NoSuchHost, self.db.update_platform, name=u"foo",
-            new_platform=u"Debian")
+        host.update_platform(u"Debian")
 
     def test_update_owner(self):
         host = self.db.createhost(name=u"foo", owner=u"Jelmer", owner_email=u"jelmer@samba.org")
-        self.db.update_owner(name=u"foo", new_owner=u"Matthieu",
-            new_owner_email=u"mat@samba.org")
-
-    def test_update_owner_doesnt_exist(self):
-        self.assertRaises(hostdb.NoSuchHost, self.db.update_owner, name=u"foo",
-            new_owner=u"Mat", new_owner_email=u"mat@samba.org")
+        host.update_owner(new_owner=u"Matthieu", new_owner_email=u"mat@samba.org")
 
     def test_create_hosts_list(self):
         self.db.createhost(name=u"foo", owner=u"Jelmer", owner_email=u"jelmer@samba.org",
@@ -103,3 +90,10 @@ class DatabaseTests(unittest.TestCase):
         got = list(self.db.create_rsync_secrets())
         got.sort()
         self.assertEquals(expected, got)
+
+
+class StormHostDatabaseTests(testtools.TestCase, HostDatabaseTests):
+
+    def setUp(self):
+        super(StormHostDatabaseTests, self).setUp()
+        self.db = hostdb.StormHostDatabase()
