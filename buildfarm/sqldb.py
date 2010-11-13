@@ -33,7 +33,10 @@ from buildfarm.hostdb import (
     )
 
 import os
-import pysqlite2
+try:
+    import sqlite3
+except ImportError:
+    from pysqlite2 import dbapi2 as sqlite3
 from storm.database import create_database
 from storm.locals import Bool, Desc, Int, Unicode, RawStr
 from storm.store import Store
@@ -100,7 +103,7 @@ class StormHostDatabase(HostDatabase):
         try:
             self.store.add(newhost)
             self.store.flush()
-        except pysqlite2.dbapi2.IntegrityError:
+        except sqlite3.IntegrityError:
             raise HostAlreadyExists(name)
         return newhost
 
