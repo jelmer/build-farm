@@ -503,7 +503,12 @@ class SQLCachingBuildResultStore(BuildResultStore):
         self.db = db
 
     def get_previous_revision(self, tree, host, compiler, revision):
-        cursor = self.db.execute("SELECT commit_revision FROM build WHERE tree = ? AND host = ? AND compiler = ? AND commit_revision < ? ORDER BY id DESC LIMIT 1", (tree, host, compiler, revision))
+        cursor = self.db.execute("SELECT id FROM build WHERE tree = ? AND host = ? AND compiler = ? AND commit_revision = ?", (tree, host, compiler, revision))
+        row = cursor.fetchone()
+        if row is None:
+            raise NoSuchBuildError(tree, host, compiler, revision)
+        dbid = row[0]
+        cursor = self.db.execute("SELECT commit_revision FROM build WHERE tree = ? AND host = ? AND compiler = ? AND id < ? ORDER BY id DESC LIMIT 1", (tree, host, compiler, dbid))
         row = cursor.fetchone()
         if row is None:
             raise NoSuchBuildError(tree, host, compiler, revision)
@@ -511,4 +516,5 @@ class SQLCachingBuildResultStore(BuildResultStore):
 
     def upload_build(self, build):
         super(SQLCachingBuildResultStore, self).upload_build(build)
-        self.db.execute("INSERT INTO build (tree, revision, commit_revision, host, compiler, checksum, age, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (build.tree, build.revision, build.revision, build.host, build.compiler, build.log_checksum(), build.age_mtime(), repr(build.status())))
+        rev, timestamp = build.revision_details()
+        self.db.execute("INSERT INTO build (tree, revision, commit_revision, host, compiler, checksum, age, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (build.tree, rev, rev, build.host, build.compiler, build.log_checksum(), timestamp, repr(build.status())))

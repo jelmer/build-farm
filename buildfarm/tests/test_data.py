@@ -168,6 +168,19 @@ class SQLCachingBuildResultStoreTests(BuildFarmTestCase,BuildResultStoreTestBase
         self.x = data.SQLCachingBuildResultStore(
             os.path.join(self.path, "data", "oldrevs"))
 
+    def test_get_previous_revision_result(self):
+        path = self.create_mock_logfile("tdb", "charis", "cc", contents="""
+BUILD COMMIT REVISION: myrev
+""")
+        self.x.upload_build(data.Build(None, path[:-4], "tdb", "charis", "cc"))
+        path = self.create_mock_logfile("tdb", "charis", "cc", contents="""
+BUILD COMMIT REVISION: myotherrev
+""")
+        self.x.upload_build(data.Build(None, path[:-4], "tdb", "charis", "cc"))
+        self.assertRaises(data.NoSuchBuildError, self.x.get_previous_revision, "tdb", "charis", "cc", "unknown")
+        self.assertRaises(data.NoSuchBuildError, self.x.get_previous_revision, "tdb", "charis", "cc", "myrev")
+        self.assertEquals("myrev", self.x.get_previous_revision("tdb", "charis", "cc", "myotherrev"))
+
 
 class BuildStatusFromLogs(testtools.TestCase):
 
