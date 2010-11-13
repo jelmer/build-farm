@@ -26,6 +26,7 @@ from cStringIO import StringIO
 import hashlib
 import os
 import re
+from storm.locals import Int, Unicode
 import time
 import util
 
@@ -174,8 +175,7 @@ class Build(object):
     """A single build of a tree on a particular host using a particular compiler.
     """
 
-    def __init__(self, store, basename, tree, host, compiler, rev=None):
-        self._store = store
+    def __init__(self, basename, tree, host, compiler, rev=None):
         self.basename = basename
         self.tree = tree
         self.host = host
@@ -276,6 +276,10 @@ class CachingBuild(Build):
     """Build subclass that caches some of the results that are expensive
     to calculate."""
 
+    def __init__(self, store, *args, **kwargs):
+        self._store = store
+        super(CachingBuild, self).__init__(*args, **kwargs)
+
     def revision_details(self):
         if self.revision:
             cachef = self._store.cache_fname(self.tree, self.host, self.compiler, self.revision)
@@ -348,6 +352,20 @@ class CachingBuild(Build):
         return ret
 
 
+class StormBuild(Build):
+    __storm_table__ = "build"
+
+    id = Int(primary=True, readonly=True)
+    tree = Unicode()
+    revision = Unicode()
+    host = Unicode()
+    compiler = Unicode()
+    checksum = Unicode()
+    age = Int()
+    status = Unicode()
+    commit_revision = Unicode()
+
+
 class UploadBuildResultStore(object):
 
     def __init__(self, path):
@@ -384,7 +402,7 @@ class UploadBuildResultStore(object):
         logf = "%s.log" % basename
         if not os.path.exists(logf):
             raise NoSuchBuildError(tree, host, compiler)
-        return Build(self, basename, tree, host, compiler)
+        return Build(basename, tree, host, compiler)
 
 
 class CachingUploadBuildResultStore(UploadBuildResultStore):
@@ -424,7 +442,7 @@ class BuildResultStore(object):
         logf = "%s.log" % basename
         if not os.path.exists(logf):
             raise NoSuchBuildError(tree, host, compiler, rev)
-        return Build(self, basename, tree, host, compiler, rev)
+        return Build(basename, tree, host, compiler, rev)
 
     def build_fname(self, tree, host, compiler, rev):
         """get the name of the build file"""

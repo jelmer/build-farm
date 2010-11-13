@@ -212,7 +212,6 @@ def setup_db(db):
     db.execute("CREATE UNIQUE INDEX IF NOT EXISTS unique_hostname ON host (name);", noresult=True)
     db.execute("CREATE TABLE IF NOT EXISTS build (id integer primary key autoincrement, tree text, revision text, host text, compiler text, checksum text, age int, status text, commit_revision text);", noresult=True)
     db.execute("CREATE UNIQUE INDEX IF NOT EXISTS unique_checksum ON build (checksum);", noresult=True)
-    db.execute("CREATE TABLE IF NOT EXISTS test_run (build int, test text, result text, output text);", noresult=True)
 
 
 def memory_store():

@@ -22,6 +22,7 @@ from buildfarm import setup_db
 
 import pysqlite2
 from storm.database import create_database
+from storm.locals import Bool, Int, Unicode
 from storm.store import Store
 import time
 
@@ -60,6 +61,21 @@ class Host(object):
 
     def __cmp__(self, other):
         return cmp(self.name, other.name)
+
+
+class StormHost(Host):
+    __storm_table__ = "host"
+
+    name = Unicode()
+    owner = Unicode()
+    owner_email = Unicode()
+    password = Unicode()
+    ssh_access = Bool()
+    fqdn = Unicode()
+    platform = Unicode()
+    permission = Unicode()
+    last_dead_mail = Int()
+    join_time = Int()
 
 
 class HostDatabase(object):

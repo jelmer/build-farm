@@ -120,7 +120,7 @@ error3""")
         path = self.create_mock_logfile("tdb", "charis", "cc", contents="""
 BUILD COMMIT REVISION: myrev
 """)
-        build = data.Build(None, path[:-4], "tdb", "charis", "cc")
+        build = data.Build(path[:-4], "tdb", "charis", "cc")
         self.x.upload_build(build)
         uploaded_build = self.x.get_build("tdb", "charis", "cc", "myrev")
         self.assertEquals(uploaded_build.log_checksum(), build.log_checksum())
@@ -128,7 +128,7 @@ BUILD COMMIT REVISION: myrev
     def test_upload_build_no_rev(self):
         path = self.create_mock_logfile("tdb", "charis", "cc", contents="""
 """)
-        build = data.Build(None, path[:-4], "tdb", "charis", "cc")
+        build = data.Build(path[:-4], "tdb", "charis", "cc")
         self.assertRaises(Exception, self.x.upload_build, build)
 
     def test_get_previous_revision(self):
@@ -174,11 +174,11 @@ class SQLCachingBuildResultStoreTests(BuildFarmTestCase,BuildResultStoreTestBase
         path = self.create_mock_logfile("tdb", "charis", "cc", contents="""
 BUILD COMMIT REVISION: myrev
 """)
-        self.x.upload_build(data.Build(None, path[:-4], "tdb", "charis", "cc"))
+        self.x.upload_build(data.Build(path[:-4], "tdb", "charis", "cc"))
         path = self.create_mock_logfile("tdb", "charis", "cc", contents="""
 BUILD COMMIT REVISION: myotherrev
 """)
-        self.x.upload_build(data.Build(None, path[:-4], "tdb", "charis", "cc"))
+        self.x.upload_build(data.Build(path[:-4], "tdb", "charis", "cc"))
         self.assertRaises(data.NoSuchBuildError, self.x.get_previous_revision, "tdb", "charis", "cc", "unknown")
         self.assertRaises(data.NoSuchBuildError, self.x.get_previous_revision, "tdb", "charis", "cc", "myrev")
         self.assertEquals("myrev", self.x.get_previous_revision("tdb", "charis", "cc", "myotherrev"))
@@ -187,7 +187,7 @@ BUILD COMMIT REVISION: myotherrev
         path = self.create_mock_logfile("tdb", "charis", "cc", "22", contents="""
 BUILD COMMIT REVISION: myrev
 """)
-        self.x.upload_build(data.Build(None, path[:-4], "tdb", "charis", "cc"))
+        self.x.upload_build(data.Build(path[:-4], "tdb", "charis", "cc"))
         self.assertEquals("myrev", self.x.get_latest_revision("tdb", "charis", "cc"))
 
 
