@@ -10,10 +10,8 @@ some mail chastising the possible culprits when the build fails, based
 on recent commits.
 """
 
-from buildfarm import (
-    SQLCachingBuildFarm,
-    data,
-    )
+from buildfarm import data
+from buildfarm.sqldb import StormCachingBuildFarm
 from email.mime.text import MIMEText
 import logging
 import optparse
@@ -25,7 +23,7 @@ parser.add_option("--verbose", help="Be verbose", action="count")
 
 (opts, args) = parser.parse_args()
 
-buildfarm = SQLCachingBuildFarm()
+buildfarm = StormCachingBuildFarm()
 
 smtp = smtplib.SMTP()
 smtp.connect()

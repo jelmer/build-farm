@@ -88,19 +88,19 @@ def html_build_status(status):
     def span(classname, contents):
         return "<span class=\"%s\">%s</span>" % (classname, contents)
 
-    def span_status(n, st):
-        if n == "CC_CHECKER":
-            if st == 0:
+    def span_status(stage):
+        if stage.name == "CC_CHECKER":
+            if stage.result == 0:
                 return span("status checker", "ok")
             else:
-                return span("status checker", st)
+                return span("status checker", stage.result)
 
-        if st is None:
+        if stage.result is None:
             return span("status unknown", "?")
-        elif st == 0:
+        elif stage.result == 0:
             return span("status passed", "ok")
         else:
-            return span("status failed", st)
+            return span("status failed", stage.result)
 
     ostatus = ""
     if "panic" in status.other_failures:
@@ -111,7 +111,7 @@ def html_build_status(status):
         ostatus += "/"+span("status failed", "timeout")
     if "inconsistent test result" in status.other_failures:
         ostatus += "/"+span("status failed", "unexpected return code")
-    bstatus = "/".join([span_status(n, s) for (n, s) in status.stages])
+    bstatus = "/".join([span_status(s) for s in status.stages])
     if bstatus == "":
         bstatus = "?"
     return bstatus + ostatus
@@ -120,7 +120,7 @@ def html_build_status(status):
 def build_status_html(myself, build):
     rawstatus = build.status()
     status = html_build_status(rawstatus)
-    return build_link(myself, build.tree, build.host, build.compiler, build.rev, status)
+    return build_link(myself, build.tree, build.host, build.compiler, build.revision, status)
 
 
 def red_age(age):
@@ -507,7 +507,7 @@ def view_host(myself, output_type, *requested_hosts):
 
     for host in requested_hosts:
         # make sure we have some data from it
-        if not db.has_host(host):
+        if not host in hosts:
             if output_type == 'text':
                 yield "<!-- skipping %s -->" % host
             continue
@@ -952,7 +952,7 @@ def buildApp(environ, start_response):
         elif fn_name == "Recent_Checkins":
             # validate the tree
             tree =  get_param(form, "tree")
-            t = db.trees[tree]
+            t = buildfarm.trees[tree]
             authors = set(["ALL"])
             authors.update(t.get_branch().authors(tree))
 

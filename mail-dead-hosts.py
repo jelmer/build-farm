@@ -17,9 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from buildfarm import (
-    BuildFarm,
-    )
+from buildfarm.sqldb import StormCachingBuildFarm
 import optparse
 import smtplib
 from email.MIMEText import MIMEText
@@ -29,7 +27,7 @@ parser = optparse.OptionParser()
 parser.add_option("--dry-run", help="Don't actually send any emails.", action="store_true")
 (opts, args) = parser.parse_args()
 
-buildfarm = BuildFarm()
+buildfarm = StormCachingBuildFarm()
 db = buildfarm.hostdb
 
 smtp = smtplib.SMTP()

@@ -66,7 +66,7 @@ class BuildStatus(object):
         return False
 
     def _status_tuple(self):
-        return tuple([sr.result for sr in self.stages])
+        return [sr.result for sr in self.stages]
 
     def regressed_since(self, other):
         """Check if this build has regressed since another build."""
@@ -93,7 +93,7 @@ class BuildStatus(object):
             return cmp(other.stages, self.stages)
 
     def __repr__(self):
-        return "%s(%r)" % (self.__class__.__name__, (self.stages, self.other_failures))
+        return "%s(%r, %r)" % (self.__class__.__name__, self.stages, self.other_failures)
 
 
 def check_dir_exists(kind, path):
@@ -284,16 +284,16 @@ class CachingBuild(Build):
     def __init__(self, store, *args, **kwargs):
         self._store = store
         super(CachingBuild, self).__init__(*args, **kwargs)
+        if self.revision:
+            self.cache_basename = self._store.cache_fname(self.tree, self.host, self.compiler, self.revision)
+        else:
+            self.cache_basename = self._store.cache_fname(self.tree, self.host, self.compiler)
 
     def revision_details(self):
-        if self.revision:
-            cachef = self._store.cache_fname(self.tree, self.host, self.compiler, self.revision)
-        else:
-            cachef = self._store.cache_fname(self.tree, self.host, self.compiler)
         st1 = os.stat("%s.log" % self.basename)
 
         try:
-            st2 = os.stat("%s.revision" % cachef)
+            st2 = os.stat("%s.revision" % self.cache_basename)
         except OSError:
             # File does not exist
             st2 = None
@@ -301,7 +301,7 @@ class CachingBuild(Build):
         # the ctime/mtime asymmetry is needed so we don't get fooled by
         # the mtime update from rsync
         if st2 and st1.st_ctime <= st2.st_mtime:
-            (revid, timestamp) = util.FileLoad("%s.revision" % cachef).split(":", 2)
+            (revid, timestamp) = util.FileLoad("%s.revision" % self.cache_basename).split(":", 2)
             if timestamp == "":
                 timestamp = None
             if revid == "":
@@ -309,34 +309,30 @@ class CachingBuild(Build):
             return (revid, timestamp)
         (revid, timestamp) = super(CachingBuild, self).revision_details()
         if not self._store.readonly:
-            util.FileSave("%s.revision" % cachef, "%s:%s" % (revid, timestamp or ""))
+            util.FileSave("%s.revision" % self.cache_basename, "%s:%s" % (revid, timestamp or ""))
         return (revid, timestamp)
 
     def err_count(self):
-        cachef = self._store.cache_fname(self.tree, self.host, self.compiler, self.revision)
         st1 = os.stat("%s.err" % self.basename)
 
         try:
-            st2 = os.stat("%s.errcount" % cachef)
+            st2 = os.stat("%s.errcount" % self.cache_basename)
         except OSError:
             # File does not exist
             st2 = None
 
         if st2 and st1.st_ctime <= st2.st_mtime:
-            return util.FileLoad("%s.errcount" % cachef)
+            return util.FileLoad("%s.errcount" % self.cache_basename)
 
         ret = super(CachingBuild, self).err_count()
 
         if not self._store.readonly:
-            util.FileSave("%s.errcount" % cachef, str(ret))
+            util.FileSave("%s.errcount" % self.cache_basename, str(ret))
 
         return ret
 
     def status(self):
-        if self.revsion:
-            cachefile = self._store.cache_fname(self.tree, self.host, self.compiler, self.revision)+".status"
-        else:
-            cachefile = self._store.cache_fname(self.tree, self.host, self.compiler)+".status"
+        cachefile = self.cache_basename + ".status"
 
         st1 = os.stat("%s.log" % self.basename)
 
