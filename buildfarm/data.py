@@ -109,30 +109,17 @@ def build_status_from_logs(log, err):
     ret = BuildStatus()
 
     stages = []
+    re_status = re.compile("^([A-Z_]+) STATUS:(\s*\d+)$")
+    re_action = re.compile("^ACTION (PASSED|FAILED):\s+test$")
 
     for l in log:
-        m = re.match("^([A-Z_]+) STATUS:(\s*\d+)$", l)
-        if m:
-            stages.append(BuildStageResult(m.group(1), int(m.group(2).strip())))
-            if m.group(1) == "TEST":
-                test_seen = 1
-            continue
-        m = re.match("^ACTION (PASSED|FAILED):\s+test$", l)
-        if m and not test_seen:
-            if m.group(1) == "PASSED":
-                stages.append(BuildStageResult("TEST", 0))
-            else:
-                stages.append(BuildStageResult("TEST", 1))
-            continue
-
         if l.startswith("No space left on device"):
             ret.other_failures.add("disk full")
             continue
         if l.startswith("maximum runtime exceeded"):
             ret.other_failures.add("timeout")
             continue
-        m = re.match("^(PANIC|INTERNAL ERROR):.*$", l)
-        if m:
+        if l.startswith("PANIC:") or l.startswith("INTERNAL ERROR:"):
             ret.other_failures.add("panic")
             continue
         if l.startswith("testsuite-failure: ") or l.startswith("testsuite-error: "):
@@ -140,6 +127,19 @@ def build_status_from_logs(log, err):
             continue
         if l.startswith("testsuite-success: "):
             test_successes += 1
+            continue
+        m = re_status.match(l)
+        if m:
+            stages.append(BuildStageResult(m.group(1), int(m.group(2).strip())))
+            if m.group(1) == "TEST":
+                test_seen = 1
+            continue
+        m = re_action.match(l)
+        if m and not test_seen:
+            if m.group(1) == "PASSED":
+                stages.append(BuildStageResult("TEST", 0))
+            else:
+                stages.append(BuildStageResult("TEST", 1))
             continue
 
     # Scan err file for specific errors
