@@ -27,8 +27,11 @@ from dulwich.repo import Repo
 
 
 class Branch(object):
+    """A version control branch."""
 
     def authors(self):
+        """Determine all authors that have contributed to this project.
+        """
         ret = set()
         for rev in self.log():
             ret.add(rev.author)
@@ -43,7 +46,8 @@ class Branch(object):
 
 class Revision(object):
 
-    def __init__(self, revision, date, author, message, modified=[], added=[], removed=[]):
+    def __init__(self, revision, date, author, message, modified=[], added=[],
+            removed=[]):
         self.revision = revision
         self.date = date
         self.author = author
@@ -78,7 +82,9 @@ class GitBranch(object):
                 removed.add(oldpath)
             else:
                 modified.add(newpath)
-        return Revision(commit.id, commit.commit_time, commit.author, commit.message, modified=modified, removed=removed, added=added)
+        return Revision(commit.id, commit.commit_time, commit.author,
+            commit.message, modified=modified, removed=removed,
+            added=added)
 
     def log(self, from_rev=None, exclude_revs=None):
         if from_rev is None:
@@ -105,6 +111,8 @@ class GitBranch(object):
     def diff(self, revision):
         commit = self.repo[revision]
         f = StringIO()
-        for (oldpath, newpath), (oldmode, newmode), (oldsha, newsha) in self._changes_for(commit):
-            write_blob_diff(f, (oldpath, oldmode, self.store[oldsha]), (newpath, newmode, self.store[newsha]))
+        changes = self._changes_for(commit)
+        for (oldpath, newpath), (oldmode, newmode), (oldsha, newsha) in changes:
+            write_blob_diff(f, (oldpath, oldmode, self.store[oldsha]),
+                            (newpath, newmode, self.store[newsha]))
         return (self._revision_from_commit(commit), f.getvalue())

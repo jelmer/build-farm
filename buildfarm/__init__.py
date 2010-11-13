@@ -21,6 +21,8 @@ import ConfigParser
 import os
 import re
 
+GIT_ROOT = "/data/git"
+
 
 class Tree(object):
     """A tree to build."""
@@ -35,8 +37,11 @@ class Tree(object):
         self.scm = scm
 
     def get_branch(self):
-        from buildfarm.history import GitBranch
-        return GitBranch(self.repo, self.branch)
+        if self.scm == "git":
+            from buildfarm.history import GitBranch
+            return GitBranch(os.path.join(GIT_ROOT, self.repo), self.branch)
+        else:
+            raise NotImplementedError(self.scm)
 
     def __repr__(self):
         return "<%s %r>" % (self.__class__.__name__, self.name)
