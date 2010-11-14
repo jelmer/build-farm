@@ -134,10 +134,10 @@ def build_status_vals(status):
 def revision_link(myself, revision, tree):
     """return a link to a particular revision"""
 
-    revision = revision.lstrip()
-    if revision == "0":
-        return "0"
+    if revision is None:
+        return "unknown"
 
+    revision = revision.lstrip()
     rev_short = revision
     if len(revision) == 40:
         rev_short = re.sub("(^.{7}).*", "\\1(git)", rev_short)
@@ -478,10 +478,9 @@ class ViewBuildPage(BuildFarmPage):
         yield "<tbody>"
 
         for build in old_rev_builds:
-            revision = build.revision
             yield "<tr><td>%s</td><td>%s</td></tr>" % (
-                revision_link(myself, revision, tree),
-                build_link(myself, tree, host, compiler, revision,
+                revision_link(myself, build.revision, tree),
+                build_link(myself, tree, host, compiler, build.revision,
                     html_build_status(build.status())))
 
         yield "</tbody></table>"
@@ -498,7 +497,11 @@ class ViewBuildPage(BuildFarmPage):
         config = ""
         build = buildfarm.get_build(tree, host, compiler, rev)
         age_mtime = build.age_mtime()
-        (revision, revision_time) = build.revision_details()
+        try:
+            (revision, revision_time) = build.revision_details()
+        except data.MissingRevisionInfo:
+            revision = None
+
         status = build_status_html(myself, build)
 
         if rev:
@@ -633,8 +636,11 @@ class ViewRecentBuildsPage(BuildFarmPage):
                 else:
                     age_mtime = build.age_mtime()
                     age_ctime = build.age_ctime()
-                    (revision, revision_time) = build.revision_details()
-                    if revision:
+                    try:
+                        (revision, revision_time) = build.revision_details()
+                    except data.MissingRevisionInfo:
+                        pass
+                    else:
                         all_builds.append([
                             age_ctime,
                             host.platform.encode("utf-8"),
@@ -705,7 +711,10 @@ class ViewHostPage(BuildFarmPage):
                     except data.NoSuchBuildError:
                         pass
                     else:
-                        (revision, revision_time) = build.revision_details()
+                        try:
+                            (revision, revision_time) = build.revision_details()
+                        except data.MissingRevisionInfo:
+                            revision = None
                         age_mtime = build.age_mtime()
                         age_ctime = build.age_ctime()
                         warnings = build.err_count()
