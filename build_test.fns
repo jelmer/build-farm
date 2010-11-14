@@ -809,8 +809,24 @@ test_tree() {
 			mount
 			vmstat
 
+			if [ "x$PREHOOKS" != "x" ]; then
+				for hooks in $PREHOOKS; do
+					if [ "x$hooks" = "x$action" ]; then
+						( prehook_$action )
+					fi
+				done
+			fi
+
 			( action_$action )
 			action_status=$?
+
+			if [ "x$POSTHOOKS" != "x" ]; then
+				for hooks in $POSTHOOKS; do
+					if [ "x$hooks" = "x$action" ]; then
+						( posthook_$action )
+					fi
+				done
+			fi
 
 			df .
 
