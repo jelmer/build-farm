@@ -6,8 +6,14 @@ MAXTIME=36000
 TORTURE_MAXTIME=3600
 SMBD_MAXTIME=18000
 SAMBA_MAXTIME=18000
-LD_LIBRARY_PATH=/usr/local/ssl/lib
+
+# this is needed because python depends on openssl for some modules like hashlib
+# that in turn samba pretty much depends on
+# We need also /usr/local/lib for gcc as it needs libgcc_s.(so|a)
+
+LD_LIBRARY_PATH=/usr/local/ssl/lib:/usr/local/lib
 export MAXTIME TORTURE_MAXTIME SMBD_MAXTIME SAMBA_MAXTIME LD_LIBRARY_PATH
+
 compilers="cc gcc"
 
 for compiler in $compilers; do
