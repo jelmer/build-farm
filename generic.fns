@@ -7,6 +7,7 @@ system=`uname`
 ENVCFLAGS=$CFLAGS
 cur_compiler_sum=""
 last_compiler_sum=""
+
 for compiler in gcc cc icc; do
 
   # arrgh, "which" gives no err code on solaris
@@ -31,16 +32,19 @@ for compiler in gcc cc icc; do
        isgcc=0
        CFLAGS="$ENVCFLAGS"
     fi
+
     CFLAGS_THIS_COMPILER=`eval CFLAGS_$compiler 2>/dev/null`
     if [ $? = 0 ] ; then
-	    CFLAGS="$CFLAGS_THIS_COMPILER $CFLAGS"
+        CFLAGS="$CFLAGS_THIS_COMPILER $CFLAGS"
     fi
     export CFLAGS
-	TDB_NO_FSYNC=1
-	export TDB_NO_FSYNC
+
+    TDB_NO_FSYNC=1
+    export TDB_NO_FSYNC
     test_tree samba_4_0_test source4 $compiler
-	TDB_NO_FSYNC=0
-	export TDB_NO_FSYNC
+    TDB_NO_FSYNC=0
+    export TDB_NO_FSYNC
+
     if [ $compiler = gcc -o $isgcc = 0 ]; then
       . common.fns
       test_tree lorikeet-heimdal . $compiler
