@@ -1,21 +1,8 @@
-per_run_hook
-
-global_lock
-
-compiler=cc
+compilers=cc
 
 MAXTIME=18000
-export MAXTIME
 SMBD_MAXTIME=8500
-export SMBD_MAXTIME
 SAMBA_MAXTIME=8500
-export SAMBA_MAXTIME
+export MAXTIME SMBD_MAXTIME SAMBA_MAXTIME
 
-. common.fns
-test_tree lorikeet-heimdal . $compiler
-CFLAGS="-g1 ${CFLAGS}" test_tree samba_4_0_test source4 $compiler
-CFLAGS="-g1 ${CFLAGS}" test_tree samba_3_current source $compiler
-CFLAGS="-g1 ${CFLAGS}" test_tree samba_3_next source $compiler
-CFLAGS="-g1 ${CFLAGS}" test_tree samba_3_master source $compiler
-
-global_unlock
+. generic.fns
