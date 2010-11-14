@@ -3,8 +3,9 @@ per_run_hook
 global_lock
 
 . install_python.fns
+compilers="gcc cc"
 
-for compiler in gcc cc; do
+for compiler in $compilers; do
 	. common.fns
 
 	test_tree samba_4_0_test source4 $compiler

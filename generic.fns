@@ -8,6 +8,10 @@ ENVCFLAGS=$CFLAGS
 cur_compiler_sum=""
 last_compiler_sum=""
 
+if [ "x$compilers" = "x" ]; then
+	compilers="gcc cc icc"
+fi
+
 for compiler in gcc cc icc; do
 
   # arrgh, "which" gives no err code on solaris
