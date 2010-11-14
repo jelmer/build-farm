@@ -27,10 +27,10 @@ for compiler in gcc cc icc; do
 
     if $compiler -v 2>&1 | grep gcc.version > /dev/null; then
        isgcc=1
-       CFLAGS="$ENVCFLAGS -Wall"
+       CFLAGS="$ENVCFLAGS -Wall -g"
     else
        isgcc=0
-       CFLAGS="$ENVCFLAGS"
+       CFLAGS="$ENVCFLAGS -g"
     fi
 
     CFLAGS_THIS_COMPILER=`eval CFLAGS_$compiler 2>/dev/null`
