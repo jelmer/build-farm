@@ -36,16 +36,18 @@ static void sig_alrm_kill(int sig)
 
 static void sig_alrm_term(int sig)
 {
+	fprintf(stderr, "\nMaximum time expired in timelimit - sending TERM To child\n");
 	kill(-child_pid, SIGTERM);
-	alarm(5);
 	signal(SIGALRM, sig_alrm_kill);
+	alarm(5);
 }
 
 static void sig_term(int sig)
 {
+	fprintf(stderr, "\nReceived TERM/INT/QUIT signal\n");
 	kill(-child_pid, SIGTERM);
-	alarm(1);
 	signal(SIGALRM, sig_alrm_kill);
+	alarm(1);
 }
 
 static void sig_usr1(int sig)
