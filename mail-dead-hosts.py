@@ -27,7 +27,7 @@ parser = optparse.OptionParser()
 parser.add_option("--dry-run", help="Don't actually send any emails.", action="store_true")
 (opts, args) = parser.parse_args()
 
-buildfarm = StormCachingBuildFarm()
+buildfarm = StormCachingBuildFarm(timeout=40.0)
 db = buildfarm.hostdb
 
 smtp = smtplib.SMTP()

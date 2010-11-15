@@ -23,7 +23,7 @@ parser.add_option("--verbose", help="Be verbose", action="count")
 
 (opts, args) = parser.parse_args()
 
-buildfarm = StormCachingBuildFarm()
+buildfarm = StormCachingBuildFarm(timeout=40.0)
 
 smtp = smtplib.SMTP()
 smtp.connect()

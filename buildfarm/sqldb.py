@@ -199,18 +199,19 @@ class StormCachingBuildResultStore(BuildResultStore):
 
 class StormCachingBuildFarm(BuildFarm):
 
-    def __init__(self, path=None, store=None):
+    def __init__(self, path=None, store=None, timeout=0.5):
+        self.timeout = timeout
         self.store = store
         super(StormCachingBuildFarm, self).__init__(path)
 
     def _get_store(self):
         if self.store is not None:
             return self.store
-        else:
-            db = create_database("sqlite:" + os.path.join(self.path, "hostdb.sqlite"))
-            self.store = Store(db)
-            setup_schema(self.store)
-            return self.store
+        db_path = os.path.join(self.path, "hostdb.sqlite")
+        db = create_database("sqlite:%s?timeout=%f" % (db_path, self.timeout))
+        self.store = Store(db)
+        setup_schema(self.store)
+        return self.store
 
     def _open_hostdb(self):
         return StormHostDatabase(self._get_store())
