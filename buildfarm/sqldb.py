@@ -207,7 +207,7 @@ class StormCachingBuildFarm(BuildFarm):
     def _get_store(self):
         if self.store is not None:
             return self.store
-        db_path = os.path.join(self.path, "hostdb.sqlite")
+        db_path = os.path.join(self.path, "db", "hostdb.sqlite")
         db = create_database("sqlite:%s?timeout=%f" % (db_path, self.timeout))
         self.store = Store(db)
         setup_schema(self.store)

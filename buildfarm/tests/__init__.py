@@ -80,10 +80,10 @@ class BuildFarmTestCase(TestCase):
         super(BuildFarmTestCase, self).setUp()
         self.path = tempfile.mkdtemp()
 
-        for subdir in ["data", "data/upload", "data/oldrevs", "cache", "web", "lcov", "lcov/data"]:
+        for subdir in ["data", "data/upload", "data/oldrevs", "db", "cache", "web", "lcov", "lcov/data"]:
             os.mkdir(os.path.join(self.path, subdir))
 
-        db = database.create_database("sqlite:"+os.path.join(self.path, "hostdb.sqlite"))
+        db = database.create_database("sqlite:"+os.path.join(self.path, "db", "hostdb.sqlite"))
         store = Store(db)
         setup_schema(store)
         store.flush()
