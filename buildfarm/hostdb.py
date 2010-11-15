@@ -143,7 +143,7 @@ class PlainTextHostDatabase(HostDatabase):
         try:
             for l in f:
                 (host, platform) = l.split(":", 1)
-                ret[host] = platform.strip()
+                ret[host.decode("utf-8")] = platform.strip().decode("utf-8")
         finally:
             f.close()
         return cls(ret)
