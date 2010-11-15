@@ -203,6 +203,12 @@ class StormCachingBuildResultStore(BuildResultStore):
         self.store.add(new_build)
         return new_build
 
+    def get_old_revs(self, tree, host, compiler):
+        return self.store.find(StormBuild,
+            StormBuild.tree == tree,
+            StormBuild.host == host,
+            StormBuild.compiler == compiler).order_by(Desc(StormBuild.age))
+
 
 class StormCachingBuildFarm(BuildFarm):
 
