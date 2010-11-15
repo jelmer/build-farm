@@ -466,7 +466,7 @@ class ViewBuildPage(BuildFarmPage):
 
     def show_oldrevs(self, myself, tree, host, compiler):
         """show the available old revisions, if any"""
-        old_rev_builds  = self.buildfarm.builds.get_old_revs(tree, host, compiler)
+        old_rev_builds  = self.buildfarm.builds.get_old_revs(tree.decode('utf-8'), host.decode('utf-8'), compiler.decode('utf-8'))
 
         if len(old_rev_builds) == 0:
             return
@@ -485,17 +485,12 @@ class ViewBuildPage(BuildFarmPage):
 
         yield "</tbody></table>"
 
-    def render(self, myself, tree, host, compiler, rev, plain_logs=False):
+    def render(self, myself, tree, hostname, compiler, rev, plain_logs=False):
         """view one build in detail"""
-        # ensure the params are valid before using them
-        self.buildfarm.hostdb.host(host)
-        assert compiler in self.buildfarm.compilers, "unknown compiler %s" % compiler
-        assert tree in self.buildfarm.trees, "not a build tree %s" % tree
-
         uname = ""
         cflags = ""
         config = ""
-        build = buildfarm.get_build(tree, host, compiler, rev)
+        build = buildfarm.get_build(tree, hostname, compiler, rev)
         age_mtime = build.age_mtime()
         try:
             (revision, revision_time) = build.revision_details()
@@ -535,14 +530,14 @@ class ViewBuildPage(BuildFarmPage):
             err = cgi.escape(err)
         yield '<h2>Host information:</h2>'
 
-        host_web_file = "../web/%s.html" % host
+        host_web_file = "../web/%s.html" % hostname
         if os.path.exists(host_web_file):
             yield util.FileLoad(host_web_file)
 
         yield "<table class='real'>\n"
         yield "<tr><td>Host:</td><td><a href='%s?function=View+Host;host=%s;tree=%s;"\
               "compiler=%s#'>%s</a> - %s</td></tr>\n" %\
-                (myself, host, tree, compiler, host, self.buildfarm.hostdb.host(host).platform.encode("utf-8"))
+                (myself, hostname, tree, compiler, hostname, host.platform.encode("utf-8"))
         yield "<tr><td>Uname:</td><td>%s</td></tr>\n" % uname
         yield "<tr><td>Tree:</td><td>%s</td></tr>\n" % self.tree_link(myself, tree)
         yield "<tr><td>Build Revision:</td><td>%s</td></tr>\n" % revision_link(myself, revision, tree)
@@ -553,7 +548,7 @@ class ViewBuildPage(BuildFarmPage):
         yield "<tr><td>configure options:</td><td>%s</td></tr>\n" % config
         yield "</table>\n"
 
-        yield "".join(self.show_oldrevs(myself, tree, host, compiler))
+        yield "".join(self.show_oldrevs(myself, tree, hostname, compiler))
 
         # check the head of the output for our magic string
         rev_var = ""
@@ -565,7 +560,7 @@ class ViewBuildPage(BuildFarmPage):
         if not plain_logs:
             yield "<p>Switch to the <a href='%s?function=View+Build;host=%s;tree=%s"\
                   ";compiler=%s%s;plain=true' title='Switch to bland, non-javascript,"\
-                  " unstyled view'>Plain View</a></p>" % (myself, host, tree, compiler, rev_var)
+                  " unstyled view'>Plain View</a></p>" % (myself, hostname, tree, compiler, rev_var)
 
             yield "<div id='actionList'>"
             # These can be pretty wide -- perhaps we need to
@@ -587,7 +582,7 @@ class ViewBuildPage(BuildFarmPage):
         else:
             yield "<p>Switch to the <a href='%s?function=View+Build;host=%s;tree=%s;"\
                   "compiler=%s%s' title='Switch to colourful, javascript-enabled, styled"\
-                  " view'>Enhanced View</a></p>" % (myself, host, tree, compiler, rev_var)
+                  " view'>Enhanced View</a></p>" % (myself, hostname, tree, compiler, rev_var)
             if err == "":
                 yield "<h2>No error log available</h2>"
             else:
