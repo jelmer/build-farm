@@ -45,11 +45,9 @@ import re
 import time
 
 import wsgiref.util
-webdir = os.path.dirname(__file__)
-basedir = os.path.abspath(os.path.join(webdir, ".."))
+webdir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "web"))
 
 
-UNPACKED_BASE = "http://svn.samba.org/ftp/unpacked"
 GITWEB_BASE = "http://gitweb.samba.org"
 HISTORY_HORIZON = 1000
 
@@ -917,12 +915,9 @@ class BuildFarmApp(object):
 
     def __init__(self, buildfarm):
         self.buildfarm = buildfarm
-        self.db = data.BuildResultStore(basedir)
-        self.hostsdb = buildfarm.hostdb
 
-        self.compilers = buildfarm.compilers
         # host.properties are unicode object and the framework expect string object
-        self.hosts = dict([(host.name.encode("utf-8"), host) for host in self.hostsdb.hosts()])
+        self.hosts = dict([(host.name.encode("utf-8"), host) for host in self.buildfarm.hostdb.hosts()])
 
     def main_menu(self):
         """main page"""
@@ -1037,23 +1032,20 @@ if __name__ == '__main__':
     buildfarm = CachingBuildFarm(cachedirname=opts.cachedirname)
     buildApp = BuildFarmApp(buildfarm)
     from wsgiref.simple_server import make_server
+    import mimetypes
+    mimetypes.init()
 
     def standaloneApp(environ, start_response):
         if environ['PATH_INFO']:
-            dir = os.path.join(os.path.dirname(__file__))
-            if re.match("^/[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)?", environ['PATH_INFO']):
-                static_file = "%s/%s" % (dir, environ['PATH_INFO'])
+            m = re.match("^/([a-zA-Z0-9_-]+)(\.[a-zA-Z0-9_-]+)?", environ['PATH_INFO'])
+            if m:
+                static_file = os.path.join(webdir, m.group(1)+m.group(2))
                 if os.path.exists(static_file):
-                    tab = environ['PATH_INFO'].split('.')
-                    if len(tab) > 1:
-                        extension = tab[-1]
-                        import mimetypes
-                        mimetypes.init()
-                        type = mimetypes.types_map[".%s" % extension]
-                        start_response('200 OK', [('Content-type', type)])
-                        data = open(static_file, 'rb').read()
-                        yield data
-                        return
+                    type = mimetypes.types_map[m.group(2)]
+                    start_response('200 OK', [('Content-type', type)])
+                    data = open(static_file, 'rb').read()
+                    yield data
+                    return
         yield "".join(buildApp(environ, start_response))
     try:
         (address, port) = opts.port.rsplit(":", 1)
