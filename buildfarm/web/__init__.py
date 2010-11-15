@@ -30,8 +30,6 @@
 # e.g. only broken builds or only builds that you care about.
 
 import os
-import sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from buildfarm import (
     data,
@@ -1067,7 +1065,3 @@ if __name__ == '__main__':
         httpd = make_server(address, int(port), standaloneApp)
         print "Serving on %s:%d..." % (address, int(port))
         httpd.serve_forever()
-    else:
-        import wsgiref.handlers
-        handler = wsgiref.handlers.CGIHandler()
-        handler.run(buildApp)
