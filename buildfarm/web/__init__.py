@@ -682,6 +682,41 @@ class ViewRecentBuildsPage(BuildFarmPage):
 
 class ViewHostPage(BuildFarmPage):
 
+    def _render_build(self, myself, build):
+        try:
+            (revision, revision_time) = build.revision_details()
+        except data.MissingRevisionInfo:
+            revision = None
+        age_mtime = build.age_mtime()
+        age_ctime = build.age_ctime()
+        warnings = build.err_count()
+        status = build_status_html(myself, build)
+        if row == 0:
+            if output_type == 'text':
+                yield "%-12s %-10s %-10s %-10s %-10s\n" % (
+                        "Tree", "Compiler", "Build Age", "Status", "Warnings")
+            else:
+                yield "<div class='host summary'>"
+                yield "<a id='host' name='host'/>"
+                yield "<h3>%s - %s</h3>" % (host, self.buildfarm.hostdb.host(host).platform.encode("utf-8"))
+                yield "<table class='real'>"
+                yield "<thead><tr><th>Target</th><th>Build<br/>Revision</th><th>Build<br />Age</th><th>Status<br />config/build<br />install/test</th><th>Warnings</th></tr></thead>"
+                yield "<tbody>"
+
+        if output_type == 'text':
+            yield "%-12s %-10s %-10s %-10s %-10s\n" % (
+                    tree, compiler, util.dhm_time(age_mtime),
+                    util.strip_html(status), warnings)
+        else:
+            yield "<tr>"
+            yield "<td><span class='tree'>" + self.tree_link(myself, tree) +"</span>/" + compiler + "</td>"
+            yield "<td>" + revision_link(myself, revision, tree) + "</td>"
+            yield "<td><div class='age'>" + self.red_age(age_mtime) + "</div></td>"
+            yield "<td><div class='status'>%s</div></td>" % status
+            yield "<td>%s</td>" % warnings
+            yield "</tr>"
+        row+=1
+
     def render(self, myself, output_type, *requested_hosts):
         """print the host's table of information"""
 
@@ -699,7 +734,6 @@ class ViewHostPage(BuildFarmPage):
                 continue
 
             row = 0
-
             for compiler in self.buildfarm.compilers:
                 for tree in sorted(self.buildfarm.trees.keys()):
                     try:
@@ -707,39 +741,8 @@ class ViewHostPage(BuildFarmPage):
                     except data.NoSuchBuildError:
                         pass
                     else:
-                        try:
-                            (revision, revision_time) = build.revision_details()
-                        except data.MissingRevisionInfo:
-                            revision = None
-                        age_mtime = build.age_mtime()
-                        age_ctime = build.age_ctime()
-                        warnings = build.err_count()
-                        status = build_status_html(myself, build)
-                        if row == 0:
-                            if output_type == 'text':
-                                yield "%-12s %-10s %-10s %-10s %-10s\n" % (
-                                        "Tree", "Compiler", "Build Age", "Status", "Warnings")
-                            else:
-                                yield "<div class='host summary'>"
-                                yield "<a id='host' name='host'/>"
-                                yield "<h3>%s - %s</h3>" % (host, self.buildfarm.hostdb.host(host).platform.encode("utf-8"))
-                                yield "<table class='real'>"
-                                yield "<thead><tr><th>Target</th><th>Build<br/>Revision</th><th>Build<br />Age</th><th>Status<br />config/build<br />install/test</th><th>Warnings</th></tr></thead>"
-                                yield "<tbody>"
+                        self._render_build(myself, build)
 
-                        if output_type == 'text':
-                            yield "%-12s %-10s %-10s %-10s %-10s\n" % (
-                                    tree, compiler, util.dhm_time(age_mtime),
-                                    util.strip_html(status), warnings)
-                        else:
-                            yield "<tr>"
-                            yield "<td><span class='tree'>" + self.tree_link(myself, tree) +"</span>/" + compiler + "</td>"
-                            yield "<td>" + revision_link(myself, revision, tree) + "</td>"
-                            yield "<td><div class='age'>" + self.red_age(age_mtime) + "</div></td>"
-                            yield "<td><div class='status'>%s</div></td>" % status
-                            yield "<td>%s</td>" % warnings
-                            yield "</tr>"
-                        row+=1
             if row != 0:
                 if output_type == 'text':
                     yield "\n"
