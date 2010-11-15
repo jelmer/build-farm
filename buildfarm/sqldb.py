@@ -23,6 +23,7 @@ from buildfarm import (
 from buildfarm.data import (
     Build,
     BuildResultStore,
+    BuildStatus,
     NoSuchBuildError,
     )
 from buildfarm.hostdb import (
@@ -54,6 +55,12 @@ class StormBuild(Build):
     age = Int()
     status_str = Unicode(name="status")
     commit_revision = RawStr()
+
+    def status(self):
+        return BuildStatus.__deserialize__(self.status_str)
+
+    def revision_details(self):
+        return (self.commit_revision, None)
 
     def log_checksum(self):
         return self.checksum
@@ -192,7 +199,7 @@ class StormCachingBuildResultStore(BuildResultStore):
         new_build = StormBuild(new_basename, unicode(build.tree), unicode(build.host), unicode(build.compiler), rev)
         new_build.checksum = build.log_checksum()
         new_build.age = build.age_mtime()
-        new_build.status_str = unicode(str(build.status()))
+        new_build.status_str = unicode(build.status().__serialize__())
         self.store.add(new_build)
         return new_build
 

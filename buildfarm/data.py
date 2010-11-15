@@ -61,6 +61,13 @@ class BuildStatus(object):
         else:
             self.other_failures = set()
 
+    def __serialize__(self):
+        return repr(self)
+
+    @classmethod
+    def __deserialize__(cls, text):
+        return eval(text)
+
     def __str__(self):
         if self.other_failures:
             return ",".join(self.other_failures)

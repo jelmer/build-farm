@@ -100,12 +100,12 @@ class CachingBuild(Build):
             st2 = None
 
         if st2 and st1.st_ctime <= st2.st_mtime:
-            return eval(util.FileLoad(cachefile))
+            return BuildStatus.__deserialize__(util.FileLoad(cachefile))
 
         ret = super(CachingBuild, self).status()
 
         if not self._store.readonly:
-            util.FileSave(cachefile, repr(ret))
+            util.FileSave(cachefile, ret.__serialize__())
 
         return ret
 
