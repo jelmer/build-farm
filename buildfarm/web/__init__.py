@@ -922,28 +922,28 @@ class BuildFarmApp(object):
     def main_menu(self):
         """main page"""
 
-        yield "<form method='GET'>"
-        yield "<div id='build-menu'>"
-        yield "<select name='host'>"
+        yield "<form method='GET'>\n"
+        yield "<div id='build-menu'>\n"
+        yield "<select name='host'>\n"
         for name, host in self.hosts.iteritems():
             yield "<option value='%s'>%s -- %s</option>\n" % (name, host.platform.encode("utf-8"), name)
-        yield "</select>"
-        yield "<select name='tree'>"
+        yield "</select>\n"
+        yield "<select name='tree'>\n"
         for tree, t in self.buildfarm.trees.iteritems():
             yield "<option value='%s'>%s:%s</option>\n" % (tree, tree, t.branch)
-        yield "</select>"
-        yield "<select name='compiler'>"
+        yield "</select>\n"
+        yield "<select name='compiler'>\n"
         for compiler in self.buildfarm.compilers:
             yield "<option>%s</option>\n" % compiler
-        yield "</select>"
-        yield "<br/>"
-        yield "<input type='submit' name='function' value='View Build'/>"
-        yield "<input type='submit' name='function' value='View Host'/>"
-        yield "<input type='submit' name='function' value='Recent Checkins'/>"
-        yield "<input type='submit' name='function' value='Summary'/>"
-        yield "<input type='submit' name='function' value='Recent Builds'/>"
-        yield "</div>"
-        yield "</form>"
+        yield "</select>\n"
+        yield "<br/>\n"
+        yield "<input type='submit' name='function' value='View Build'/>\n"
+        yield "<input type='submit' name='function' value='View Host'/>\n"
+        yield "<input type='submit' name='function' value='Recent Checkins'/>\n"
+        yield "<input type='submit' name='function' value='Summary'/>\n"
+        yield "<input type='submit' name='function' value='Recent Builds'/>\n"
+        yield "</div>\n"
+        yield "</form>\n"
 
     def __call__(self, environ, start_response):
         form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
