@@ -809,7 +809,7 @@ class ViewSummaryPage(BuildFarmPage):
             for compiler in self.buildfarm.compilers:
                 for tree in self.buildfarm.trees:
                     try:
-                        build = buildfarm.get_build(tree, host.name.encode("utf-8"), compiler)
+                        build = self.buildfarm.get_build(tree, host.name, compiler)
                         status = build_status_html(myself, build)
                     except data.NoSuchBuildError:
                         continue
