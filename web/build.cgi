@@ -21,16 +21,12 @@ import os
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from buildfarm.sqldb import StormCachingBuildFarm
-from buildfarm.web import BuildFarmApp
 import wsgiref.handlers
 import resource
 
 resource.setrlimit(resource.RLIMIT_RSS, (300000, 300000))
 resource.setrlimit(resource.RLIMIT_DATA, (300000, 300000))
 
-buildfarm = StormCachingBuildFarm()
-buildApp = BuildFarmApp(buildfarm)
 handler = wsgiref.handlers.CGIHandler()
 CGI_DEBUG = False
 
@@ -38,4 +34,9 @@ if CGI_DEBUG:
     import cgitb
     cgitb.enable()
     handler.log_exception = cgitb.handler
+
+from buildfarm.sqldb import StormCachingBuildFarm
+from buildfarm.web import BuildFarmApp
+buildfarm = StormCachingBuildFarm()
+buildApp = BuildFarmApp(buildfarm)
 handler.run(buildApp)
