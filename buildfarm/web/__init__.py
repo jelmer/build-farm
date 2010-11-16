@@ -846,7 +846,7 @@ class ViewSummaryPage(BuildFarmPage):
                         yield "<td>"
                 yield "%d</td>" % panic_count[tree]
                 try:
-                    lcov_status = buildfarm.lcov_status(tree)
+                    lcov_status = self.buildfarm.lcov_status(tree)
                 except data.NoSuchBuildError:
                     yield "<td></td>"
                 else:

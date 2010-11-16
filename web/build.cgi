@@ -21,7 +21,7 @@ import os
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from buildfarm.filecache import CachingBuildFarm
+from buildfarm.sqldb import StormCachingBuildFarm
 from buildfarm.web import BuildFarmApp
 import wsgiref.handlers
 import resource
@@ -29,7 +29,7 @@ import resource
 resource.setrlimit(resource.RLIMIT_RSS, (300000, 300000))
 resource.setrlimit(resource.RLIMIT_DATA, (300000, 300000))
 
-buildfarm = CachingBuildFarm()
+buildfarm = StormCachingBuildFarm()
 buildApp = BuildFarmApp(buildfarm)
 handler = wsgiref.handlers.CGIHandler()
 CGI_DEBUG = False
