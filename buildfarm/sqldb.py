@@ -129,7 +129,7 @@ class StormHostDatabase(HostDatabase):
         return self.store.find(StormHost).order_by(StormHost.name)
 
     def host(self, name):
-        ret = self.hosts().find(StormHost.name==name).one()
+        ret = self.store.find(StormHost, StormHost.name==name).one()
         if ret is None:
             raise NoSuchHost(name)
         return ret
