@@ -467,19 +467,18 @@ class ViewBuildPage(BuildFarmPage):
         if len(old_rev_builds) == 0:
             return
 
-        yield "<h2>Older builds:</h2>"
+        yield "<h2>Older builds:</h2>\n"
 
-        yield "<table class='real'>"
-        yield "<thead><tr><th>Revision</th><th>Status</th></tr></thead>"
-        yield "<tbody>"
+        yield "<table class='real'>\n"
+        yield "<thead><tr><th>Revision</th><th>Status</th></tr></thead>\n"
+        yield "<tbody>\n"
 
         for build in old_rev_builds:
-            yield "<tr><td>%s</td><td>%s</td></tr>" % (
+            yield "<tr><td>%s</td><td>%s</td></tr>\n" % (
                 revision_link(myself, build.revision, tree),
-                build_link(myself, tree, host, compiler, build.revision,
-                    html_build_status(build.status())))
+                build_status_html(myself, build))
 
-        yield "</tbody></table>"
+        yield "</tbody></table>\n"
 
     def render(self, myself, tree, host, compiler, rev, plain_logs=False):
         """view one build in detail"""

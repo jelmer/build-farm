@@ -32,4 +32,10 @@ resource.setrlimit(resource.RLIMIT_DATA, (300000, 300000))
 buildfarm = CachingBuildFarm()
 buildApp = BuildFarmApp(buildfarm)
 handler = wsgiref.handlers.CGIHandler()
+CGI_DEBUG = False
+
+if CGI_DEBUG:
+    import cgitb
+    cgitb.enable()
+    handler.log_exception = cgitb.handler
 handler.run(buildApp)
