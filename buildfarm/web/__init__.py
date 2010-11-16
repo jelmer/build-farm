@@ -482,10 +482,6 @@ class ViewBuildPage(BuildFarmPage):
 
     def render(self, myself, tree, host, compiler, rev, plain_logs=False):
         """view one build in detail"""
-        # ensure the params are valid before using them
-        self.buildfarm.hostdb.host(host)
-        assert compiler in self.buildfarm.compilers, "unknown compiler %s" % compiler
-        assert tree in self.buildfarm.trees, "not a build tree %s" % tree
 
         uname = ""
         cflags = ""
