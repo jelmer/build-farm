@@ -61,6 +61,12 @@ class BuildStatus(object):
         else:
             self.other_failures = set()
 
+    @property
+    def failed(self):
+        if self.other_failures:
+            return True
+        return not all([x == 0 for x in self._status_tuple()])
+
     def __serialize__(self):
         return repr(self)
 

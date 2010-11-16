@@ -601,9 +601,6 @@ class ViewRecentBuildsPage(BuildFarmPage):
 
     def render(self, myself, tree, sort_by):
         """Draw the "recent builds" view"""
-        i = 0
-        cols = 2
-        broken = 0
         last_host = ""
         all_builds = []
 
@@ -681,7 +678,15 @@ class ViewRecentBuildsPage(BuildFarmPage):
 
 class ViewHostPage(BuildFarmPage):
 
-    def _render_build(self, myself, build):
+    def _render_build_list_header(self, host):
+        yield "<div class='host summary'>"
+        yield "<a id='host' name='host'/>"
+        yield "<h3>%s - %s</h3>" % (host.encode("utf-8"), self.buildfarm.hostdb.host(host).platform.encode("utf-8"))
+        yield "<table class='real'>"
+        yield "<thead><tr><th>Target</th><th>Build<br/>Revision</th><th>Build<br />Age</th><th>Status<br />config/build<br />install/test</th><th>Warnings</th></tr></thead>"
+        yield "<tbody>"
+
+    def _render_build_html(self, myself, build):
         try:
             (revision, revision_time) = build.revision_details()
         except data.MissingRevisionInfo:
@@ -690,40 +695,40 @@ class ViewHostPage(BuildFarmPage):
         age_ctime = build.age_ctime()
         warnings = build.err_count()
         status = build_status_html(myself, build)
-        if row == 0:
-            if output_type == 'text':
-                yield "%-12s %-10s %-10s %-10s %-10s\n" % (
-                        "Tree", "Compiler", "Build Age", "Status", "Warnings")
+        yield "<tr>"
+        yield "<td><span class='tree'>" + self.tree_link(myself, build.tree) +"</span>/" + build.compiler + "</td>"
+        yield "<td>" + revision_link(myself, revision, build.tree) + "</td>"
+        yield "<td><div class='age'>" + self.red_age(age_mtime) + "</div></td>"
+        yield "<td><div class='status'>%s</div></td>" % status
+        yield "<td>%s</td>" % warnings
+        yield "</tr>"
+
+    def render_html(self, myself, *requested_hosts):
+        yield "<div class='build-section' id='build-summary'>"
+        yield '<h2>Host summary:</h2>'
+        for host in requested_hosts:
+            # make sure we have some data from it
+            try:
+                self.buildfarm.hostdb.host(host)
+            except hostdb.NoSuchHost:
+                continue
+
+            builds = list(self.buildfarm.get_host_builds(host))
+            if len(builds) > 0:
+                yield "".join(self._render_build_list_header(host))
+                for build in builds:
+                    yield "".join(self._render_build_html(myself, build))
+                yield "</tbody></table>"
+                yield "</div>"
             else:
-                yield "<div class='host summary'>"
-                yield "<a id='host' name='host'/>"
-                yield "<h3>%s - %s</h3>" % (host, self.buildfarm.hostdb.host(host).platform.encode("utf-8"))
-                yield "<table class='real'>"
-                yield "<thead><tr><th>Target</th><th>Build<br/>Revision</th><th>Build<br />Age</th><th>Status<br />config/build<br />install/test</th><th>Warnings</th></tr></thead>"
-                yield "<tbody>"
+                deadhosts.append(host)
 
-        if output_type == 'text':
-            yield "%-12s %-10s %-10s %-10s %-10s\n" % (
-                    tree, compiler, util.dhm_time(age_mtime),
-                    util.strip_html(status), warnings)
-        else:
-            yield "<tr>"
-            yield "<td><span class='tree'>" + self.tree_link(myself, tree) +"</span>/" + compiler + "</td>"
-            yield "<td>" + revision_link(myself, revision, tree) + "</td>"
-            yield "<td><div class='age'>" + self.red_age(age_mtime) + "</div></td>"
-            yield "<td><div class='status'>%s</div></td>" % status
-            yield "<td>%s</td>" % warnings
-            yield "</tr>"
-        row+=1
+        yield "</div>"
+        yield "".join(self.draw_dead_hosts(*deadhosts))
 
-    def render(self, myself, output_type, *requested_hosts):
+    def render_text(self, myself, *requested_hosts):
         """print the host's table of information"""
-
-        if output_type == 'text':
-            yield "Host summary:\n"
-        else:
-            yield "<div class='build-section' id='build-summary'>"
-            yield '<h2>Host summary:</h2>'
+        yield "Host summary:\n"
 
         for host in requested_hosts:
             # make sure we have some data from it
@@ -732,28 +737,16 @@ class ViewHostPage(BuildFarmPage):
             except hostdb.NoSuchHost:
                 continue
 
-            row = 0
-            for compiler in self.buildfarm.compilers:
-                for tree in sorted(self.buildfarm.trees.keys()):
-                    try:
-                        build = buildfarm.get_build(tree, host, compiler)
-                    except data.NoSuchBuildError:
-                        pass
-                    else:
-                        self._render_build(myself, build)
-
-            if row != 0:
-                if output_type == 'text':
-                    yield "\n"
-                else:
-                    yield "</tbody></table>"
-                    yield "</div>"
-            else:
-                deadhosts.append(host)
-
-        if output_type != 'text':
-            yield "</div>"
-            yield "".join(self.draw_dead_hosts(*deadhosts))
+            builds = list(self.buildfarm.get_host_builds(host))
+            if len(builds) > 0:
+                yield "%-12s %-10s %-10s %-10s %-10s\n" % (
+                        "Tree", "Compiler", "Build Age", "Status", "Warnings")
+                for build in builds:
+                    yield "%-12s %-10s %-10s %-10s %-10s\n" % (
+                            build.tree.encode("utf-8"), build.compiler.encode("utf-8"),
+                            util.dhm_time(build.age_mtime()),
+                            str(build.status()), build.err_count())
+                yield "\n"
 
     def draw_dead_hosts(self, *deadhosts):
         """Draw the "dead hosts" table"""
@@ -780,11 +773,7 @@ class ViewHostPage(BuildFarmPage):
 
 class ViewSummaryPage(BuildFarmPage):
 
-    def render(self, myself, output_type):
-        """view build summary"""
-        i = 0
-        cols = 2
-        broken = 0
+    def _get_counts(self):
         broken_count = {}
         panic_count = {}
         host_count = {}
@@ -800,67 +789,74 @@ class ViewSummaryPage(BuildFarmPage):
         broken_table = ""
         last_host = ""
 
-        # for the text report, include the current time
-        if output_type == 'text':
-            t = time.gmtime()
-            yield "Build status as of %s\n\n" % t
-
         for host in self.buildfarm.hostdb.hosts():
             for compiler in self.buildfarm.compilers:
                 for tree in self.buildfarm.trees:
                     try:
                         build = self.buildfarm.get_build(tree, host.name, compiler)
-                        status = build_status_html(myself, build)
                     except data.NoSuchBuildError:
                         continue
                     age_mtime = build.age_mtime()
                     host_count[tree]+=1
+                    status = build.status()
 
-                    if "status failed" in status:
+                    if status.failed:
                         broken_count[tree]+=1
-                        if "PANIC" in status:
+                        if "panic" in status.other_failures:
                             panic_count[tree]+=1
+        return (host_count, broken_count, panic_count)
 
-        if output_type == 'text':
-            yield "Build counts:\n"
-            yield "%-12s %-6s %-6s %-6s\n" % ("Tree", "Total", "Broken", "Panic")
-        else:
-            yield "<div id='build-counts' class='build-section'>"
-            yield "<h2>Build counts:</h2>"
-            yield "<table class='real'>"
-            yield "<thead><tr><th>Tree</th><th>Total</th><th>Broken</th><th>Panic</th><th>Test coverage</th></tr></thead>"
-            yield "<tbody>"
+    def render_text(self, myself):
+
+        (host_count, broken_count, panic_count) = self._get_counts()
+        # for the text report, include the current time
+        t = time.gmtime()
+        yield "Build status as of %s\n\n" % t
+
+        yield "Build counts:\n"
+        yield "%-12s %-6s %-6s %-6s\n" % ("Tree", "Total", "Broken", "Panic")
 
         for tree in sorted(self.buildfarm.trees.keys()):
-            if output_type == 'text':
-                yield "%-12s %-6s %-6s %-6s\n" % (tree, host_count[tree],
-                        broken_count[tree], panic_count[tree])
-            else:
-                yield "<tr>"
-                yield "<td>%s</td>" % self.tree_link(myself, tree)
-                yield "<td>%s</td>" % host_count[tree]
-                yield "<td>%s</td>" % broken_count[tree]
-                if panic_count[tree]:
-                        yield "<td class='panic'>"
-                else:
-                        yield "<td>"
-                yield "%d</td>" % panic_count[tree]
-                try:
-                    lcov_status = self.buildfarm.lcov_status(tree)
-                except data.NoSuchBuildError:
-                    yield "<td></td>"
-                else:
-                    if lcov_status is not None:
-                        yield "<td><a href=\"/lcov/data/%s/%s\">%s %%</a></td>" % (buildfarm.LCOVHOST, tree, lcov_status)
-                    else:
-                        yield "<td></td>"
-                yield "</tr>"
+            yield "%-12s %-6s %-6s %-6s\n" % (tree, host_count[tree],
+                    broken_count[tree], panic_count[tree])
 
-        if output_type == 'text':
-            yield "\n"
-        else:
-            yield "</tbody></table>"
-            yield "</div>"
+        yield "\n"
+
+    def render_html(self, myself):
+        """view build summary"""
+
+        (host_count, broken_count, panic_count) = self._get_counts()
+
+        yield "<div id='build-counts' class='build-section'>"
+        yield "<h2>Build counts:</h2>"
+        yield "<table class='real'>"
+        yield "<thead><tr><th>Tree</th><th>Total</th><th>Broken</th><th>Panic</th><th>Test coverage</th></tr></thead>"
+        yield "<tbody>"
+
+        for tree in sorted(self.buildfarm.trees.keys()):
+            yield "<tr>"
+            yield "<td>%s</td>" % self.tree_link(myself, tree)
+            yield "<td>%s</td>" % host_count[tree]
+            yield "<td>%s</td>" % broken_count[tree]
+            if panic_count[tree]:
+                    yield "<td class='panic'>"
+            else:
+                    yield "<td>"
+            yield "%d</td>" % panic_count[tree]
+            try:
+                lcov_status = self.buildfarm.lcov_status(tree)
+            except data.NoSuchBuildError:
+                yield "<td></td>"
+            else:
+                if lcov_status is not None:
+                    yield "<td><a href=\"/lcov/data/%s/%s\">%s %%</a></td>" % (
+                        buildfarm.LCOVHOST, tree, lcov_status)
+                else:
+                    yield "<td></td>"
+            yield "</tr>"
+
+        yield "</tbody></table>"
+        yield "</div>"
 
 
 class DiffPage(BuildFarmPage):
@@ -928,7 +924,8 @@ class BuildFarmApp(object):
         yield "<div id='build-menu'>\n"
         yield "<select name='host'>\n"
         for name, host in self.hosts.iteritems():
-            yield "<option value='%s'>%s -- %s</option>\n" % (name, host.platform.encode("utf-8"), name)
+            yield "<option value='%s'>%s -- %s</option>\n" % (
+                name, host.platform.encode("utf-8"), name)
         yield "</select>\n"
         yield "<select name='tree'>\n"
         for tree, t in self.buildfarm.trees.iteritems():
@@ -965,7 +962,7 @@ class BuildFarmApp(object):
         elif fn_name == 'Text_Summary':
             start_response('200 OK', [('Content-type', 'text/plain')])
             page = ViewSummaryPage(self.buildfarm)
-            yield "".join(page.render(myself, 'text'))
+            yield "".join(page.render_text(myself))
         else:
             start_response('200 OK', [('Content-type', 'text/html')])
 
@@ -994,7 +991,7 @@ class BuildFarmApp(object):
                 yield "".join(page.render(myself, tree, host, compiler, get_param(form, "revision"), plain_logs))
             elif fn_name == "View_Host":
                 page = ViewHostPage(self.buildfarm)
-                yield "".join(page.render(myself, "html", get_param(form, 'host')))
+                yield "".join(page.render_html(myself, get_param(form, 'host')))
             elif fn_name == "Recent_Builds":
                 page = ViewRecentBuildsPage(self.buildfarm)
                 yield "".join(page.render(myself, get_param(form, "tree"), get_param(form, "sortby") or "revision"))
@@ -1016,10 +1013,10 @@ class BuildFarmApp(object):
                     yield "".join(page.render(myself, paths[2], get_param(form, 'sortby') or 'revision'))
                 elif paths[1] == "host":
                     page = ViewHostPage(self.buildfarm)
-                    yield "".join(page.render(myself, "html", paths[2]))
+                    yield "".join(page.render_html(myself, paths[2]))
             else:
                 page = ViewSummaryPage(self.buildfarm)
-                yield "".join(page.render(myself, 'html'))
+                yield "".join(page.render_html(myself))
             yield util.FileLoad(os.path.join(webdir, "footer.html"))
             yield "</body>"
             yield "</html>"

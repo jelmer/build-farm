@@ -140,3 +140,14 @@ class BuildFarm(object):
         for build in self.upload_builds.get_new_builds():
             if build.tree in self.trees and build.compiler in self.compilers and build.host in hostnames:
                 yield build
+
+    def get_host_builds(self, host):
+        from buildfarm import data
+        for compiler in self.compilers:
+            for tree in sorted(self.trees.keys()):
+                try:
+                    yield self.get_build(tree, host, compiler)
+                except data.NoSuchBuildError:
+                    pass
+
+

@@ -108,7 +108,9 @@ class StormHostDatabase(HostDatabase):
         else:
             self.store = store
 
-    def createhost(self, name, platform=None, owner=None, owner_email=None, password=None, permission=None):
+    def createhost(self, name, platform=None, owner=None, owner_email=None,
+            password=None, permission=None):
+        """See `HostDatabase.createhost`."""
         newhost = StormHost(unicode(name), owner=owner, owner_email=owner_email, password=password, permission=permission, platform=platform)
         try:
             self.store.add(newhost)
@@ -183,7 +185,9 @@ class StormCachingBuildResultStore(BuildResultStore):
         return build.revision
 
     def _get_by_checksum(self, build):
-        return self.store.find(StormBuild, StormBuild.checksum == build.log_checksum()).one()
+        result = self.store.find(StormBuild,
+            StormBuild.checksum == build.log_checksum())
+        return result.one()
 
     def upload_build(self, build):
         existing_build = self._get_by_checksum(build)
@@ -196,7 +200,8 @@ class StormCachingBuildResultStore(BuildResultStore):
         rev, timestamp = build.revision_details()
         super(StormCachingBuildResultStore, self).upload_build(build)
         new_basename = self.build_fname(build.tree, build.host, build.compiler, rev)
-        new_build = StormBuild(new_basename, unicode(build.tree), unicode(build.host), unicode(build.compiler), rev)
+        new_build = StormBuild(new_basename, unicode(build.tree), unicode(build.host),
+            unicode(build.compiler), rev)
         new_build.checksum = build.log_checksum()
         new_build.age = build.age_mtime()
         new_build.status_str = unicode(build.status().__serialize__())
@@ -236,6 +241,10 @@ class StormCachingBuildFarm(BuildFarm):
     def _open_build_results(self):
         return StormCachingBuildResultStore(os.path.join(self.path, "data", "oldrevs"),
             self._get_store())
+
+    def get_host_builds(self, host):
+        return self._get_store().find(StormBuild,
+            StormBuild.host == host).group_by(StormBuild.compiler, StormBuild.tree)
 
     def commit(self):
         self.store.commit()
