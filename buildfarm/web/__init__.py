@@ -490,7 +490,7 @@ class ViewBuildPage(BuildFarmPage):
         uname = ""
         cflags = ""
         config = ""
-        build = buildfarm.get_build(tree, host, compiler, rev)
+        build = self.buildfarm.get_build(tree, host, compiler, rev)
         age_mtime = build.age_mtime()
         try:
             (revision, revision_time) = build.revision_details()
@@ -621,7 +621,7 @@ class ViewRecentBuildsPage(BuildFarmPage):
         for host in self.buildfarm.hostdb.hosts():
             for compiler in self.buildfarm.compilers:
                 try:
-                    build = buildfarm.get_build(tree, host.name.encode("utf-8"), compiler)
+                    build = self.buildfarm.get_build(tree, host.name.encode("utf-8"), compiler)
                     status = build_status_html(myself, build)
                 except data.NoSuchBuildError:
                     pass
@@ -850,7 +850,7 @@ class ViewSummaryPage(BuildFarmPage):
             else:
                 if lcov_status is not None:
                     yield "<td><a href=\"/lcov/data/%s/%s\">%s %%</a></td>" % (
-                        buildfarm.LCOVHOST, tree, lcov_status)
+                        self.buildfarm.LCOVHOST, tree, lcov_status)
                 else:
                     yield "<td></td>"
             yield "</tr>"
