@@ -73,7 +73,8 @@ class StormBuild(Build):
 class StormHost(Host):
     __storm_table__ = "host"
 
-    name = RawStr(primary=True)
+    id = Int(primary=True)
+    name = RawStr()
     owner_name = Unicode(name="owner")
     owner_email = Unicode()
     password = Unicode()
@@ -258,7 +259,7 @@ class StormCachingBuildFarm(BuildFarm):
 
 
 def setup_schema(db):
-    db.execute("CREATE TABLE IF NOT EXISTS host (name blob, owner text, owner_email text, password text, ssh_access int, fqdn text, platform text, permission text, last_dead_mail int, join_time int);", noresult=True)
+    db.execute("CREATE TABLE IF NOT EXISTS host (id integer primary key autoincrement, name blob, owner text, owner_email text, password text, ssh_access int, fqdn text, platform text, permission text, last_dead_mail int, join_time int);", noresult=True)
     db.execute("CREATE UNIQUE INDEX IF NOT EXISTS unique_hostname ON host (name);", noresult=True)
     db.execute("CREATE TABLE IF NOT EXISTS build (id integer primary key autoincrement, tree blob, revision blob, host blob, compiler blob, checksum blob, age int, status blob, commit_revision blob);", noresult=True)
     db.execute("CREATE UNIQUE INDEX IF NOT EXISTS unique_checksum ON build (checksum);", noresult=True)
