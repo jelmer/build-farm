@@ -246,8 +246,10 @@ class StormCachingBuildFarm(BuildFarm):
         return self._get_store().find(StormBuild,
             StormBuild.host == host).group_by(StormBuild.compiler, StormBuild.tree)
 
-    def get_last_builds(self, tree):
-        extra_expr = [StormBuild.tree == tree]
+    def get_last_builds(self, tree=None):
+        extra_expr = []
+        if tree is not None:
+            extra_expr.append(StormBuild.tree == tree)
         return self._get_store().find(StormBuild, *extra_expr)
 
     def commit(self):
