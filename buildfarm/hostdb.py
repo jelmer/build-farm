@@ -125,7 +125,7 @@ class HostDatabase(object):
         """Write out the web/"""
 
         for host in self.hosts():
-            yield "%s: %s\n" % (host.name.encode("utf-8"), host.platform.encode("utf-8"))
+            yield "%s: %s\n" % (host.name, host.platform.encode("utf-8"))
 
     def commit(self):
         pass
@@ -143,7 +143,7 @@ class PlainTextHostDatabase(HostDatabase):
         try:
             for l in f:
                 (host, platform) = l.split(":", 1)
-                ret[host.decode("utf-8")] = platform.strip().decode("utf-8")
+                ret[host] = platform.strip().decode("utf-8")
         finally:
             f.close()
         return cls(ret)
