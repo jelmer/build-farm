@@ -249,7 +249,7 @@ class StormCachingBuildFarm(BuildFarm):
     def get_last_builds(self, tree=None):
         extra_expr = []
         if tree is not None:
-            extra_expr.append(StormBuild.tree == tree)
+            extra_expr.append(StormBuild.tree == unicode(tree))
         return self._get_store().find(StormBuild, *extra_expr)
 
     def commit(self):

@@ -613,7 +613,11 @@ class ViewRecentBuildsPage(BuildFarmPage):
         assert sort_by in cmp_funcs, "not a valid sort"
 
         for build in self.buildfarm.get_last_builds(tree=tree):
-            host = self.buildfarm.hostdb.host(build.host)
+            try:
+                host = self.buildfarm.hostdb.host(build.host)
+            except hostdb.NoSuchHost:
+                # Skip, at least for now.
+                continue
             status = build_status_html(myself, build)
             try:
                 (revision, revision_time) = build.revision_details()
