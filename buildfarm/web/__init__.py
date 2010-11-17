@@ -487,7 +487,6 @@ class ViewBuildPage(BuildFarmPage):
         cflags = ""
         config = ""
         build = self.buildfarm.get_build(tree, host, compiler, rev)
-        age_mtime = build.age_mtime()
         try:
             (revision, revision_time) = build.revision_details()
         except data.MissingRevisionInfo:
@@ -537,7 +536,7 @@ class ViewBuildPage(BuildFarmPage):
         yield "<tr><td>Uname:</td><td>%s</td></tr>\n" % uname
         yield "<tr><td>Tree:</td><td>%s</td></tr>\n" % self.tree_link(myself, tree)
         yield "<tr><td>Build Revision:</td><td>%s</td></tr>\n" % revision_link(myself, revision, tree)
-        yield "<tr><td>Build age:</td><td><div class='age'>%s</div></td></tr>\n" % self.red_age(age_mtime)
+        yield "<tr><td>Build age:</td><td><div class='age'>%s</div></td></tr>\n" % self.red_age(build.age)
         yield "<tr><td>Status:</td><td>%s</td></tr>\n" % status
         yield "<tr><td>Compiler:</td><td>%s</td></tr>\n" % compiler
         yield "<tr><td>CFLAGS:</td><td>%s</td></tr>\n" % cflags
@@ -615,15 +614,13 @@ class ViewRecentBuildsPage(BuildFarmPage):
         for build in self.buildfarm.get_last_builds(tree=tree):
             host = self.buildfarm.hostdb.host(build.host)
             status = build_status_html(myself, build)
-            age_mtime = build.age_mtime()
-            age_ctime = build.age_ctime()
             try:
                 (revision, revision_time) = build.revision_details()
             except data.MissingRevisionInfo:
                 pass
             else:
                 all_builds.append([
-                    age_ctime,
+                    build.age,
                     host.platform.encode("utf-8"),
                     "<a href='%s?function=View+Host;host=%s;tree=%s;compiler=%s#%s'>%s</a>"
                         % (myself, host.name.encode("utf-8"),
@@ -682,14 +679,12 @@ class ViewHostPage(BuildFarmPage):
             (revision, revision_time) = build.revision_details()
         except data.MissingRevisionInfo:
             revision = None
-        age_mtime = build.age_mtime()
-        age_ctime = build.age_ctime()
         warnings = build.err_count()
         status = build_status_html(myself, build)
         yield "<tr>"
         yield "<td><span class='tree'>" + self.tree_link(myself, build.tree) +"</span>/" + build.compiler + "</td>"
         yield "<td>" + revision_link(myself, revision, build.tree) + "</td>"
-        yield "<td><div class='age'>" + self.red_age(age_mtime) + "</div></td>"
+        yield "<td><div class='age'>" + self.red_age(build.age) + "</div></td>"
         yield "<td><div class='status'>%s</div></td>" % status
         yield "<td>%s</td>" % warnings
         yield "</tr>"
@@ -735,7 +730,7 @@ class ViewHostPage(BuildFarmPage):
                 for build in builds:
                     yield "%-12s %-10s %-10s %-10s %-10s\n" % (
                             build.tree.encode("utf-8"), build.compiler.encode("utf-8"),
-                            util.dhm_time(build.age_mtime()),
+                            util.dhm_time(build.age),
                             str(build.status()), build.err_count())
                 yield "\n"
 
@@ -783,7 +778,6 @@ class ViewSummaryPage(BuildFarmPage):
         builds = self.buildfarm.get_last_builds()
 
         for build in builds:
-            age_mtime = build.age_mtime()
             host_count[build.tree]+=1
             status = build.status()
 

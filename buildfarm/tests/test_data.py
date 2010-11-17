@@ -52,14 +52,6 @@ class BuildResultStoreTestBase(object):
         build = self.x.get_build("tdb", "charis", "cc", "12")
         self.assertEquals("<%s: revision 12 of tdb on charis using cc>" % build.__class__.__name__, repr(build))
 
-    def test_build_age_mtime(self):
-        path = self.create_mock_logfile("tdb", "charis", "cc", "12")
-        # Set mtime to something in the past
-        os.utime(path, (time.time(), time.time() - 990))
-        build = self.x.get_build("tdb", "charis", "cc", "12")
-        age = build.age_mtime()
-        self.assertTrue(age >= 990 and age <= 1000, "age was %d" % age)
-
     def test_get_build_nonexistant(self):
         self.assertRaises(data.NoSuchBuildError, self.x.get_build, "tdb",
             "charis", "cc", "12")
@@ -68,7 +60,7 @@ class BuildResultStoreTestBase(object):
         path = self.create_mock_logfile("tdb", "charis", "cc", "12")
         # Set mtime to something in the past
         build = self.x.get_build("tdb", "charis", "cc", "12")
-        age = build.age_ctime()
+        age = build.age
         self.assertTrue(age >= 0 and age <= 10, "age was %d" % age)
 
     def test_read_log(self):

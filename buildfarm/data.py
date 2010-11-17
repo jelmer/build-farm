@@ -233,18 +233,9 @@ class Build(object):
     def remove(self):
         self.remove_logs()
 
-    ###################
-    # the mtime age is used to determine if builds are still happening
-    # on a host.
-    # the ctime age is used to determine when the last real build happened
-
-    def age_mtime(self):
-        """get the age of build from mtime"""
-        st = os.stat("%s.log" % self.basename)
-        return time.time() - st.st_mtime
-
-    def age_ctime(self):
-        """get the age of build from ctime"""
+    @property
+    def age(self):
+        """get the age of build"""
         st = os.stat("%s.log" % self.basename)
         return time.time() - st.st_ctime
 
@@ -401,7 +392,7 @@ class BuildResultStore(object):
                     continue
                 ret.append(self.get_build(tree, host, compiler, rev))
 
-        ret.sort(lambda a, b: cmp(a.age_mtime(), b.age_mtime()))
+        ret.sort(lambda a, b: cmp(a.age, b.age))
 
         return ret
 
