@@ -617,7 +617,7 @@ class ViewRecentBuildsPage(BuildFarmPage):
         for host in self.buildfarm.hostdb.hosts():
             for compiler in self.buildfarm.compilers:
                 try:
-                    build = self.buildfarm.get_build(tree, host.name.encode("utf-8"), compiler)
+                    build = self.buildfarm.get_build(tree, host.name, compiler)
                     status = build_status_html(myself, build)
                 except data.NoSuchBuildError:
                     pass
@@ -633,9 +633,9 @@ class ViewRecentBuildsPage(BuildFarmPage):
                             age_ctime,
                             host.platform.encode("utf-8"),
                             "<a href='%s?function=View+Host;host=%s;tree=%s;compiler=%s#%s'>%s</a>"
-                                % (myself, host.name.encode("utf-8"),
-                                   tree, compiler, host.name.encode("utf-8"),
-                                   host.name.encode("utf-8")),
+                                % (myself, host.name,
+                                   tree, compiler, host.name,
+                                   host.name),
                             compiler, tree, status, build.status(),
                             revision_link(myself, revision, tree),
                             revision_time])
@@ -677,7 +677,7 @@ class ViewHostPage(BuildFarmPage):
     def _render_build_list_header(self, host):
         yield "<div class='host summary'>"
         yield "<a id='host' name='host'/>"
-        yield "<h3>%s - %s</h3>" % (host.encode("utf-8"), self.buildfarm.hostdb.host(host).platform.encode("utf-8"))
+        yield "<h3>%s - %s</h3>" % (host, self.buildfarm.hostdb.host(host).platform.encode("utf-8"))
         yield "<table class='real'>"
         yield "<thead><tr><th>Target</th><th>Build<br/>Revision</th><th>Build<br />Age</th><th>Status<br />config/build<br />install/test</th><th>Warnings</th></tr></thead>"
         yield "<tbody>"
@@ -739,7 +739,7 @@ class ViewHostPage(BuildFarmPage):
                         "Tree", "Compiler", "Build Age", "Status", "Warnings")
                 for build in builds:
                     yield "%-12s %-10s %-10s %-10s %-10s\n" % (
-                            build.tree.encode("utf-8"), build.compiler.encode("utf-8"),
+                            build.tree, build.compiler,
                             util.dhm_time(build.age_mtime()),
                             str(build.status()), build.err_count())
                 yield "\n"
@@ -911,7 +911,7 @@ class BuildFarmApp(object):
         self.buildfarm = buildfarm
 
         # host.properties are unicode object and the framework expect string object
-        self.hosts = dict([(host.name.encode("utf-8"), host) for host in self.buildfarm.hostdb.hosts()])
+        self.hosts = dict([(host.name, host) for host in self.buildfarm.hostdb.hosts()])
 
     def main_menu(self):
         """main page"""

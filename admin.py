@@ -70,7 +70,7 @@ else:
 if op == "remove":
     hostname = raw_input("Please enter hostname to delete: ")
     try:
-        db.deletehost(hostname.decode("utf-8"))
+        db.deletehost(hostname)
     except hostdb.NoSuchHost, e:
         print "No such host '%s'" % e.name
         sys.exit(1)
@@ -81,7 +81,7 @@ if op == "remove":
 elif op == "modify":
     hostname = raw_input("Please enter hostname to modify: ")
     try:
-        host = db.host(hostname.decode("utf-8"))
+        host = db.host(hostname)
     except hostdb.NoSuchHost, e:
         print "No such host '%s'" % e.name
         sys.exit(1)
@@ -108,7 +108,7 @@ elif op == "modify":
 elif op == "add":
     hostname = raw_input("Machine hostname: ")
     try:
-        db.host(hostname.decode("utf-8"))
+        db.host(hostname)
     except hostdb.NoSuchHost, e:
         pass
     else:
@@ -129,7 +129,7 @@ elif op == "add":
         line = raw_input("")
 
     try:
-        db.createhost(hostname.decode("utf-8"), platform.decode("utf-8"),
+        db.createhost(hostname, platform.decode("utf-8"),
             owner.decode("utf-8"), owner_email.decode("utf-8"),
             password.decode("utf-8"),
             "".join(permission).decode("utf-8", "replace"))
@@ -192,7 +192,7 @@ Thanks, your friendly Samba build farm administrator <build@samba.org>""" % owne
 elif op == "info":
     hostname = raw_input("Hostname: ")
     try:
-        host = db.host(hostname.decode("utf-8"))
+        host = db.host(hostname)
     except hostdb.NoSuchHost, e:
         print "No such host '%s'" % e.name
         sys.exit(1)

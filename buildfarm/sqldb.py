@@ -47,13 +47,13 @@ class StormBuild(Build):
     __storm_table__ = "build"
 
     id = Int(primary=True)
-    tree = Unicode()
+    tree = RawStr()
     revision = RawStr()
-    host = Unicode()
-    compiler = Unicode()
+    host = RawStr()
+    compiler = RawStr()
     checksum = RawStr()
     age = Int()
-    status_str = Unicode(name="status")
+    status_str = RawStr(name="status")
     commit_revision = RawStr()
 
     def status(self):
@@ -73,7 +73,7 @@ class StormBuild(Build):
 class StormHost(Host):
     __storm_table__ = "host"
 
-    name = Unicode(primary=True)
+    name = RawStr(primary=True)
     owner_name = Unicode(name="owner")
     owner_email = Unicode()
     password = Unicode()
@@ -111,7 +111,7 @@ class StormHostDatabase(HostDatabase):
     def createhost(self, name, platform=None, owner=None, owner_email=None,
             password=None, permission=None):
         """See `HostDatabase.createhost`."""
-        newhost = StormHost(unicode(name), owner=owner, owner_email=owner_email, password=password, permission=permission, platform=platform)
+        newhost = StormHost(name, owner=owner, owner_email=owner_email, password=password, permission=permission, platform=platform)
         try:
             self.store.add(newhost)
             self.store.flush()
@@ -153,18 +153,18 @@ class StormCachingBuildResultStore(BuildResultStore):
 
     def get_previous_revision(self, tree, host, compiler, revision):
         result = self.store.find(StormBuild,
-            StormBuild.tree == unicode(tree),
-            StormBuild.host == unicode(host),
-            StormBuild.compiler == unicode(compiler),
+            StormBuild.tree == tree,
+            StormBuild.host == host,
+            StormBuild.compiler == compiler,
             StormBuild.commit_revision == revision)
         cur_build = result.any()
         if cur_build is None:
             raise NoSuchBuildError(tree, host, compiler, revision)
 
         result = self.store.find(StormBuild,
-            StormBuild.tree == unicode(tree),
-            StormBuild.host == unicode(host),
-            StormBuild.compiler == unicode(compiler),
+            StormBuild.tree == tree,
+            StormBuild.host == host,
+            StormBuild.compiler == compiler,
             StormBuild.commit_revision != revision,
             StormBuild.id < cur_build.id)
         result = result.order_by(Desc(StormBuild.id))
@@ -175,9 +175,9 @@ class StormCachingBuildResultStore(BuildResultStore):
 
     def get_latest_revision(self, tree, host, compiler):
         result = self.store.find(StormBuild,
-            StormBuild.tree == unicode(tree),
-            StormBuild.host == unicode(host),
-            StormBuild.compiler == unicode(compiler))
+            StormBuild.tree == tree,
+            StormBuild.host == host,
+            StormBuild.compiler == compiler)
         result = result.order_by(Desc(StormBuild.id))
         build = result.first()
         if build is None:
@@ -200,11 +200,11 @@ class StormCachingBuildResultStore(BuildResultStore):
         rev, timestamp = build.revision_details()
         super(StormCachingBuildResultStore, self).upload_build(build)
         new_basename = self.build_fname(build.tree, build.host, build.compiler, rev)
-        new_build = StormBuild(new_basename, unicode(build.tree), unicode(build.host),
-            unicode(build.compiler), rev)
+        new_build = StormBuild(new_basename, build.tree, build.host,
+            build.compiler, rev)
         new_build.checksum = build.log_checksum()
         new_build.age = build.age_mtime()
-        new_build.status_str = unicode(build.status().__serialize__())
+        new_build.status_str = build.status().__serialize__()
         self.store.add(new_build)
         return new_build
 

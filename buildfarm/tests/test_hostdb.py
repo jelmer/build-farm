@@ -23,49 +23,49 @@ import testtools
 class HostTests(testtools.TestCase):
 
     def test_create_simple(self):
-        host = hostdb.Host(name=u"foo")
+        host = hostdb.Host(name="foo")
         self.assertEquals(None, host.owner)
         self.assertEquals("foo", host.name)
 
     def test_create_with_owner(self):
         host = hostdb.Host(name="foo", owner=u"Jelmer", owner_email=u"jelmer@samba.org")
         self.assertEquals((u"Jelmer", u"jelmer@samba.org"), host.owner)
-        self.assertEquals(u"foo", host.name)
+        self.assertEquals("foo", host.name)
 
 
 class HostDatabaseTests(object):
 
     def test_createhost(self):
-        self.db.createhost(u"charis", u"linux", u"Jelmer", u"jelmer@samba.org", u"bla", u"Pemrission?")
+        self.db.createhost("charis", u"linux", u"Jelmer", u"jelmer@samba.org", u"bla", u"Pemrission?")
         hosts = list(self.db.hosts())
         self.assertEquals(1, len(hosts))
         self.assertEquals("charis", hosts[0].name)
 
     def test_create_already_exists(self):
-        host = self.db.createhost(name=u"foo", owner=u"Jelmer", owner_email=u"jelmer@samba.org")
-        self.assertRaises(hostdb.HostAlreadyExists,  self.db.createhost, name=u"foo",
+        host = self.db.createhost(name="foo", owner=u"Jelmer", owner_email=u"jelmer@samba.org")
+        self.assertRaises(hostdb.HostAlreadyExists,  self.db.createhost, name="foo",
             owner=u"Jelmer", owner_email=u"jelmer@samba.org")
 
     def test_delete(self):
-        host = self.db.createhost(name=u"foo", owner=u"Jelmer", owner_email=u"jelmer@samba.org")
-        self.db.deletehost(u"foo")
+        host = self.db.createhost(name="foo", owner=u"Jelmer", owner_email=u"jelmer@samba.org")
+        self.db.deletehost("foo")
 
     def test_delete_doesntexist(self):
-        self.assertRaises(hostdb.NoSuchHost, self.db.deletehost, u"foo")
+        self.assertRaises(hostdb.NoSuchHost, self.db.deletehost, "foo")
 
     def test_update_platform(self):
-        host = self.db.createhost(name=u"foo", owner=u"Jelmer",
+        host = self.db.createhost(name="foo", owner=u"Jelmer",
             owner_email=u"jelmer@samba.org")
         host.update_platform(u"Debian")
 
     def test_update_owner(self):
-        host = self.db.createhost(name=u"foo", owner=u"Jelmer", owner_email=u"jelmer@samba.org")
+        host = self.db.createhost(name="foo", owner=u"Jelmer", owner_email=u"jelmer@samba.org")
         host.update_owner(new_owner=u"Matthieu", new_owner_email=u"mat@samba.org")
 
     def test_create_hosts_list(self):
-        self.db.createhost(name=u"foo", owner=u"Jelmer", owner_email=u"jelmer@samba.org",
+        self.db.createhost(name="foo", owner=u"Jelmer", owner_email=u"jelmer@samba.org",
             platform=u"Debian")
-        self.db.createhost(name=u"bla", owner=u"Jelmer", owner_email=u"jelmer@samba.org",
+        self.db.createhost(name="bla", owner=u"Jelmer", owner_email=u"jelmer@samba.org",
             platform=u"Fedora")
         expected = [
             "foo: Debian\n",
@@ -76,8 +76,8 @@ class HostDatabaseTests(object):
         self.assertEquals(expected, got)
 
     def test_create_rsync_secrets(self):
-        self.db.createhost(name=u"foo")
-        self.db.createhost(name=u"bla", owner=u"Jelmer", owner_email=u"jelmer@samba.org",
+        self.db.createhost(name="foo")
+        self.db.createhost(name="bla", owner=u"Jelmer", owner_email=u"jelmer@samba.org",
             platform=u"Fedora", password=u"o")
         expected = [
             "# rsyncd.secrets file\n",
