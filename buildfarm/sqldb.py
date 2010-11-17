@@ -210,9 +210,9 @@ class StormCachingBuildResultStore(BuildResultStore):
 
     def get_old_revs(self, tree, host, compiler):
         return self.store.find(StormBuild,
-            StormBuild.tree == tree,
-            StormBuild.host == host,
-            StormBuild.compiler == compiler).order_by(Desc(StormBuild.age))
+            StormBuild.tree == unicode(tree),
+            StormBuild.host == unicode(host),
+            StormBuild.compiler == unicode(compiler)).order_by(Desc(StormBuild.age))
 
 
 class StormCachingBuildFarm(BuildFarm):
