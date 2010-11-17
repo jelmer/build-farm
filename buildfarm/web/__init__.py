@@ -29,6 +29,7 @@
 # TODO: Allow filtering of the "Recent builds" list to show
 # e.g. only broken builds or only builds that you care about.
 
+from collections import defaultdict
 import os
 
 from buildfarm import (
@@ -760,15 +761,9 @@ class ViewHostPage(BuildFarmPage):
 class ViewSummaryPage(BuildFarmPage):
 
     def _get_counts(self):
-        broken_count = {}
-        panic_count = {}
-        host_count = {}
-
-        # zero broken and panic counters
-        for tree in self.buildfarm.trees:
-            broken_count[tree] = 0
-            panic_count[tree] = 0
-            host_count[tree] = 0
+        broken_count = defaultdict(lambda: 0)
+        panic_count = defaultdict(lambda: 0)
+        host_count = defaultdict(lambda: 0)
 
         # set up a variable to store the broken builds table's code, so we can
         # output when we want
