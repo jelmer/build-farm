@@ -154,5 +154,3 @@ class BuildFarm(object):
                     yield self.get_build(tree, host, compiler)
                 except data.NoSuchBuildError:
                     pass
-
-
