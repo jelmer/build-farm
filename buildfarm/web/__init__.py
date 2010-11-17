@@ -698,12 +698,6 @@ class ViewHostPage(BuildFarmPage):
         yield "<div class='build-section' id='build-summary'>"
         yield '<h2>Host summary:</h2>'
         for host in requested_hosts:
-            # make sure we have some data from it
-            try:
-                self.buildfarm.hostdb.host(host)
-            except hostdb.NoSuchHost:
-                continue
-
             builds = list(self.buildfarm.get_host_builds(host))
             if len(builds) > 0:
                 yield "".join(self._render_build_list_header(host))
@@ -894,18 +888,15 @@ class BuildFarmApp(object):
     def __init__(self, buildfarm):
         self.buildfarm = buildfarm
 
-        # host.properties are unicode object and the framework expect string object
-        self.hosts = dict([(host.name, host) for host in self.buildfarm.hostdb.hosts()])
-
     def main_menu(self):
         """main page"""
 
         yield "<form method='GET'>\n"
         yield "<div id='build-menu'>\n"
         yield "<select name='host'>\n"
-        for name, host in self.hosts.iteritems():
+        for  host in self.buildfarm.hostdb.hosts():
             yield "<option value='%s'>%s -- %s</option>\n" % (
-                name, host.platform.encode("utf-8"), name)
+                host.name, host.platform.encode("utf-8"), host.name)
         yield "</select>\n"
         yield "<select name='tree'>\n"
         for tree, t in self.buildfarm.trees.iteritems():
