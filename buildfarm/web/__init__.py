@@ -612,35 +612,30 @@ class ViewRecentBuildsPage(BuildFarmPage):
         assert tree in self.buildfarm.trees, "not a build tree"
         assert sort_by in cmp_funcs, "not a valid sort"
 
-        t = self.buildfarm.trees[tree]
-
-        for host in self.buildfarm.hostdb.hosts():
-            for compiler in self.buildfarm.compilers:
-                try:
-                    build = self.buildfarm.get_build(tree, host.name.encode("utf-8"), compiler)
-                    status = build_status_html(myself, build)
-                except data.NoSuchBuildError:
-                    pass
-                else:
-                    age_mtime = build.age_mtime()
-                    age_ctime = build.age_ctime()
-                    try:
-                        (revision, revision_time) = build.revision_details()
-                    except data.MissingRevisionInfo:
-                        pass
-                    else:
-                        all_builds.append([
-                            age_ctime,
-                            host.platform.encode("utf-8"),
-                            "<a href='%s?function=View+Host;host=%s;tree=%s;compiler=%s#%s'>%s</a>"
-                                % (myself, host.name.encode("utf-8"),
-                                   tree, compiler, host.name.encode("utf-8"),
-                                   host.name.encode("utf-8")),
-                            compiler, tree, status, build.status(),
-                            revision_link(myself, revision, tree),
-                            revision_time])
+        for build in self.buildfarm.get_last_builds(tree=tree):
+            host = self.buildfarm.hostdb.host(build.host)
+            status = build_status_html(myself, build)
+            age_mtime = build.age_mtime()
+            age_ctime = build.age_ctime()
+            try:
+                (revision, revision_time) = build.revision_details()
+            except data.MissingRevisionInfo:
+                pass
+            else:
+                all_builds.append([
+                    age_ctime,
+                    host.platform.encode("utf-8"),
+                    "<a href='%s?function=View+Host;host=%s;tree=%s;compiler=%s#%s'>%s</a>"
+                        % (myself, host.name.encode("utf-8"),
+                           tree, build.compiler, host.name.encode("utf-8"),
+                           host.name.encode("utf-8")),
+                    build.compiler, tree, status, build.status(),
+                    revision_link(myself, revision, tree),
+                    revision_time])
 
         all_builds.sort(cmp_funcs[sort_by])
+
+        t = self.buildfarm.trees[tree]
 
         sorturl = "%s?tree=%s;function=Recent+Builds" % (myself, tree)
 
@@ -785,21 +780,17 @@ class ViewSummaryPage(BuildFarmPage):
         broken_table = ""
         last_host = ""
 
-        for host in self.buildfarm.hostdb.hosts():
-            for compiler in self.buildfarm.compilers:
-                for tree in self.buildfarm.trees:
-                    try:
-                        build = self.buildfarm.get_build(tree, host.name, compiler)
-                    except data.NoSuchBuildError:
-                        continue
-                    age_mtime = build.age_mtime()
-                    host_count[tree]+=1
-                    status = build.status()
+        builds = self.buildfarm.get_last_builds()
 
-                    if status.failed:
-                        broken_count[tree]+=1
-                        if "panic" in status.other_failures:
-                            panic_count[tree]+=1
+        for build in builds:
+            age_mtime = build.age_mtime()
+            host_count[build.tree]+=1
+            status = build.status()
+
+            if status.failed:
+                broken_count[build.tree]+=1
+                if "panic" in status.other_failures:
+                    panic_count[build.tree]+=1
         return (host_count, broken_count, panic_count)
 
     def render_text(self, myself):

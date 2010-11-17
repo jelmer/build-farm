@@ -141,6 +141,11 @@ class BuildFarm(object):
             if build.tree in self.trees and build.compiler in self.compilers and build.host in hostnames:
                 yield build
 
+    def get_last_builds(self, tree=None):
+        for build in self.get_new_builds():
+            if tree is not None and build.tree == tree:
+                yield build
+
     def get_host_builds(self, host):
         from buildfarm import data
         for compiler in self.compilers:
