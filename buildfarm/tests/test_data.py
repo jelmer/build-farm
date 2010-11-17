@@ -306,16 +306,22 @@ class BuildStatusTest(testtools.TestCase):
         e = data.BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 1)], set(["super error"]))
         self.assertEquals(cmp(d, e), -1)
 
+    def test_str(self):
+        a = data.BuildStatus([("CONFIGURE", 3), ("BUILD", 2)])
+        self.assertEquals("3/2", str(a))
+
+    def test_str_other_failures(self):
+        a = data.BuildStatus([("CONFIGURE", 3), ("BUILD", 2)], set(["panic"]))
+        self.assertEquals("panic", str(a))
+
 
 class BuildStatusRegressedSinceTests(testtools.TestCase):
 
     def assertRegressedSince(self, expected, old_status, new_status):
         (stages1, other_failures1) = old_status
         (stages2, other_failures2) = new_status
-        a = data.BuildStatus(
-            [data.BuildStageResult(n, r) for (n, r) in stages1], set(other_failures1))
-        b = data.BuildStatus(
-            [data.BuildStageResult(n, r) for (n, r) in stages2], set(other_failures2))
+        a = data.BuildStatus(stages1, set(other_failures1))
+        b = data.BuildStatus(stages2, set(other_failures2))
         self.assertEquals(expected, b.regressed_since(a))
 
     def test_same(self):

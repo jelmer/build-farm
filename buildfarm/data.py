@@ -53,7 +53,7 @@ class BuildStatus(object):
 
     def __init__(self, stages=None, other_failures=None):
         if stages is not None:
-            self.stages = stages
+            self.stages = [BuildStageResult(n, r) for (n, r) in stages]
         else:
             self.stages = []
         if other_failures is not None:
@@ -65,7 +65,7 @@ class BuildStatus(object):
     def failed(self):
         if self.other_failures:
             return True
-        return not all([x == 0 for x in self._status_tuple()])
+        return not all([x.result == 0 for x in self.stages])
 
     def __serialize__(self):
         return repr(self)
@@ -77,15 +77,12 @@ class BuildStatus(object):
     def __str__(self):
         if self.other_failures:
             return ",".join(self.other_failures)
-        return "/".join(map(str, self._status_tuple()))
+        return "/".join([str(x.result) for x in self.stages])
 
     def broken_host(self):
         if "disk full" in self.other_failures:
             return True
         return False
-
-    def _status_tuple(self):
-        return [sr.result for sr in self.stages]
 
     def regressed_since(self, older):
         """Check if this build has regressed since another build."""
@@ -136,6 +133,8 @@ def check_dir_exists(kind, path):
 
 def build_status_from_logs(log, err):
     """get status of build"""
+    # FIXME: Perhaps also extract revision here?
+
     test_failures = 0
     test_successes = 0
     test_seen = 0
