@@ -70,9 +70,7 @@ The build may have been broken by one of the following commits:
 
 %(change_log)s
     """ % {
-        "tree": tree.encode("utf-8"),
-        "host": host.encode("utf-8"),
-        "compiler": compiler.encode("utf-8"),
+        "tree": tree, "host": host, "compiler": compiler,
         "change_log": change_log,
         "scm": t.scm,
         "branch": t.branch,

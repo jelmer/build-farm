@@ -747,7 +747,7 @@ class ViewHostPage(BuildFarmPage):
         yield "<tbody>"
 
         for host in deadhosts:
-            age_ctime = self.buildfarm.hostdb.host_age(host)
+            age_ctime = self.buildfarm.host_age(host)
             yield "<tr><td>%s</td><td>%s</td><td>%s</td></tr>" %\
                     (host, self.buildfarm.hostdb.host(host).platform.encode("utf-8"),
                      util.dhm_time(age_ctime))
