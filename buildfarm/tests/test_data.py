@@ -134,7 +134,7 @@ BUILD COMMIT REVISION: myrev
 
     def test_get_old_revs_none(self):
         self.assertEquals([],
-            list(self.x.get_old_revs(u"tdb", u"charis", u"gcc")))
+            list(self.x.get_old_revs("tdb", "charis", "gcc")))
 
     def test_get_old_revs(self):
         path = self.create_mock_logfile("tdb", "charis", "cc",
@@ -154,7 +154,7 @@ BUILD COMMIT REVISION: 15
 BUILD COMMIT REVISION: 15
 """)
         self.assertEquals([b1, b2],
-            list(self.x.get_old_revs(u"tdb", u"charis", u"cc")))
+            list(self.x.get_old_revs("tdb", "charis", "cc")))
 
 
 class BuildResultStoreTests(BuildFarmTestCase,BuildResultStoreTestBase):
