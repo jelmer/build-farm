@@ -629,7 +629,7 @@ class ViewRecentBuildsPage(BuildFarmPage):
                     host.platform.encode("utf-8"),
                     "<a href='%s?function=View+Host;host=%s;tree=%s;compiler=%s#%s'>%s</a>"
                         % (myself, host.name.encode("utf-8"),
-                           tree, build.compiler, host.name.encode("utf-8"),
+                           tree, build.compiler.encode("utf-8"), host.name.encode("utf-8"),
                            host.name.encode("utf-8")),
                     build.compiler, tree, status, build.status(),
                     revision_link(myself, revision, tree),
