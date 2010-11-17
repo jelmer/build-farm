@@ -307,6 +307,42 @@ class BuildStatusTest(testtools.TestCase):
         self.assertEquals(cmp(d, e), -1)
 
 
+class BuildStatusRegressedSinceTests(testtools.TestCase):
+
+    def assertRegressedSince(self, expected, old_status, new_status):
+        (stages1, other_failures1) = old_status
+        (stages2, other_failures2) = new_status
+        a = data.BuildStatus(
+            [data.BuildStageResult(n, r) for (n, r) in stages1], set(other_failures1))
+        b = data.BuildStatus(
+            [data.BuildStageResult(n, r) for (n, r) in stages2], set(other_failures2))
+        self.assertEquals(expected, b.regressed_since(a))
+
+    def test_same(self):
+        self.assertRegressedSince(
+            False,
+            ([("CONFIGURE", 2)], []),
+            ([("CONFIGURE", 2)], []))
+
+    def test_same_panic(self):
+        self.assertRegressedSince(
+            False,
+            ([("CONFIGURE", 2)], ["panic"]),
+            ([("CONFIGURE", 2)], ["panic"]))
+
+    def test_other_failures_gone(self):
+        self.assertRegressedSince(
+            True,
+            ([("CONFIGURE", 0)], ["panic"]),
+            ([("CONFIGURE", 2)], ["panic"]))
+
+    def test_more_stages_completed(self):
+        self.assertRegressedSince(
+            False,
+            ([("CONFIGURE", 0)], []),
+            ([("CONFIGURE", 0), ("BUILD", 0)], []))
+
+
 class UploadBuildResultStoreTestBase(object):
 
     def test_build_fname(self):

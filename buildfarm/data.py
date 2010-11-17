@@ -87,17 +87,25 @@ class BuildStatus(object):
     def _status_tuple(self):
         return [sr.result for sr in self.stages]
 
-    def regressed_since(self, other):
+    def regressed_since(self, older):
         """Check if this build has regressed since another build."""
         if "disk full" in self.other_failures:
             return False
-        if "timeout" in self.other_failures and "timeout" in other.other_failures:
+        if "timeout" in self.other_failures and "timeout" in older.other_failures:
             # When the timeout happens exactly can differ slightly, so it's okay
             # if the numbers are a bit different..
             return False
-        if "panic" in self.other_failures and not "panic" in other.other_failures:
+        if "panic" in self.other_failures and not "panic" in older.other_failures:
             return True
-        return cmp(self._status_tuple(), other._status_tuple())
+        if len(self.stages) < len(older.stages):
+            # Less stages completed
+            return True
+        for ((old_name, old_result), (new_name, new_result)) in zip(
+            older.stages, self.stages):
+            assert old_name == new_name
+            if new_result > old_result:
+                return True
+        return False
 
     def __cmp__(self, other):
         other_extra = other.other_failures - self.other_failures
