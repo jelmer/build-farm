@@ -209,6 +209,9 @@ class Build(object):
         self.compiler = compiler
         self.commit_revision = self.revision = rev
 
+    def __eq__(self, other):
+        return (self.log_checksum() == other.log_checksum())
+
     def __repr__(self):
         if self.revision is not None:
             return "<%s: revision %s of %s on %s using %s>" % (self.__class__.__name__, self.revision, self.tree, self.host, self.compiler)

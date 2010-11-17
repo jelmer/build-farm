@@ -140,6 +140,30 @@ BUILD COMMIT REVISION: myrev
     def test_get_latest_revision_none(self):
         self.assertRaises(data.NoSuchBuildError, self.x.get_latest_revision, "tdb", "charis", "cc")
 
+    def test_get_old_revs_none(self):
+        self.assertEquals([],
+            list(self.x.get_old_revs(u"tdb", u"charis", u"gcc")))
+
+    def test_get_old_revs(self):
+        path = self.create_mock_logfile("tdb", "charis", "cc",
+            contents="""
+BUILD COMMIT REVISION: 12
+""")
+        build = data.Build(path[:-4], "tdb", "charis", "cc")
+        b1 = self.x.upload_build(build)
+        path = self.create_mock_logfile("tdb", "charis", "cc",
+            contents="""
+BUILD COMMIT REVISION: 15
+""")
+        build = data.Build(path[:-4], "tdb", "charis", "cc")
+        b2 = self.x.upload_build(build)
+        path = self.create_mock_logfile("tdb", "charis", "cc",
+            contents="""
+BUILD COMMIT REVISION: 15
+""")
+        self.assertEquals([b1, b2],
+            list(self.x.get_old_revs(u"tdb", u"charis", u"cc")))
+
 
 class BuildResultStoreTests(BuildFarmTestCase,BuildResultStoreTestBase):
 

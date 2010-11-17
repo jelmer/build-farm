@@ -41,6 +41,11 @@ class HostDatabaseTests(object):
         self.assertEquals(1, len(hosts))
         self.assertEquals("charis", hosts[0].name)
 
+    def test_host(self):
+        newhost = self.db.createhost(u"charis", u"linux", u"Jelmer", u"jelmer@samba.org", u"bla", u"Pemrission?")
+        samehost = self.db.host(u"charis")
+        self.assertEquals(samehost, newhost)
+
     def test_create_already_exists(self):
         host = self.db.createhost(name=u"foo", owner=u"Jelmer", owner_email=u"jelmer@samba.org")
         self.assertRaises(hostdb.HostAlreadyExists,  self.db.createhost, name=u"foo",
