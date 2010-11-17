@@ -18,7 +18,6 @@
 from cStringIO import StringIO
 import os
 import testtools
-import time
 import unittest
 
 from buildfarm import data
@@ -339,6 +338,13 @@ class BuildStatusRegressedSinceTests(testtools.TestCase):
             False,
             ([("CONFIGURE", 0)], []),
             ([("CONFIGURE", 0), ("BUILD", 0)], []))
+
+    def test_less_errors(self):
+        self.assertRegressedSince(
+            False,
+            ([("CONFIGURE", 0), ("BUILD", 0), ("TEST", 0), ("INSTALL", 1)], []),
+            ([("CONFIGURE", 0), ("BUILD", 0), ("TEST", 0), ("INSTALL", 0)], []))
+
 
 
 class UploadBuildResultStoreTestBase(object):
