@@ -26,6 +26,8 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+"""Buildfarm web frontend."""
+
 # TODO: Allow filtering of the "Recent builds" list to show
 # e.g. only broken builds or only builds that you care about.
 
@@ -42,12 +44,14 @@ from buildfarm.filecache import (
     )
 
 import cgi
+from pygments import highlight
+from pygments.lexers.text import DiffLexer
+from pygments.formatters import HtmlFormatter
 import re
 import time
 
 import wsgiref.util
 webdir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "web"))
-
 
 GITWEB_BASE = "http://gitweb.samba.org"
 HISTORY_HORIZON = 1000
@@ -322,28 +326,7 @@ def make_collapsible_html(type, title, output, id, status=""):
 
 def diff_pretty(diff):
     """pretty up a diff -u"""
-    # FIXME: JRV 20101109 Use pygments for this
-    ret = ""
-    lines = diff.splitlines()
-
-    line_types = {
-            'diff': 'diff_diff',
-            '=': 'diff_separator',
-            'Index:': 'diff_index',
-            'index': 'diff_index',
-            '-': 'diff_removed',
-            '+': 'diff_added',
-            '@@': 'diff_fragment_header'
-            }
-
-    for line in lines:
-        for r, cls in line_types.iteritems():
-            if line.startswith(r):
-                line = "<span class=\"%s\">%s</span>" % (cls, line)
-                continue
-        ret += line + "\n"
-
-    return ret
+    return highlight(diff, DiffLexer(), HtmlFormatter())
 
 
 def web_paths(t, paths):
