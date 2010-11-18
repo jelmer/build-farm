@@ -1,3 +1,5 @@
 hostdb.sqlite
 _trial_temp
 db
+cache
+data
