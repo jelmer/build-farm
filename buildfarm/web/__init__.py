@@ -736,9 +736,12 @@ class ViewHostPage(BuildFarmPage):
         for host in deadhosts:
             last_build = self.buildfarm.host_last_build(host)
             age = time.time() - last_build
+            try:
+                platform = self.buildfarm.hostdb.host(host).platform.encode("utf-8")
+            except hostdb.NoSuchHost:
+                platform = "UNKNOWN"
             yield "<tr><td>%s</td><td>%s</td><td>%s</td></tr>" %\
-                    (host, self.buildfarm.hostdb.host(host).platform.encode("utf-8"),
-                     util.dhm_time(age))
+                    (host, platform, util.dhm_time(age))
 
         yield "</tbody></table>"
         yield "</div>"
