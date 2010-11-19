@@ -580,7 +580,6 @@ class ViewRecentBuildsPage(BuildFarmPage):
 
     def render(self, myself, tree, sort_by):
         """Draw the "recent builds" view"""
-        last_host = ""
         all_builds = []
 
         cmp_funcs = {
@@ -749,7 +748,6 @@ class ViewSummaryPage(BuildFarmPage):
         # set up a variable to store the broken builds table's code, so we can
         # output when we want
         broken_table = ""
-        last_host = ""
 
         builds = self.buildfarm.get_last_builds()
 
