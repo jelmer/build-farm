@@ -54,14 +54,13 @@ class StormBuild(Build):
     checksum = RawStr()
     upload_time = Int(name="age")
     status_str = RawStr(name="status")
-    commit_revision = RawStr()
     basename = RawStr()
 
     def status(self):
         return BuildStatus.__deserialize__(self.status_str)
 
     def revision_details(self):
-        return (self.commit_revision, None)
+        return (self.revision, None)
 
     def log_checksum(self):
         return self.checksum
@@ -158,7 +157,7 @@ class StormCachingBuildResultStore(BuildResultStore):
             StormBuild.tree == tree,
             StormBuild.host == host,
             StormBuild.compiler == compiler,
-            StormBuild.commit_revision == revision)
+            StormBuild.revision == revision)
         cur_build = result.any()
         if cur_build is None:
             raise NoSuchBuildError(tree, host, compiler, revision)
@@ -167,13 +166,13 @@ class StormCachingBuildResultStore(BuildResultStore):
             StormBuild.tree == tree,
             StormBuild.host == host,
             StormBuild.compiler == compiler,
-            StormBuild.commit_revision != revision,
+            StormBuild.revision != revision,
             StormBuild.id < cur_build.id)
         result = result.order_by(Desc(StormBuild.id))
         prev_build = result.first()
         if prev_build is None:
             raise NoSuchBuildError(tree, host, compiler, revision)
-        return prev_build.commit_revision
+        return prev_build.revision
 
     def get_latest_revision(self, tree, host, compiler):
         result = self.store.find(StormBuild,
@@ -263,9 +262,9 @@ class StormCachingBuildFarm(BuildFarm):
 
 
 def setup_schema(db):
-    db.execute("CREATE TABLE IF NOT EXISTS host (id integer primary key autoincrement, name blob, owner text, owner_email text, password text, ssh_access int, fqdn text, platform text, permission text, last_dead_mail int, join_time int);", noresult=True)
+    db.execute("CREATE TABLE IF NOT EXISTS host (id integer primary key autoincrement, name blob not null, owner text, owner_email text, password text, ssh_access int, fqdn text, platform text, permission text, last_dead_mail int, join_time int);", noresult=True)
     db.execute("CREATE UNIQUE INDEX IF NOT EXISTS unique_hostname ON host (name);", noresult=True)
-    db.execute("CREATE TABLE IF NOT EXISTS build (id integer primary key autoincrement, tree blob, revision blob, host blob, compiler blob, checksum blob, age int, status blob, commit_revision blob, basename blob);", noresult=True)
+    db.execute("CREATE TABLE IF NOT EXISTS build (id integer primary key autoincrement, tree blob not null, revision blob, host blob not null, compiler blob not null, checksum blob, age int, status blob, basename blob);", noresult=True)
     db.execute("CREATE UNIQUE INDEX IF NOT EXISTS unique_checksum ON build (checksum);", noresult=True)
 
 

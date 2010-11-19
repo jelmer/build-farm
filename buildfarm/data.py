@@ -214,7 +214,7 @@ class Build(object):
         self.tree = tree
         self.host = host
         self.compiler = compiler
-        self.commit_revision = self.revision = rev
+        self.revision = rev
 
     def __cmp__(self, other):
         return cmp(
