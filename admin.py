@@ -27,8 +27,6 @@ import smtplib
 import sys
 import time
 from email.MIMEText import MIMEText
-from storm.tracer import debug
-debug(True, sys.stdout)
 
 buildfarm = StormCachingBuildFarm()
 
@@ -53,9 +51,11 @@ dry_run = False
 print "Samba Build farm management tool"
 print "================================"
 
-if len(sys.argv) > 1:
-    op = sys.argv[1]
-else:
+args = sys.argv[1:]
+
+try:
+    op = args.pop(0)
+except IndexError:
     print "Initialize the buildfarm:       init"
     print "Add Machine to build farm:      add"
     print "Remove Machine from build farm: remove"
@@ -71,16 +71,18 @@ else:
 if op == "init":
     buildfarm.commit()
 elif op == "remove":
-    hostname = raw_input("Please enter hostname to delete: ")
-    try:
-        buildfarm.hostdb.deletehost(hostname)
-    except hostdb.NoSuchHost, e:
-        print "No such host '%s'" % e.name
-        sys.exit(1)
-    else:
-        buildfarm.hostdb.commit()
-        update_rsyncd_secrets()
-        update_hosts_list()
+    if not args:
+        args = [raw_input("Please enter hostname to delete: ")]
+    for hostname in args:
+        try:
+            buildfarm.hostdb.deletehost(hostname)
+        except hostdb.NoSuchHost, e:
+            print "No such host '%s'" % e.name
+            sys.exit(1)
+        else:
+            buildfarm.hostdb.commit()
+            update_rsyncd_secrets()
+            update_hosts_list()
 elif op == "modify":
     hostname = raw_input("Please enter hostname to modify: ")
     try:
@@ -193,22 +195,21 @@ Thanks, your friendly Samba build farm administrator <build@samba.org>""" % owne
         update_rsyncd_secrets()
         update_hosts_list()
 elif op == "info":
-    q = """
-    SELECT host.fqdn, host.id, host.join_time, host.last_dead_mail, host.name, host.owner_email, host.owner, host.password, host.permission, host.platform, host.ssh_access FROM host WHERE host.name = 'fjall'"""
-    import pdb; pdb.set_trace()
-    hostname = raw_input("Hostname: ")
-    try:
-        host = buildfarm.hostdb[hostname]
-    except hostdb.NoSuchHost, e:
-        print "No such host '%s'" % e.name
-        sys.exit(1)
-    if host.fqdn:
-        opt_fqdn = " (%s)" % host.fqdn
-    else:
-        opt_fqdn = ""
-    print "Host: %s%s" % (host.name, opt_fqdn)
-    print "Platform: %s" % host.platform
-    print "Owner: %s <%s>" % host.owner
+    if not args:
+        args = [raw_input("Hostname: ")]
+    for hostname in args:
+        try:
+            host = buildfarm.hostdb[hostname]
+        except hostdb.NoSuchHost, e:
+            print "No such host '%s'" % e.name
+            sys.exit(1)
+        if host.fqdn:
+            opt_fqdn = " (%s)" % host.fqdn
+        else:
+            opt_fqdn = ""
+        print "Host: %s%s" % (host.name, opt_fqdn)
+        print "Platform: %s" % host.platform
+        print "Owner: %s <%s>" % host.owner
 elif op == "list":
     for host in buildfarm.hostdb.host_ages():
         if host.last_update:
