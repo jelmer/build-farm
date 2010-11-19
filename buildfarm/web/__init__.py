@@ -470,7 +470,11 @@ class ViewBuildPage(BuildFarmPage):
         uname = ""
         cflags = ""
         config = ""
-        build = self.buildfarm.get_build(tree, host, compiler, rev)
+        try:
+            build = self.buildfarm.get_build(tree, host, compiler, rev)
+        except data.NoSuchBuildError:
+            yield "No such build: %s on %s with %s, rev %s" % (tree, host, compiler, rev)
+            return
         try:
             (revision, revision_time) = build.revision_details()
         except data.MissingRevisionInfo:
