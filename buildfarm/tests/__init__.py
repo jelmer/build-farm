@@ -29,15 +29,16 @@ class BuildFarmTestCase(TestCase):
     """Test case class that provides a build farm data directory and convenience methods.
     """
 
-    def upload_mock_logfile(self, store, tree, host, compiler, stdout_contents="", stderr_contents=None):
-        log_path = self.create_mock_logfile(tree, host, compiler, contents=stdout_contents)
+    def upload_mock_logfile(self, store, tree, host, compiler,
+            stdout_contents="", stderr_contents=None, mtime=None):
+        log_path = self.create_mock_logfile(tree, host, compiler, contents=stdout_contents, mtime=mtime)
         if stderr_contents is not None:
-            err_path = self.create_mock_logfile(tree, host, compiler, kind="stderr", contents=stderr_contents)
+            err_path = self.create_mock_logfile(tree, host, compiler, kind="stderr", contents=stderr_contents, mtime=mtime)
         build = Build(log_path[:-4], tree, host, compiler)
         store.upload_build(build)
 
     def create_mock_logfile(self, tree, host, compiler, rev=None,
-            kind="stdout", contents="FOO"):
+            kind="stdout", contents="FOO", mtime=None):
         basename = "build.%s.%s.%s" % (tree, host, compiler)
         if rev is not None:
             basename += "-%s" % rev
@@ -55,6 +56,8 @@ class BuildFarmTestCase(TestCase):
             f.write(contents)
         finally:
             f.close()
+        if mtime is not None:
+            os.utime(path, (mtime, mtime))
         return path
 
     def write_compilers(self, compilers):

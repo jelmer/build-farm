@@ -52,7 +52,7 @@ class StormBuild(Build):
     host = RawStr()
     compiler = RawStr()
     checksum = RawStr()
-    age = Int()
+    upload_time = Int(name="age")
     status_str = RawStr(name="status")
     commit_revision = RawStr()
 
@@ -205,7 +205,7 @@ class StormCachingBuildResultStore(BuildResultStore):
         new_build = StormBuild(new_basename, build.tree, build.host,
             build.compiler, rev)
         new_build.checksum = build.log_checksum()
-        new_build.age = build.age
+        new_build.upload_time = build.upload_time
         new_build.status_str = build.status().__serialize__()
         self.store.add(new_build)
         return new_build
@@ -214,7 +214,7 @@ class StormCachingBuildResultStore(BuildResultStore):
         return self.store.find(StormBuild,
             StormBuild.tree == tree,
             StormBuild.host == host,
-            StormBuild.compiler == compiler).order_by(Desc(StormBuild.age))
+            StormBuild.compiler == compiler).order_by(Desc(StormBuild.upload_time))
 
 
 class StormCachingBuildFarm(BuildFarm):
@@ -250,10 +250,12 @@ class StormCachingBuildFarm(BuildFarm):
 
     def get_tree_builds(self, tree):
         return self._get_store().find(StormBuild,
-            StormBuild.tree == tree).group_by(StormBuild.compiler, StormBuild.host)
+            StormBuild.tree == tree).order_by(Desc(StormBuild.upload_time))
 
     def get_last_builds(self):
-        return self._get_store().find(StormBuild).group_by(StormBuild.tree, StormBuild.compiler, StormBuild.host)
+        return self._get_store().find(StormBuild).group_by(
+            StormBuild.tree, StormBuild.compiler, StormBuild.host).order_by(
+                Desc(StormBuild.upload_time))
 
     def commit(self):
         self.store.commit()

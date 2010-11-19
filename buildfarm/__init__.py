@@ -95,11 +95,13 @@ class BuildFarm(object):
 
     def _open_build_results(self):
         from buildfarm import data
-        return data.BuildResultStore(os.path.join(self.path, "data", "oldrevs"))
+        path = os.path.join(self.path, "data", "oldrevs")
+        return data.BuildResultStore(path)
 
     def _open_upload_build_results(self):
         from buildfarm import data
-        return data.UploadBuildResultStore(os.path.join(self.path, "data", "upload"))
+        path = os.path.join(self.path, "data", "upload")
+        return data.UploadBuildResultStore(path)
 
     def _open_hostdb(self):
         from buildfarm import hostdb
@@ -142,15 +144,15 @@ class BuildFarm(object):
                 yield build
 
     def get_last_builds(self):
-        return self.get_new_builds()
+        return sorted(self.get_new_builds(), reverse=True)
 
     def get_tree_builds(self, tree):
-        yielded = set()
+        ret = []
         for build in self.builds.get_all_builds():
             if build.tree == tree:
-                if not (build.host, build.compiler) in yielded:
-                    yielded.add((build.host, build.compiler))
-                    yield build
+                ret.append(build)
+        ret.sort(reverse=True)
+        return ret
 
     def get_host_builds(self, host):
         from buildfarm import data

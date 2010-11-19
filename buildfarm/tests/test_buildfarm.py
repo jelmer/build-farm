@@ -90,32 +90,29 @@ class BuildFarmTestBase(object):
 
     def test_get_tree_builds(self):
         path = self.upload_mock_logfile(self.x.builds, "tdb", "myhost", "cc",
-            "BUILD COMMIT REVISION: 12\n")
+            stdout_contents="BUILD COMMIT REVISION: 12\n", mtime=1200)
         path = self.upload_mock_logfile(self.x.builds, "tdb", "myhost", "cc",
-            "BUILD COMMIT REVISION: 13\n")
+            stdout_contents="BUILD COMMIT REVISION: 13\n", mtime=1300)
         path = self.upload_mock_logfile(self.x.builds, "tdb", "myhost", "cc",
-            "BUILD COMMIT REVISION: 42\n")
+            stdout_contents="BUILD COMMIT REVISION: 42\n", mtime=4200)
         builds = list(self.x.get_tree_builds("tdb"))
-        self.assertEquals(1, len(builds))
-        build = builds[0]
-        self.assertEquals("42", build.revision)
+        self.assertEquals(["42", "13", "12"], [x.revision for x in builds])
 
     def test_get_last_builds(self):
         path = self.upload_mock_logfile(self.x.builds, "other", "myhost", "cc",
-            "BUILD COMMIT REVISION: 12\n")
+            "BUILD COMMIT REVISION: 12\n", mtime=1200)
         path = self.upload_mock_logfile(self.x.builds, "trivial", "myhost", "cc",
-            "BUILD COMMIT REVISION: 13\n")
+            "BUILD COMMIT REVISION: 13\n", mtime=1300)
         path = self.upload_mock_logfile(self.x.builds, "trivial", "myhost", "cc",
-            "BUILD COMMIT REVISION: 42\n")
+            "BUILD COMMIT REVISION: 42\n", mtime=4200)
         builds = list(self.x.get_last_builds())
-        builds.sort()
         self.assertEquals(2, len(builds))
-        build = builds[0]
-        self.assertEquals("42", build.revision_details()[0])
-        self.assertEquals("trivial", build.tree)
-        build = builds[1]
-        self.assertEquals("12", build.revision_details()[0])
-        self.assertEquals("other", build.tree)
+        self.assertEquals(4200, builds[0].upload_time)
+        self.assertEquals("42", builds[0].revision_details()[0])
+        self.assertEquals("trivial", builds[0].tree)
+        self.assertEquals(1200, builds[1].upload_time)
+        self.assertEquals("12", builds[1].revision_details()[0])
+        self.assertEquals("other", builds[1].tree)
 
     def test_get_host_builds_empty(self):
         self.assertEquals([], list(self.x.get_host_builds("myhost")))

@@ -58,9 +58,9 @@ class BuildResultStoreTestBase(object):
     def test_build_age_ctime(self):
         path = self.create_mock_logfile("tdb", "charis", "cc", "12")
         # Set mtime to something in the past
+        os.utime(path, (5, 5))
         build = self.x.get_build("tdb", "charis", "cc", "12")
-        age = build.age
-        self.assertTrue(age >= 0 and age <= 10, "age was %d" % age)
+        self.assertEquals(5, build.upload_time)
 
     def test_read_log(self):
         path = self.create_mock_logfile("tdb", "charis", "cc", "12",

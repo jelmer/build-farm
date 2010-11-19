@@ -216,8 +216,14 @@ class Build(object):
         self.compiler = compiler
         self.commit_revision = self.revision = rev
 
+    def __cmp__(self, other):
+        return cmp(
+            (self.upload_time, self.revision, self.host, self.tree, self.compiler),
+            (other.upload_time, other.revision, other.host, other.tree, other.compiler))
+
     def __eq__(self, other):
-        return (self.log_checksum() == other.log_checksum())
+        return (isinstance(other, Build) and
+                self.log_checksum() == other.log_checksum())
 
     def __repr__(self):
         if self.revision is not None:
@@ -234,10 +240,16 @@ class Build(object):
         self.remove_logs()
 
     @property
+    def upload_time(self):
+        """get timestamp of build"""
+        st = os.stat("%s.log" % self.basename)
+        return st.st_mtime
+
+    @property
     def age(self):
         """get the age of build"""
         st = os.stat("%s.log" % self.basename)
-        return time.time() - st.st_ctime
+        return time.time() - self.upload_time
 
     def read_log(self):
         """read full log file"""
@@ -399,7 +411,7 @@ class BuildResultStore(object):
         for build in self.get_all_builds():
             if build.tree == tree and build.host == host and build.compiler == compiler:
                 ret.append(build)
-        ret.sort(lambda a, b: cmp(a.age, b.age))
+        ret.sort(lambda a, b: cmp(a.upload_time, b.upload_time))
         return ret
 
     def upload_build(self, build):
