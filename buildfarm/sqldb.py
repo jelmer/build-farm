@@ -19,6 +19,7 @@
 
 from buildfarm import (
     BuildFarm,
+    Tree,
     )
 from buildfarm.data import (
     Build,
@@ -261,11 +262,46 @@ class StormCachingBuildFarm(BuildFarm):
         self.store.commit()
 
 
+class StormTree(Tree):
+    __storm_table__ = "tree"
+
+    id = Int(primary=True)
+    name = RawStr()
+    scm = Int()
+    branch = RawStr()
+    subdir = RawStr()
+    repo = RawStr()
+    scm = RawStr()
+
+
 def setup_schema(db):
-    db.execute("CREATE TABLE IF NOT EXISTS host (id integer primary key autoincrement, name blob not null, owner text, owner_email text, password text, ssh_access int, fqdn text, platform text, permission text, last_dead_mail int, join_time int);", noresult=True)
+    db.execute("PRAGMA foreign_keys = 1;", noresult=True)
+    db.execute("""
+CREATE TABLE IF NOT EXISTS host (
+    id integer primary key autoincrement,
+    name blob not null,
+    owner text,
+    owner_email text,
+    password text,
+    ssh_access int,
+    fqdn text,
+    platform text,
+    permission text,
+    last_dead_mail int,
+    join_time int
+);""", noresult=True)
     db.execute("CREATE UNIQUE INDEX IF NOT EXISTS unique_hostname ON host (name);", noresult=True)
     db.execute("CREATE TABLE IF NOT EXISTS build (id integer primary key autoincrement, tree blob not null, revision blob, host blob not null, compiler blob not null, checksum blob, age int, status blob, basename blob);", noresult=True)
     db.execute("CREATE UNIQUE INDEX IF NOT EXISTS unique_checksum ON build (checksum);", noresult=True)
+    db.execute("""
+CREATE TABLE IF NOT EXISTS tree (
+    id integer primary key autoincrement,
+    name blob not null,
+    scm int,
+    branch blob,
+    subdir blob,
+    repo blob
+    );""", noresult=True)
 
 
 def memory_store():
