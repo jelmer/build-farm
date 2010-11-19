@@ -28,7 +28,7 @@ import sys
 import time
 from email.MIMEText import MIMEText
 
-buildfarm = BuildFarm()
+buildfarm = StormCachingBuildFarm()
 
 db = buildfarm.hostdb
 
