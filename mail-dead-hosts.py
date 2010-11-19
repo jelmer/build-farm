@@ -68,6 +68,7 @@ The Build Farm administration team.
     msg["Subject"] ="Your build farm host %s appears dead" % host.name
     msg["From"] = "\"Samba Build Farm\" <build@samba.org>"
     msg["To"] = "\"%s\" <%s>" % host.owner
+    msg["Bcc"] = "\"Samba Build Farm\" <build@samba.org>"
 
     if opts.dry_run:
         print msg.as_string()
