@@ -19,8 +19,8 @@
 
 from buildfarm import (
     hostdb,
-    BuildFarm,
     )
+from buildfarm.sqldb import StormCachingBuildFarm
 import commands
 import os
 import smtplib
@@ -81,7 +81,7 @@ if op == "remove":
 elif op == "modify":
     hostname = raw_input("Please enter hostname to modify: ")
     try:
-        host = db.host(hostname)
+        host = db[hostname]
     except hostdb.NoSuchHost, e:
         print "No such host '%s'" % e.name
         sys.exit(1)
@@ -108,7 +108,7 @@ elif op == "modify":
 elif op == "add":
     hostname = raw_input("Machine hostname: ")
     try:
-        db.host(hostname)
+        db[hostname]
     except hostdb.NoSuchHost, e:
         pass
     else:
@@ -192,7 +192,7 @@ Thanks, your friendly Samba build farm administrator <build@samba.org>""" % owne
 elif op == "info":
     hostname = raw_input("Hostname: ")
     try:
-        host = db.host(hostname)
+        host = db[hostname]
     except hostdb.NoSuchHost, e:
         print "No such host '%s'" % e.name
         sys.exit(1)
