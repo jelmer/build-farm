@@ -15,6 +15,7 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+from buildfarm.data import Build
 from buildfarm.sqldb import setup_schema
 import os
 from storm import database
@@ -27,6 +28,13 @@ import tempfile
 class BuildFarmTestCase(TestCase):
     """Test case class that provides a build farm data directory and convenience methods.
     """
+
+    def upload_mock_logfile(self, store, tree, host, compiler, stdout_contents="", stderr_contents=None):
+        log_path = self.create_mock_logfile(tree, host, compiler, contents=stdout_contents)
+        if stderr_contents is not None:
+            err_path = self.create_mock_logfile(tree, host, compiler, kind="stderr", contents=stderr_contents)
+        build = Build(log_path[:-4], tree, host, compiler)
+        store.upload_build(build)
 
     def create_mock_logfile(self, tree, host, compiler, rev=None,
             kind="stdout", contents="FOO"):

@@ -378,22 +378,28 @@ class BuildResultStore(object):
         """get the name of the build file"""
         return os.path.join(self.path, "build.%s.%s.%s-%s" % (tree, host, compiler, rev))
 
+    def get_all_builds(self):
+        for l in os.listdir(self.path):
+            m = re.match("^build\.([0-9A-Za-z]+)\.([0-9A-Za-z]+)\.([0-9A-Za-z]+)-([0-9A-Fa-f]+).log$", l)
+            if not m:
+                continue
+            tree = m.group(1)
+            host = m.group(2)
+            compiler = m.group(3)
+            rev = m.group(4)
+            stat = os.stat(os.path.join(self.path, l))
+            # skip the current build
+            if stat.st_nlink == 2:
+                continue
+            yield self.get_build(tree, host, compiler, rev)
+
     def get_old_revs(self, tree, host, compiler):
         """get a list of old builds and their status."""
         ret = []
-        logfiles = [d for d in os.listdir(self.path) if d.startswith("build.%s.%s.%s-" % (tree, host, compiler)) and d.endswith(".log")]
-        for l in logfiles:
-            m = re.match(".*-([0-9A-Fa-f]+).log$", l)
-            if m:
-                rev = m.group(1)
-                stat = os.stat(os.path.join(self.path, l))
-                # skip the current build
-                if stat.st_nlink == 2:
-                    continue
-                ret.append(self.get_build(tree, host, compiler, rev))
-
+        for build in self.get_all_builds():
+            if build.tree == tree and build.host == host and build.compiler == compiler:
+                ret.append(build)
         ret.sort(lambda a, b: cmp(a.age, b.age))
-
         return ret
 
     def upload_build(self, build):

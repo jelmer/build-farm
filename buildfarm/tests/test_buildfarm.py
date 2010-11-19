@@ -68,9 +68,7 @@ repo = rsync.git
 branch = HEAD
 """)
         t = read_trees_from_conf(name)
-        self.assertEquals(
-            t["pidl"].scm,
-            "git")
+        self.assertEquals(t["pidl"].scm, "git")
 
 
 class BuildFarmTestBase(object):
@@ -78,10 +76,31 @@ class BuildFarmTestBase(object):
     def setUp(self):
         self.write_compilers(["cc"])
         self.write_hosts({"myhost": "Fedora"})
-        self.write_trees({"trivial": { "scm": "git", "repo": "git://foo", "branch": "master" }})
+        self.write_trees({"trivial": {"scm": "git", "repo": "git://foo", "branch": "master"}})
 
     def test_get_new_builds_empty(self):
         self.assertEquals([], list(self.x.get_new_builds()))
+
+    def test_get_last_builds_empty(self):
+        self.assertEquals([], list(self.x.get_last_builds()))
+
+    def test_get_tree_builds_empty(self):
+        self.assertEquals([], list(self.x.get_tree_builds("trival")))
+
+    def test_get_tree_builds(self):
+        path = self.upload_mock_logfile(self.x.builds, "tdb", "charis", "cc",
+                "BUILD COMMIT REVISION: 12\n")
+        path = self.upload_mock_logfile(self.x.builds, "tdb", "charis", "cc",
+            "BUILD COMMIT REVISION: 13\n")
+        path = self.upload_mock_logfile(self.x.builds, "tdb", "charis", "cc",
+                "BUILD COMMIT REVISION: 42\n")
+        builds = list(self.x.get_tree_builds("tdb"))
+        self.assertEquals(1, len(builds))
+        build = builds[0]
+        self.assertEquals("42", build.revision)
+
+    def test_get_host_builds_empty(self):
+        self.assertEquals([], list(self.x.get_host_builds("myhost")))
 
     def test_lcov_status_none(self):
         self.assertRaises(data.NoSuchBuildError, self.x.lcov_status, "trivial")
@@ -103,7 +122,7 @@ class BuildFarmTestBase(object):
         self.assertEquals("12", build.revision)
 
     def test_get_build_no_rev(self):
-        path = self.create_mock_logfile("tdb", "charis", "cc", 
+        path = self.create_mock_logfile("tdb", "charis", "cc",
             contents="This is what a log file looks like.")
         build = self.x.get_build("tdb", "charis", "cc")
         self.assertEquals("tdb", build.tree)
@@ -118,6 +137,3 @@ class BuildFarmTests(BuildFarmTestBase, BuildFarmTestCase):
         BuildFarmTestCase.setUp(self)
         BuildFarmTestBase.setUp(self)
         self.x = BuildFarm(self.path)
-
-
-
