@@ -43,7 +43,7 @@ class HostDatabaseTests(object):
 
     def test_host(self):
         newhost = self.db.createhost("charis", u"linux", u"Jelmer", u"jelmer@samba.org", u"bla", u"Pemrission?")
-        samehost = self.db.host("charis")
+        samehost = self.db["charis"]
         self.assertEquals(samehost, newhost)
 
     def test_create_already_exists(self):

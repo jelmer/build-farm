@@ -123,14 +123,13 @@ class StormHostDatabase(HostDatabase):
 
     def deletehost(self, name):
         """Remove a host."""
-        host = self.host(name)
-        self.store.remove(host)
+        self.store.remove(self[name])
 
     def hosts(self):
         """Retrieve an iterable over all hosts."""
         return self.store.find(StormHost).order_by(StormHost.name)
 
-    def host(self, name):
+    def __getitem__(self, name):
         ret = self.store.find(StormHost, StormHost.name==name).one()
         if ret is None:
             raise NoSuchHost(name)

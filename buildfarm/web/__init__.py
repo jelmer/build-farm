@@ -516,7 +516,7 @@ class ViewBuildPage(BuildFarmPage):
         yield "<table class='real'>\n"
         yield "<tr><td>Host:</td><td><a href='%s?function=View+Host;host=%s;tree=%s;"\
               "compiler=%s#'>%s</a> - %s</td></tr>\n" %\
-                (myself, host, tree, compiler, host, self.buildfarm.hostdb.host(host).platform.encode("utf-8"))
+                (myself, host, tree, compiler, host, self.buildfarm.hostdb[host].platform.encode("utf-8"))
         yield "<tr><td>Uname:</td><td>%s</td></tr>\n" % uname
         yield "<tr><td>Tree:</td><td>%s</td></tr>\n" % self.tree_link(myself, tree)
         yield "<tr><td>Build Revision:</td><td>%s</td></tr>\n" % revision_link(myself, revision, tree)
@@ -596,7 +596,7 @@ class ViewRecentBuildsPage(BuildFarmPage):
 
         for build in self.buildfarm.get_tree_builds(tree):
             try:
-                host = self.buildfarm.hostdb.host(build.host)
+                host = self.buildfarm.hostdb[build.host]
             except hostdb.NoSuchHost:
                 # Skip, at least for now.
                 continue
@@ -681,7 +681,7 @@ class ViewHostPage(BuildFarmPage):
         yield '<h2>Host summary:</h2>'
         for hostname in requested_hosts:
             try:
-                host = self.buildfarm.hostdb.host(hostname)
+                host = self.buildfarm.hostdb[hostname]
             except hostdb.NoSuchHost:
                 deadhosts.append(hostname)
                 continue
@@ -705,7 +705,7 @@ class ViewHostPage(BuildFarmPage):
         for host in requested_hosts:
             # make sure we have some data from it
             try:
-                self.buildfarm.hostdb.host(host)
+                self.buildfarm.hostdb[host]
             except hostdb.NoSuchHost:
                 continue
 
@@ -737,7 +737,7 @@ class ViewHostPage(BuildFarmPage):
             last_build = self.buildfarm.host_last_build(host)
             age = time.time() - last_build
             try:
-                platform = self.buildfarm.hostdb.host(host).platform.encode("utf-8")
+                platform = self.buildfarm.hostdb[host].platform.encode("utf-8")
             except hostdb.NoSuchHost:
                 platform = "UNKNOWN"
             yield "<tr><td>%s</td><td>%s</td><td>%s</td></tr>" %\

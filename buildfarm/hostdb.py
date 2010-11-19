@@ -102,12 +102,9 @@ class HostDatabase(object):
         for row in cursor:
             yield Host(row[0], owner=row[1], owner_email=row[2], last_update=row[3])
 
-    def host(self, name):
+    def __getitem__(self, name):
         """Find a host by name."""
         raise NotImplementedError(self.host)
-
-    def __getitem__(self, name):
-        return self.host(name)
 
     def create_rsync_secrets(self):
         """Write out the rsyncd.secrets"""
@@ -155,7 +152,7 @@ class PlainTextHostDatabase(HostDatabase):
         for name, platform in self._hosts.iteritems():
             yield Host(name, platform=platform)
 
-    def host(self, name):
+    def __getitem__(self, name):
         try:
             return Host(name=name, platform=self._hosts[name])
         except KeyError:
