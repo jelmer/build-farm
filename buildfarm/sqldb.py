@@ -253,7 +253,7 @@ class StormCachingBuildFarm(BuildFarm):
             StormBuild.tree == tree).group_by(StormBuild.compiler, StormBuild.host)
 
     def get_last_builds(self):
-        return self._get_store().find(StormBuild)
+        return self._get_store().find(StormBuild).group_by(StormBuild.tree, StormBuild.compiler, StormBuild.host)
 
     def commit(self):
         self.store.commit()

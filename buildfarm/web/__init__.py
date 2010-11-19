@@ -591,7 +591,7 @@ class ViewRecentBuildsPage(BuildFarmPage):
         assert tree in self.buildfarm.trees, "not a build tree"
         assert sort_by in cmp_funcs, "not a valid sort"
 
-        for build in self.buildfarm.get_last_builds(tree=tree):
+        for build in self.buildfarm.get_tree_builds(tree=tree):
             try:
                 host = self.buildfarm.hostdb.host(build.host)
             except hostdb.NoSuchHost:
