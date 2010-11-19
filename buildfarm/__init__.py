@@ -154,6 +154,9 @@ class BuildFarm(object):
         ret.sort(reverse=True)
         return ret
 
+    def host_last_build(self, host):
+        return max([build.upload_time for build in self.get_host_builds(host)])
+
     def get_host_builds(self, host):
         from buildfarm import data
         for compiler in self.compilers:
