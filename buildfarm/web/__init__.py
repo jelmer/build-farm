@@ -656,7 +656,7 @@ class ViewHostPage(BuildFarmPage):
     def _render_build_list_header(self, host):
         yield "<div class='host summary'>"
         yield "<a id='host' name='host'/>"
-        yield "<h3>%s - %s</h3>" % (host, self.buildfarm.hostdb.host(host).platform.encode("utf-8"))
+        yield "<h3>%s - %s</h3>" % (host.name, host.platform.encode("utf-8"))
         yield "<table class='real'>"
         yield "<thead><tr><th>Target</th><th>Build<br/>Revision</th><th>Build<br />Age</th><th>Status<br />config/build<br />install/test</th><th>Warnings</th></tr></thead>"
         yield "<tbody>"
@@ -679,8 +679,13 @@ class ViewHostPage(BuildFarmPage):
     def render_html(self, myself, *requested_hosts):
         yield "<div class='build-section' id='build-summary'>"
         yield '<h2>Host summary:</h2>'
-        for host in requested_hosts:
-            builds = list(self.buildfarm.get_host_builds(host))
+        for hostname in requested_hosts:
+            try:
+                host = self.buildfarm.hostdb.host(hostname)
+            except hostdb.NoSuchHost:
+                deadhosts.append(hostname)
+                continue
+            builds = list(self.buildfarm.get_host_builds(hostname))
             if len(builds) > 0:
                 yield "".join(self._render_build_list_header(host))
                 for build in builds:
@@ -688,7 +693,7 @@ class ViewHostPage(BuildFarmPage):
                 yield "</tbody></table>"
                 yield "</div>"
             else:
-                deadhosts.append(host)
+                deadhosts.append(hostname)
 
         yield "</div>"
         yield "".join(self.draw_dead_hosts(*deadhosts))

@@ -106,6 +106,9 @@ class HostDatabase(object):
         """Find a host by name."""
         raise NotImplementedError(self.host)
 
+    def __getitem__(self, name):
+        return self.host(name)
+
     def create_rsync_secrets(self):
         """Write out the rsyncd.secrets"""
         yield "# rsyncd.secrets file\n"
