@@ -39,9 +39,6 @@ from buildfarm import (
     hostdb,
     util,
     )
-from buildfarm.filecache import (
-    CachingBuildFarm,
-    )
 
 import cgi
 from pygments import highlight

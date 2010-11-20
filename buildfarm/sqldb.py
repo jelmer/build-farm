@@ -51,6 +51,7 @@ class StormBuild(Build):
     tree = RawStr()
     revision = RawStr()
     host = RawStr()
+    host_id = Int()
     compiler = RawStr()
     checksum = RawStr()
     upload_time = Int(name="age")
@@ -287,7 +288,20 @@ CREATE TABLE IF NOT EXISTS host (
     join_time int
 );""", noresult=True)
     db.execute("CREATE UNIQUE INDEX IF NOT EXISTS unique_hostname ON host (name);", noresult=True)
-    db.execute("CREATE TABLE IF NOT EXISTS build (id integer primary key autoincrement, tree blob not null, revision blob, host blob not null, compiler blob not null, checksum blob, age int, status blob, basename blob);", noresult=True)
+    db.execute("""
+CREATE TABLE IF NOT EXISTS build (
+    id integer primary key autoincrement,
+    tree blob not null,
+    revision blob,
+    host blob not null,
+    host_id integer,
+    compiler blob not null,
+    checksum blob,
+    age int,
+    status blob,
+    basename blob,
+    FOREIGN KEY (host_id) REFERENCES host (id)
+);""", noresult=True)
     db.execute("CREATE UNIQUE INDEX IF NOT EXISTS unique_checksum ON build (checksum);", noresult=True)
     db.execute("""
 CREATE TABLE IF NOT EXISTS tree (
