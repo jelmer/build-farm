@@ -71,6 +71,10 @@ class StormBuild(Build):
         super(StormBuild, self).remove()
         Store.of(self).remove(self)
 
+    def remove_logs(self):
+        super(StormBuild, self).remove_logs()
+        self.basename = None
+
 
 class StormHost(Host):
     __storm_table__ = "host"
