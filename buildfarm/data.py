@@ -248,7 +248,6 @@ class Build(object):
     @property
     def age(self):
         """get the age of build"""
-        st = os.stat("%s.log" % self.basename)
         return time.time() - self.upload_time
 
     def read_log(self):

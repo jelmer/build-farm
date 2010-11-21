@@ -51,12 +51,14 @@ class StormBuild(Build):
     tree = RawStr()
     revision = RawStr()
     host = RawStr()
-    host_id = Int()
     compiler = RawStr()
     checksum = RawStr()
     upload_time = Int(name="age")
+    commit = Unicode()
     status_str = RawStr(name="status")
+    commit_revision = RawStr()
     basename = RawStr()
+    host_id = Int()
 
     def status(self):
         return BuildStatus.__deserialize__(self.status_str)
@@ -244,11 +246,11 @@ class StormCachingBuildFarm(BuildFarm):
 
     def get_host_builds(self, host):
         return self._get_store().find(StormBuild,
-            StormBuild.host == host).group_by(StormBuild.compiler, StormBuild.tree)
+            StormBuild.host==host).group_by(StormBuild.compiler, StormBuild.tree)
 
     def get_tree_builds(self, tree):
-        return self._get_store().find(StormBuild,
-            StormBuild.tree == tree).order_by(Desc(StormBuild.upload_time))
+        result = self._get_store().find(StormBuild, StormBuild.tree==tree)
+        return result.order_by(Desc(StormBuild.upload_time))
 
     def get_last_builds(self):
         return self._get_store().find(StormBuild).group_by(
