@@ -225,8 +225,8 @@ class StormCachingBuildResultStore(BuildResultStore):
             StormBuild.tree == tree,
             StormBuild.host == host,
             StormBuild.compiler == compiler,
-            StormBuild.revision == revision)
-        ret = result.one()
+            StormBuild.revision == revision).order_by(Desc(StormBuild.upload_time))
+        ret = result.first()
         if ret is None:
             raise NoSuchBuildError(tree, host, compiler, revision)
         return ret
