@@ -216,7 +216,7 @@ class StormCachingBuildResultStore(BuildResultStore):
         self.store.add(new_build)
         return new_build
 
-    def get_old_revs(self, tree, host, compiler):
+    def get_old_builds(self, tree, host, compiler):
         result = self.store.find(StormBuild,
             StormBuild.tree == tree,
             StormBuild.host == host,

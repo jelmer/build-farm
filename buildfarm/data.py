@@ -411,7 +411,7 @@ class BuildResultStore(object):
                 continue
             yield self.get_build(tree, host, compiler, rev)
 
-    def get_old_revs(self, tree, host, compiler):
+    def get_old_builds(self, tree, host, compiler):
         """get a list of old builds and their status."""
         ret = []
         for build in self.get_all_builds():

@@ -432,9 +432,9 @@ class ViewBuildPage(BuildFarmPage):
 
     def show_oldrevs(self, myself, tree, host, compiler):
         """show the available old revisions, if any"""
-        old_rev_builds  = self.buildfarm.builds.get_old_revs(tree, host, compiler)
+        old_builds  = self.buildfarm.builds.get_old_builds(tree, host, compiler)
 
-        if not old_rev_builds:
+        if not old_builds:
             return
 
         yield "<h2>Older builds:</h2>\n"
@@ -443,7 +443,7 @@ class ViewBuildPage(BuildFarmPage):
         yield "<thead><tr><th>Revision</th><th>Status</th><th>Age</th></tr></thead>\n"
         yield "<tbody>\n"
 
-        for build in old_rev_builds:
+        for build in old_builds:
             yield "<tr><td>%s</td><td>%s</td><td>%s</td></tr>\n" % (
                 revision_link(myself, build.revision, tree),
                 build_status_html(myself, build), util.dhm_time(build.age))
