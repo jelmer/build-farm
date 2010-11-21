@@ -220,6 +220,17 @@ class StormCachingBuildResultStore(BuildResultStore):
             StormBuild.host == host,
             StormBuild.compiler == compiler).order_by(Desc(StormBuild.upload_time))
 
+    def get_build(self, tree, host, compiler, revision):
+        result = self.store.find(StormBuild,
+            StormBuild.tree == tree,
+            StormBuild.host == host,
+            StormBuild.compiler == compiler,
+            StormBuild.revision == revision)
+        ret = result.one()
+        if ret is None:
+            raise NoSuchBuildError(tree, host, compiler, revision)
+        return ret
+
 
 class StormCachingBuildFarm(BuildFarm):
 

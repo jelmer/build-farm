@@ -49,6 +49,10 @@ class MissingRevisionInfo(Exception):
         self.build = build
 
 
+class LogFileMissing(Exception):
+    """Log file missing."""
+
+
 class BuildStatus(object):
 
     def __init__(self, stages=None, other_failures=None):
@@ -252,7 +256,10 @@ class Build(object):
 
     def read_log(self):
         """read full log file"""
-        return open(self.basename+".log", "r")
+        try:
+            return open(self.basename+".log", "r")
+        except IOError:
+            raise LogFileMissing()
 
     def read_err(self):
         """read full err file"""

@@ -445,7 +445,7 @@ class ViewBuildPage(BuildFarmPage):
         """show the available old revisions, if any"""
         old_rev_builds  = self.buildfarm.builds.get_old_revs(tree, host, compiler)
 
-        if len(old_rev_builds) == 0:
+        if not old_rev_builds:
             return
 
         yield "<h2>Older builds:</h2>\n"
@@ -482,11 +482,14 @@ class ViewBuildPage(BuildFarmPage):
         if rev:
             assert re.match("^[0-9a-fA-F]*$", rev)
 
-        f = build.read_log()
         try:
-            log = f.read()
-        finally:
-            f.close()
+            f = build.read_log()
+            try:
+                log = f.read()
+            finally:
+                f.close()
+        except data.LogFileMissing:
+            log = "Missing log file."
         f = build.read_err()
         try:
             err = f.read()
@@ -592,8 +595,9 @@ class ViewRecentBuildsPage(BuildFarmPage):
             "status": lambda a, b: cmp(a[6], b[6]),
             }
 
-        assert tree in self.buildfarm.trees, "not a build tree"
-        assert sort_by in cmp_funcs, "not a valid sort"
+        if sort_by not in cmp_funcs:
+            yield "not a valid sort mechanism: %r" % sort_by
+            return
 
         for build in self.buildfarm.get_tree_builds(tree):
             try:
