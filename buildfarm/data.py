@@ -385,7 +385,7 @@ class BuildResultStore(object):
         else:
             return True
 
-    def get_build(self, tree, host, compiler, rev):
+    def get_build(self, tree, host, compiler, rev, checksum=None):
         basename = self.build_fname(tree, host, compiler, rev)
         logf = "%s.log" % basename
         if not os.path.exists(logf):

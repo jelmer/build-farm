@@ -104,7 +104,15 @@ def html_build_status(status):
 
 
 def build_status_html(myself, build):
-    return "<a href='%s?function=View+Build;host=%s;tree=%s;compiler=%s;revision=%s;checksum=%s'>%s</a>" % (myself, build.host, build.tree, build.compiler, build.revision, html_build_status(build.status()), build.log_checksum())
+    params = {
+        "host": build.host,
+        "tree": build.tree,
+        "compiler": build.compiler,
+        "checksum": build.log_checksum()
+        }
+    if build.revision:
+        params["revision"] = build.revision
+    return "<a href='%s?function=View+Build;%s'>%s</a>" % (myself, ";".join(["%s=%s" % k for k in params.iteritems()]), html_build_status(build.status()))
 
 
 def build_status_vals(status):

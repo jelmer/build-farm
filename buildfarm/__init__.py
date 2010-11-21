@@ -131,9 +131,10 @@ class BuildFarm(object):
             ret = perc
         return perc
 
-    def get_build(self, tree, host, compiler, rev=None):
+    def get_build(self, tree, host, compiler, rev=None, checksum=None):
         if rev is not None:
-            return self.builds.get_build(tree, host, compiler, rev)
+            return self.builds.get_build(tree, host, compiler, rev,
+                checksum=checksum)
         else:
             return self.upload_builds.get_build(tree, host, compiler)
 
