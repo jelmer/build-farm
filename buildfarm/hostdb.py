@@ -40,8 +40,9 @@ class NoSuchHost(Exception):
 class Host(object):
     """A host in the buildfarm."""
 
-    def __init__(self, name, owner=None, owner_email=None, password=None, platform=None,
-                 ssh_access=False, last_update=None, fqdn=None, join_time=None, permission=None):
+    def __init__(self, name, owner=None, owner_email=None, password=None,
+            platform=None, ssh_access=False, last_update=None, fqdn=None,
+            join_time=None, permission=None):
         self.name = name
         if owner:
             self.owner = (owner, owner_email)
