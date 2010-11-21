@@ -465,11 +465,6 @@ class ViewBuildPage(BuildFarmPage):
                 tree, host, compiler, rev, checksum)
             return
         try:
-            (revision, revision_time) = build.revision_details()
-        except data.MissingRevisionInfo:
-            revision = None
-
-        try:
             f = build.read_log()
             try:
                 log = f.read()
@@ -511,7 +506,7 @@ class ViewBuildPage(BuildFarmPage):
         if uname is not None:
             yield "<tr><td>Uname:</td><td>%s</td></tr>\n" % uname
         yield "<tr><td>Tree:</td><td>%s</td></tr>\n" % self.tree_link(myself, tree)
-        yield "<tr><td>Build Revision:</td><td>%s</td></tr>\n" % revision_link(myself, revision, tree)
+        yield "<tr><td>Build Revision:</td><td>%s</td></tr>\n" % revision_link(myself, build.revision, tree)
         yield "<tr><td>Build age:</td><td><div class='age'>%s</div></td></tr>\n" % self.red_age(build.age)
         yield "<tr><td>Status:</td><td>%s</td></tr>\n" % build_status_html(myself, build)
         yield "<tr><td>Compiler:</td><td>%s</td></tr>\n" % compiler

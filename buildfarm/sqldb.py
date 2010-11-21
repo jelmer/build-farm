@@ -217,10 +217,11 @@ class StormCachingBuildResultStore(BuildResultStore):
         return new_build
 
     def get_old_revs(self, tree, host, compiler):
-        return self.store.find(StormBuild,
+        result = self.store.find(StormBuild,
             StormBuild.tree == tree,
             StormBuild.host == host,
-            StormBuild.compiler == compiler).order_by(Desc(StormBuild.upload_time))
+            StormBuild.compiler == compiler)
+        return result.order_by(Desc(StormBuild.upload_time))
 
     def get_build(self, tree, host, compiler, revision=None, checksum=None):
         expr = [
