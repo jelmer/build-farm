@@ -11,6 +11,7 @@ for build in store.find(StormBuild, StormBuild.status_str == None):
     try:
         log = build.read_log()
     except LogFileMissing:
+        log.remove()
         continue
     try:
         err = build.read_err()

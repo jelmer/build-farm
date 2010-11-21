@@ -937,7 +937,7 @@ class BuildFarmApp(object):
                 yield "".join(page.render_html(myself, get_param(form, 'host')))
             elif fn_name == "Recent_Builds":
                 page = ViewRecentBuildsPage(self.buildfarm)
-                yield "".join(page.render(myself, get_param(form, "tree"), get_param(form, "sortby") or "revision"))
+                yield "".join(page.render(myself, get_param(form, "tree"), get_param(form, "sortby") or "age"))
             elif fn_name == "Recent_Checkins":
                 # validate the tree
                 tree =  get_param(form, "tree")
