@@ -45,7 +45,7 @@ BuildStageResult = collections.namedtuple("BuildStageResult", "name result")
 class MissingRevisionInfo(Exception):
     """Revision info could not be found in the build log."""
 
-    def __init__(self, build):
+    def __init__(self, build=None):
         self.build = build
 
 
@@ -199,6 +199,19 @@ def build_status_from_logs(log, err):
     return ret
 
 
+def revision_from_log(log):
+    revid = None
+    timestamp = None
+    for l in log:
+        if l.startswith("BUILD COMMIT REVISION: "):
+            revid = l.split(":", 1)[1].strip()
+        elif l.startswith("BUILD COMMIT TIME"):
+            timestamp = l.split(":", 1)[1].strip()
+    if revid is None:
+        raise MissingRevisionInfo()
+    return (revid, timestamp)
+
+
 class NoSuchBuildError(Exception):
     """The build with the specified name does not exist."""
 
@@ -236,7 +249,9 @@ class Build(object):
             return "<%s: %s on %s using %s>" % (self.__class__.__name__, self.tree, self.host, self.compiler)
 
     def remove_logs(self):
-        os.unlink(self.basename + ".log")
+        # In general, basename.log should *always* exist.
+        if os.path.exists(self.basename+".log"):
+            os.unlink(self.basename + ".log")
         if os.path.exists(self.basename+".err"):
             os.unlink(self.basename+".err")
 
@@ -286,22 +301,11 @@ class Build(object):
 
         :return: Tuple with revision id and timestamp (if available)
         """
-        revid = None
-        timestamp = None
         f = self.read_log()
         try:
-            for l in f:
-                if l.startswith("BUILD COMMIT REVISION: "):
-                    revid = l.split(":", 1)[1].strip()
-                elif l.startswith("BUILD COMMIT TIME"):
-                    timestamp = l.split(":", 1)[1].strip()
+            return revision_from_log(f)
         finally:
             f.close()
-
-        if revid is None:
-            raise MissingRevisionInfo(self)
-
-        return (revid, timestamp)
 
     def status(self):
         """get status of build
