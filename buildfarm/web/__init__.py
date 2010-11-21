@@ -70,15 +70,6 @@ def get_param(form, param):
     return result[0]
 
 
-def build_link(myself, tree, host, compiler, rev, status):
-    if rev:
-        opt_rev = ';revision=%s' % rev
-    else:
-        opt_rev = ''
-    return "<a href='%s?function=View+Build;host=%s;tree=%s;compiler=%s%s'>%s</a>" % (
-           myself, host, tree, compiler, opt_rev, status)
-
-
 def html_build_status(status):
     def span(classname, contents):
         return "<span class=\"%s\">%s</span>" % (classname, contents)
@@ -113,8 +104,7 @@ def html_build_status(status):
 
 
 def build_status_html(myself, build):
-    status = html_build_status(build.status())
-    return build_link(myself, build.tree, build.host, build.compiler, build.revision, status)
+    return "<a href='%s?function=View+Build;host=%s;tree=%s;compiler=%s;revision=%s'>%s</a>" % (myself, build.host, build.tree, build.compiler, build.revision, html_build_status(build.status()))
 
 
 def build_status_vals(status):
@@ -127,6 +117,11 @@ def build_status_vals(status):
     status = status.replace("PANIC", "1")
 
     return status.split("/")
+
+
+def host_link(myself, host):
+    return "<a href='%s?function=View+Host;host=%s'>%s</a>" % (
+        myself, host, host)
 
 
 def revision_link(myself, revision, tree):
@@ -463,8 +458,6 @@ class ViewBuildPage(BuildFarmPage):
         except data.MissingRevisionInfo:
             revision = None
 
-        status = build_status_html(myself, build)
-
         if rev:
             assert re.match("^[0-9a-fA-F]*$", rev)
 
@@ -475,7 +468,7 @@ class ViewBuildPage(BuildFarmPage):
             finally:
                 f.close()
         except data.LogFileMissing:
-            log = "Missing log file."
+            log = None
         f = build.read_err()
         try:
             err = f.read()
@@ -511,7 +504,7 @@ class ViewBuildPage(BuildFarmPage):
         yield "<tr><td>Tree:</td><td>%s</td></tr>\n" % self.tree_link(myself, tree)
         yield "<tr><td>Build Revision:</td><td>%s</td></tr>\n" % revision_link(myself, revision, tree)
         yield "<tr><td>Build age:</td><td><div class='age'>%s</div></td></tr>\n" % self.red_age(build.age)
-        yield "<tr><td>Status:</td><td>%s</td></tr>\n" % status
+        yield "<tr><td>Status:</td><td>%s</td></tr>\n" % build_status_html(myself, build)
         yield "<tr><td>Compiler:</td><td>%s</td></tr>\n" % compiler
         yield "<tr><td>CFLAGS:</td><td>%s</td></tr>\n" % cflags
         yield "<tr><td>configure options:</td><td>%s</td></tr>\n" % config
@@ -540,7 +533,7 @@ class ViewBuildPage(BuildFarmPage):
                 yield "<h2>Error log:</h2>"
                 yield make_collapsible_html('action', "Error Output", "\n%s" % err, "stderr-0", "errorlog")
 
-            if log == "":
+            if log is None:
                 yield "<h2>No build log available</h2>"
             else:
                 yield "<h2>Build log:</h2>\n"
@@ -568,45 +561,35 @@ class ViewBuildPage(BuildFarmPage):
 
 class ViewRecentBuildsPage(BuildFarmPage):
 
-    def render(self, myself, tree, sort_by):
+    def render(self, myself, tree, sort_by=None):
         """Draw the "recent builds" view"""
         all_builds = []
 
+        def build_platform(build):
+            try:
+                host = self.buildfarm.hostdb[build.host]
+            except hostdb.NoSuchHost:
+                return "UNKNOWN"
+            else:
+                return host.platform.encode("utf-8")
+
         cmp_funcs = {
-            "revision": lambda a, b: cmp(a[7], b[7]),
-            "age": lambda a, b: cmp(a[0], b[0]),
-            "host": lambda a, b: cmp(a[2], b[2]),
-            "platform": lambda a, b: cmp(a[1], b[1]),
-            "compiler": lambda a, b: cmp(a[3], b[3]),
-            "status": lambda a, b: cmp(a[6], b[6]),
+            "revision": lambda a, b: cmp(a.revision, b.revision),
+            "age": lambda a, b: cmp(a.age, b.age),
+            "host": lambda a, b: cmp(a.host, b.host),
+            "platform": lambda a, b: cmp(build_platform(a), build_platform(b)),
+            "compiler": lambda a, b: cmp(a.compiler, b.compiler),
+            "status": lambda a, b: cmp(a.status(), b.status()),
             }
+
+        if sort_by is None:
+            sort_by = "age"
 
         if sort_by not in cmp_funcs:
             yield "not a valid sort mechanism: %r" % sort_by
             return
 
-        for build in self.buildfarm.get_tree_builds(tree):
-            try:
-                host = self.buildfarm.hostdb[build.host]
-            except hostdb.NoSuchHost:
-                # Skip, at least for now.
-                continue
-            status = build_status_html(myself, build)
-            try:
-                (revision, revision_time) = build.revision_details()
-            except data.MissingRevisionInfo:
-                pass
-            else:
-                all_builds.append([
-                    build.age,
-                    host.platform.encode("utf-8"),
-                    "<a href='%s?function=View+Host;host=%s;tree=%s;compiler=%s#%s'>%s</a>"
-                        % (myself, host.name,
-                           tree, build.compiler, host.name,
-                           host.name),
-                    build.compiler, tree, status, build.status(),
-                    revision_link(myself, revision, tree),
-                    revision_time])
+        all_builds = list(self.buildfarm.get_tree_builds(tree))
 
         all_builds.sort(cmp_funcs[sort_by])
 
@@ -630,13 +613,13 @@ class ViewRecentBuildsPage(BuildFarmPage):
 
         for build in all_builds:
             yield "<tr>"
-            yield "<td>%s</td>" % util.dhm_time(build[0])
-            yield "<td>%s</td>" % build[7]
-            yield "<td>%s</td>" % build[4]
-            yield "<td>%s</td>" % build[1]
-            yield "<td>%s</td>" % build[2]
-            yield "<td>%s</td>" % build[3]
-            yield "<td>%s</td>" % build[5]
+            yield "<td>%s</td>" % util.dhm_time(build.age)
+            yield "<td>%s</td>" % revision_link(myself, build.revision, build.tree)
+            yield "<td>%s</td>" % build.tree
+            yield "<td>%s</td>" % build_platform(build)
+            yield "<td>%s</td>" % host_link(myself, build.host)
+            yield "<td>%s</td>" % build.compiler
+            yield "<td>%s</td>" % build_status_html(myself, build)
             yield "</tr>"
         yield "</tbody></table>"
         yield "</div>"
@@ -658,12 +641,11 @@ class ViewHostPage(BuildFarmPage):
         except data.MissingRevisionInfo:
             revision = None
         warnings = build.err_count()
-        status = build_status_html(myself, build)
         yield "<tr>"
         yield "<td><span class='tree'>" + self.tree_link(myself, build.tree) +"</span>/" + build.compiler + "</td>"
         yield "<td>" + revision_link(myself, revision, build.tree) + "</td>"
         yield "<td><div class='age'>" + self.red_age(build.age) + "</div></td>"
-        yield "<td><div class='status'>%s</div></td>" % status
+        yield "<td><div class='status'>%s</div></td>" % build_status_html(myself, build)
         yield "<td>%s</td>" % warnings
         yield "</tr>"
 
@@ -963,7 +945,7 @@ class BuildFarmApp(object):
                 paths = os.getenv("PATH_INFO").split('/')
                 if paths[1] == "recent":
                     page = ViewRecentBuildsPage(self.buildfarm)
-                    yield "".join(page.render(myself, paths[2], get_param(form, 'sortby') or 'revision'))
+                    yield "".join(page.render(myself, paths[2], get_param(form, 'sortby') or 'age'))
                 elif paths[1] == "host":
                     page = ViewHostPage(self.buildfarm)
                     yield "".join(page.render_html(myself, paths[2]))
