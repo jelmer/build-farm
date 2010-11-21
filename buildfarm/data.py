@@ -152,7 +152,7 @@ def build_status_from_logs(log, err):
         if l.startswith("No space left on device"):
             ret.other_failures.add("disk full")
             continue
-        if l.startswith("maximum runtime exceeded"):
+        if "maximum runtime exceeded" in l: # Ugh.
             ret.other_failures.add("timeout")
             continue
         if l.startswith("PANIC:") or l.startswith("INTERNAL ERROR:"):
