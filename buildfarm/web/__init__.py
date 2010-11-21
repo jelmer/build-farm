@@ -586,7 +586,7 @@ class ViewRecentBuildsPage(BuildFarmPage):
 
         cmp_funcs = {
             "revision": lambda a, b: cmp(a.revision, b.revision),
-            "age": lambda a, b: cmp(a.age, b.age),
+            "age": lambda a, b: cmp(a.upload_time, b.upload_time),
             "host": lambda a, b: cmp(a.host, b.host),
             "platform": lambda a, b: cmp(build_platform(a), build_platform(b)),
             "compiler": lambda a, b: cmp(a.compiler, b.compiler),
