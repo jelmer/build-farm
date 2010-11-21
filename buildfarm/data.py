@@ -427,7 +427,10 @@ class BuildResultStore(object):
         try:
             existing_build = self.get_build(build.tree, build.host, build.compiler, rev)
         except NoSuchBuildError:
-            pass
+            if os.path.exists(new_basename+".log"):
+                os.remove(new_basename+".log")
+            if os.path.exists(new_basename+".err"):
+                os.remove(new_basename+".err")
         else:
             existing_build.remove_logs()
         os.link(build.basename+".log", new_basename+".log")
