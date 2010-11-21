@@ -848,7 +848,7 @@ class RecentCheckinsPage(BuildFarmPage):
             tree, t.scm, t.branch)
         yield "<form method='GET'>"
         yield "Select Author: "
-        yield select(name="author", values=authors, default=author)
+        yield "".join(select(name="author", values=authors, default=author))
         yield "<input type='submit' name='sub_function' value='Refresh'/>"
         yield "<input type='hidden' name='tree' value='%s'/>" % tree
         yield "<input type='hidden' name='function', value='Recent Checkins'/>"
