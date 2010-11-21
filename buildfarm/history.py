@@ -22,7 +22,7 @@
 from cStringIO import StringIO
 
 from dulwich.objects import Tree
-from dulwich.patch import write_blob_diff
+from dulwich.patch import write_tree_diff
 from dulwich.repo import Repo
 
 
@@ -107,8 +107,9 @@ class GitBranch(Branch):
     def diff(self, revision):
         commit = self.repo[revision]
         f = StringIO()
-        changes = self._changes_for(commit)
-        for (oldpath, newpath), (oldmode, newmode), (oldsha, newsha) in changes:
-            write_blob_diff(f, (oldpath, oldmode, self.store[oldsha]),
-                            (newpath, newmode, self.store[newsha]))
+        if len(commit.parents) == 0:
+            parent_tree = Tree().id
+        else:
+            parent_tree = self.store[commit.parents[0]].tree
+        write_tree_diff(f, self.store, parent_tree, commit.tree)
         return (self._revision_from_commit(commit), f.getvalue())
