@@ -260,12 +260,12 @@ class StormCachingBuildFarm(BuildFarm):
         return StormHostDatabase(self._get_store())
 
     def _open_build_results(self):
-        return StormCachingBuildResultStore(os.path.join(self.path, "data", "oldrevs"),
-            self._get_store())
+        path = os.path.join(self.path, "data", "oldrevs")
+        return StormCachingBuildResultStore(path, self._get_store())
 
     def get_host_builds(self, host):
-        return self._get_store().find(StormBuild,
-            StormBuild.host==host).group_by(StormBuild.compiler, StormBuild.tree)
+        result = self._get_store().find(StormBuild, StormBuild.host == host)
+        return result.group_by(StormBuild.compiler, StormBuild.tree)
 
     def get_tree_builds(self, tree):
         result = self._get_store().find(StormBuild, StormBuild.tree == tree)
