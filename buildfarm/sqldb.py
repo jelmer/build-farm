@@ -269,7 +269,8 @@ class StormCachingBuildFarm(BuildFarm):
 
     def get_tree_builds(self, tree):
         result = self._get_store().find(StormBuild, StormBuild.tree == tree)
-        return result.order_by(Desc(StormBuild.upload_time))
+        return result.group_by(StormBuild.host, StormBuild.compiler).order_by(
+            Desc(StormBuild.upload_time))
 
     def get_last_builds(self):
         result = self._get_store().find(StormBuild)
