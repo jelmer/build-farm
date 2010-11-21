@@ -440,13 +440,13 @@ class ViewBuildPage(BuildFarmPage):
         yield "<h2>Older builds:</h2>\n"
 
         yield "<table class='real'>\n"
-        yield "<thead><tr><th>Revision</th><th>Status</th></tr></thead>\n"
+        yield "<thead><tr><th>Revision</th><th>Status</th><th>Age</th></tr></thead>\n"
         yield "<tbody>\n"
 
         for build in old_rev_builds:
-            yield "<tr><td>%s</td><td>%s</td></tr>\n" % (
+            yield "<tr><td>%s</td><td>%s</td><td>%s</td></tr>\n" % (
                 revision_link(myself, build.revision, tree),
-                build_status_html(myself, build))
+                build_status_html(myself, build), util.dhm_time(build.age))
 
         yield "</tbody></table>\n"
 
