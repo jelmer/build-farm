@@ -321,11 +321,6 @@ def make_collapsible_html(type, title, output, id, status=""):
     return ret
 
 
-def diff_pretty(diff):
-    """pretty up a diff -u"""
-    return highlight(diff, DiffLexer(), HtmlFormatter())
-
-
 def web_paths(t, paths):
     """change the given source paths into links"""
     if t.scm == "git":
@@ -405,15 +400,6 @@ def history_row_text(entry, tree, changes):
     yield "Added: %s\n" % added
     yield "Removed: %s\n" % removed
     yield "\n\n%s\n\n\n" % msg
-
-
-def show_diff(diff, text_html):
-    if text_html == "html":
-        diff = cgi.escape(diff)
-        diff = diff_pretty(diff)
-        return "<pre>%s</pre>\n" % diff
-    else:
-        return "%s\n" % diff
 
 
 class BuildFarmPage(object):
@@ -840,7 +826,9 @@ class DiffPage(BuildFarmPage):
         yield "<h2>%s</h2>" % title
         changes = branch.changes_summary(revision)
         yield "".join(history_row_html(myself, entry, t, changes))
-        yield show_diff(diff, "html")
+        diff = cgi.escape(diff)
+        diff = highlight(diff, DiffLexer(), HtmlFormatter())
+        yield "<pre>%s</pre>\n" % diff
 
 
 class RecentCheckinsPage(BuildFarmPage):
@@ -924,7 +912,7 @@ class BuildFarmApp(object):
             (entry, diff) = branch.diff(revision)
             changes = branch.changes_summary(revision)
             yield "".join(history_row_text(entry, tree, changes))
-            yield show_diff(diff, "text")
+            yield "%s\n" % diff
         elif fn_name == 'Text_Summary':
             start_response('200 OK', [('Content-type', 'text/plain')])
             page = ViewSummaryPage(self.buildfarm)
