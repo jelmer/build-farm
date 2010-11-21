@@ -987,10 +987,10 @@ class BuildFarmApp(object):
 if __name__ == '__main__':
     import optparse
     parser = optparse.OptionParser("[options]")
-    parser.add_option("--cachedirname", help="Cache directory name", type=str)
     parser.add_option("--port", help="Port to listen on [localhost:8000]", default="localhost:8000", type=str)
     opts, args = parser.parse_args()
-    buildfarm = CachingBuildFarm(cachedirname=opts.cachedirname)
+    from buildfarm.sqldb import StormCachingBuildFarm
+    buildfarm = StormCachingBuildFarm()
     buildApp = BuildFarmApp(buildfarm)
     from wsgiref.simple_server import make_server
     import mimetypes
