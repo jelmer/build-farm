@@ -56,6 +56,16 @@ HISTORY_HORIZON = 1000
 # this is automatically filled in
 deadhosts = []
 
+def select(name, values, default=None):
+    yield "<select name='%s'>" % name
+    for key in sorted(values):
+        if key == default:
+            yield "<option selected value='%s'>%s</option>" % (key, values[key])
+        else:
+            yield "<option value='%s'>%s</option>" % (key, values[key])
+    yield "</select>"
+
+
 def get_param(form, param):
     """get a param from the request, after sanitizing it"""
     if param not in form:
@@ -838,10 +848,7 @@ class RecentCheckinsPage(BuildFarmPage):
             tree, t.scm, t.branch)
         yield "<form method='GET'>"
         yield "Select Author: "
-        yield "<select name='author'>"
-        for email in sorted(authors):
-            yield "<option value='%s'>%s</option>" % (email, authors[email])
-        yield "</select>"
+        yield select(name="author", values=authors, default=author)
         yield "<input type='submit' name='sub_function' value='Refresh'/>"
         yield "<input type='hidden' name='tree' value='%s'/>" % tree
         yield "<input type='hidden' name='function', value='Recent Checkins'/>"
@@ -858,24 +865,20 @@ class BuildFarmApp(object):
     def __init__(self, buildfarm):
         self.buildfarm = buildfarm
 
-    def main_menu(self):
+    def main_menu(self, tree, host, compiler):
         """main page"""
 
         yield "<form method='GET'>\n"
         yield "<div id='build-menu'>\n"
-        yield "<select name='host'>\n"
-        for  host in self.buildfarm.hostdb.hosts():
-            yield "<option value='%s'>%s -- %s</option>\n" % (
-                host.name, host.platform.encode("utf-8"), host.name)
-        yield "</select>\n"
-        yield "<select name='tree'>\n"
-        for tree, t in self.buildfarm.trees.iteritems():
-            yield "<option value='%s'>%s:%s</option>\n" % (tree, tree, t.branch)
-        yield "</select>\n"
-        yield "<select name='compiler'>\n"
-        for compiler in self.buildfarm.compilers:
-            yield "<option>%s</option>\n" % compiler
-        yield "</select>\n"
+        host_dict = {}
+        for h in self.buildfarm.hostdb.hosts():
+            host_dict[h.name] = "%s -- %s" % (h.platform.encode("utf-8"), h.name)
+        yield "".join(select("host", host_dict, default=host))
+        tree_dict = {}
+        for t in self.buildfarm.trees.values():
+            tree_dict[t.name] = "%s:%s" % (t.name, t.branch)
+        yield "".join(select("tree", tree_dict, default=tree))
+        yield "".join(select("compiler", dict(zip(self.buildfarm.compilers, self.buildfarm.compilers)), default=compiler))
         yield "<br/>\n"
         yield "<input type='submit' name='function' value='View Build'/>\n"
         yield "<input type='submit' name='function' value='View Host'/>\n"
@@ -921,13 +924,13 @@ class BuildFarmApp(object):
             yield "<body>"
 
             yield util.FileLoad(os.path.join(webdir, "header2.html"))
-            yield "".join(self.main_menu())
+            tree = get_param(form, "tree")
+            host = get_param(form, "host")
+            compiler = get_param(form, "compiler")
+            yield "".join(self.main_menu(tree, host, compiler))
             yield util.FileLoad(os.path.join(webdir, "header3.html"))
             if fn_name == "View_Build":
                 plain_logs = (get_param(form, "plain") is not None and get_param(form, "plain").lower() in ("yes", "1", "on", "true", "y"))
-                tree = get_param(form, "tree")
-                host = get_param(form, "host")
-                compiler = get_param(form, "compiler")
                 revision = get_param(form, "revision")
                 checksum = get_param(form, "checksum")
                 page = ViewBuildPage(self.buildfarm)
@@ -940,12 +943,10 @@ class BuildFarmApp(object):
                 yield "".join(page.render(myself, get_param(form, "tree"), get_param(form, "sortby") or "age"))
             elif fn_name == "Recent_Checkins":
                 # validate the tree
-                tree =  get_param(form, "tree")
                 author = get_param(form, 'author')
                 page = RecentCheckinsPage(self.buildfarm)
                 yield "".join(page.render(myself, tree, author))
             elif fn_name == "diff":
-                tree =  get_param(form, "tree")
                 revision = get_param(form, 'revision')
                 page = DiffPage(self.buildfarm)
                 yield "".join(page.render(myself, tree, revision))
