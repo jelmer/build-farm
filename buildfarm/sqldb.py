@@ -54,9 +54,7 @@ class StormBuild(Build):
     compiler = RawStr()
     checksum = RawStr()
     upload_time = Int(name="age")
-    commit = Unicode()
     status_str = RawStr(name="status")
-    commit_revision = RawStr()
     basename = RawStr()
     host_id = Int()
 
@@ -220,12 +218,17 @@ class StormCachingBuildResultStore(BuildResultStore):
             StormBuild.host == host,
             StormBuild.compiler == compiler).order_by(Desc(StormBuild.upload_time))
 
-    def get_build(self, tree, host, compiler, revision):
-        result = self.store.find(StormBuild,
+    def get_build(self, tree, host, compiler, revision=None, checksum=None):
+        expr = [
             StormBuild.tree == tree,
             StormBuild.host == host,
             StormBuild.compiler == compiler,
-            StormBuild.revision == revision).order_by(Desc(StormBuild.upload_time))
+            ]
+        if revision is not None:
+            expr.append(StormBuild.revision == revision)
+        if checksum is not None:
+            expr.append(StormBuild.checksum == checksum)
+        result = self.store.find(StormBuild, *expr).order_by(Desc(StormBuild.upload_time))
         ret = result.first()
         if ret is None:
             raise NoSuchBuildError(tree, host, compiler, revision)

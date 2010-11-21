@@ -104,7 +104,7 @@ def html_build_status(status):
 
 
 def build_status_html(myself, build):
-    return "<a href='%s?function=View+Build;host=%s;tree=%s;compiler=%s;revision=%s'>%s</a>" % (myself, build.host, build.tree, build.compiler, build.revision, html_build_status(build.status()))
+    return "<a href='%s?function=View+Build;host=%s;tree=%s;compiler=%s;revision=%s;checksum=%s'>%s</a>" % (myself, build.host, build.tree, build.compiler, build.revision, html_build_status(build.status()), build.log_checksum())
 
 
 def build_status_vals(status):
@@ -442,24 +442,24 @@ class ViewBuildPage(BuildFarmPage):
 
         yield "</tbody></table>\n"
 
-    def render(self, myself, tree, host, compiler, rev, plain_logs=False):
+    def render(self, myself, tree, host, compiler, rev, checksum=None,
+            plain_logs=False):
         """view one build in detail"""
 
-        uname = ""
-        cflags = ""
-        config = ""
+        uname = None
+        cflags = None
+        config = None
         try:
-            build = self.buildfarm.get_build(tree, host, compiler, rev)
+            build = self.buildfarm.get_build(tree, host, compiler, rev,
+                checksum=checksum)
         except data.NoSuchBuildError:
-            yield "No such build: %s on %s with %s, rev %s" % (tree, host, compiler, rev)
+            yield "No such build: %s on %s with %s, rev %r, checksum %r" % (
+                tree, host, compiler, rev, checksum)
             return
         try:
             (revision, revision_time) = build.revision_details()
         except data.MissingRevisionInfo:
             revision = None
-
-        if rev:
-            assert re.match("^[0-9a-fA-F]*$", rev)
 
         try:
             f = build.read_log()
@@ -500,14 +500,17 @@ class ViewBuildPage(BuildFarmPage):
         yield "<tr><td>Host:</td><td><a href='%s?function=View+Host;host=%s;tree=%s;"\
               "compiler=%s#'>%s</a> - %s</td></tr>\n" %\
                 (myself, host, tree, compiler, host, self.buildfarm.hostdb[host].platform.encode("utf-8"))
-        yield "<tr><td>Uname:</td><td>%s</td></tr>\n" % uname
+        if uname is not None:
+            yield "<tr><td>Uname:</td><td>%s</td></tr>\n" % uname
         yield "<tr><td>Tree:</td><td>%s</td></tr>\n" % self.tree_link(myself, tree)
         yield "<tr><td>Build Revision:</td><td>%s</td></tr>\n" % revision_link(myself, revision, tree)
         yield "<tr><td>Build age:</td><td><div class='age'>%s</div></td></tr>\n" % self.red_age(build.age)
         yield "<tr><td>Status:</td><td>%s</td></tr>\n" % build_status_html(myself, build)
         yield "<tr><td>Compiler:</td><td>%s</td></tr>\n" % compiler
-        yield "<tr><td>CFLAGS:</td><td>%s</td></tr>\n" % cflags
-        yield "<tr><td>configure options:</td><td>%s</td></tr>\n" % config
+        if cflags is not None:
+            yield "<tr><td>CFLAGS:</td><td>%s</td></tr>\n" % cflags
+        if config is not None:
+            yield "<tr><td>configure options:</td><td>%s</td></tr>\n" % config
         yield "</table>\n"
 
         yield "".join(self.show_oldrevs(myself, tree, host, compiler))
@@ -922,8 +925,10 @@ class BuildFarmApp(object):
                 tree = get_param(form, "tree")
                 host = get_param(form, "host")
                 compiler = get_param(form, "compiler")
+                revision = get_param(form, "revision")
+                checksum = get_param(form, "checksum")
                 page = ViewBuildPage(self.buildfarm)
-                yield "".join(page.render(myself, tree, host, compiler, get_param(form, "revision"), plain_logs))
+                yield "".join(page.render(myself, tree, host, compiler, revision, checksum, plain_logs))
             elif fn_name == "View_Host":
                 page = ViewHostPage(self.buildfarm)
                 yield "".join(page.render_html(myself, get_param(form, 'host')))
