@@ -826,9 +826,8 @@ class DiffPage(BuildFarmPage):
         yield "<h2>%s</h2>" % title
         changes = branch.changes_summary(revision)
         yield "".join(history_row_html(myself, entry, t, changes))
-        diff = cgi.escape(diff)
         diff = highlight(diff, DiffLexer(), HtmlFormatter())
-        yield "<pre>%s</pre>\n" % diff
+        yield "<pre>%s</pre>\n" % diff.encode("utf-8")
 
 
 class RecentCheckinsPage(BuildFarmPage):
