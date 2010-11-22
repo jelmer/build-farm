@@ -173,7 +173,8 @@ class StormCachingBuildResultStore(BuildResultStore):
         self.store = store
 
     def __contains__(self, build):
-        return (self._get_by_checksum(build) is not None)
+        return not (self.store.find(StormBuild,
+            Cast(StormBuild.checksum, "TEXT") == build.log_checksum()).is_empty())
 
     def get_previous_revision(self, tree, host, compiler, revision):
         result = self.store.find(StormBuild,
@@ -208,13 +209,9 @@ class StormCachingBuildResultStore(BuildResultStore):
             raise NoSuchBuildError(tree, host, compiler)
         return build.revision
 
-    def _get_by_checksum(self, build):
-        result = self.store.find(StormBuild,
-            Cast(StormBuild.checksum, "TEXT") == build.log_checksum())
-        return result.one()
-
     def upload_build(self, build):
-        existing_build = self._get_by_checksum(build)
+        existing_build = self.store.find(StormBuild,
+            Cast(StormBuild.checksum, "TEXT") == build.log_checksum()).order_by(StormBuild.upload_time).first()
         if existing_build is not None:
             # Already present
             assert build.tree == existing_build.tree
