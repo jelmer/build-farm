@@ -100,20 +100,23 @@ def html_build_status(status):
 
     ostatus = []
     if "panic" in status.other_failures:
-        return span("status panic", "PANIC")
+        ostatus.append(span("status panic", "PANIC"))
     if "disk full" in status.other_failures:
-        return span("status failed", "disk full")
+        ostatus.append(span("status failed", "disk full"))
     if "timeout" in status.other_failures:
-        return span("status failed", "timeout")
+        ostatus.append(span("status failed", "timeout"))
     if "inconsistent test result" in status.other_failures:
         ostatus.append(span("status failed", "unexpected return code"))
     bstatus = "/".join([span_status(s) for s in status.stages])
-    if bstatus == "":
-        bstatus = "?"
-    return "/".join([bstatus] + ostatus)
+    ret = bstatus
+    if ostatus:
+        ret += "(%s)" % ",".join(ostatus)
+    if ret == "":
+        ret = "?"
+    return ret
 
 
-def build_status_html(myself, build):
+def build_link(myself, build):
     params = {
         "host": build.host,
         "tree": build.tree,
@@ -395,7 +398,7 @@ class ViewBuildPage(BuildFarmPage):
         for old_build in old_builds:
             yield "<tr><td>%s</td><td>%s</td><td>%s</td></tr>\n" % (
                 revision_link(myself, old_build.revision, tree),
-                build_status_html(myself, old_build),
+                build_link(myself, old_build),
                 util.dhm_time(old_build.age))
 
         yield "</tbody></table>\n"
@@ -458,7 +461,7 @@ class ViewBuildPage(BuildFarmPage):
         yield "<tr><td>Tree:</td><td>%s</td></tr>\n" % self.tree_link(myself, tree)
         yield "<tr><td>Build Revision:</td><td>%s</td></tr>\n" % revision_link(myself, build.revision, tree)
         yield "<tr><td>Build age:</td><td><div class='age'>%s</div></td></tr>\n" % self.red_age(build.age)
-        yield "<tr><td>Status:</td><td>%s</td></tr>\n" % build_status_html(myself, build)
+        yield "<tr><td>Status:</td><td>%s</td></tr>\n" % build_link(myself, build)
         yield "<tr><td>Compiler:</td><td>%s</td></tr>\n" % compiler
         if cflags is not None:
             yield "<tr><td>CFLAGS:</td><td>%s</td></tr>\n" % cflags
@@ -575,7 +578,7 @@ class ViewRecentBuildsPage(BuildFarmPage):
             yield "<td>%s</td>" % build_platform(build)
             yield "<td>%s</td>" % host_link(myself, build.host)
             yield "<td>%s</td>" % build.compiler
-            yield "<td>%s</td>" % build_status_html(myself, build)
+            yield "<td>%s</td>" % build_link(myself, build)
             yield "</tr>"
         yield "</tbody></table>"
         yield "</div>"
@@ -597,7 +600,7 @@ class ViewHostPage(BuildFarmPage):
         yield "<td><span class='tree'>" + self.tree_link(myself, build.tree) +"</span>/" + build.compiler + "</td>"
         yield "<td>" + revision_link(myself, build.revision, build.tree) + "</td>"
         yield "<td><div class='age'>" + self.red_age(build.age) + "</div></td>"
-        yield "<td><div class='status'>%s</div></td>" % build_status_html(myself, build)
+        yield "<td><div class='status'>%s</div></td>" % build_link(myself, build)
         yield "<td>%s</td>" % warnings
         yield "</tr>"
 
@@ -804,8 +807,7 @@ class HistoryPage(BuildFarmPage):
         yield "<span class=\"label\">Builds: </span>\n"
         builds = self.buildfarm.get_revision_builds(tree.name, entry.revision)
         for build in builds:
-            yield "%s(%s) " % (build_status_html(myself, build),
-                               host_link(myself, build.host))
+            yield "%s(%s) " % (build_link(myself, build), host_link(myself, build.host))
         yield "</div>\n"
 
         yield "</div>\n"
