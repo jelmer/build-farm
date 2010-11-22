@@ -98,19 +98,19 @@ def html_build_status(status):
         else:
             return span("status failed", stage.result)
 
-    ostatus = ""
+    ostatus = []
     if "panic" in status.other_failures:
-        return "/"+span("status panic", "PANIC")
+        return span("status panic", "PANIC")
     if "disk full" in status.other_failures:
-        return "/"+span("status failed", "disk full")
+        return span("status failed", "disk full")
     if "timeout" in status.other_failures:
-        return "/"+span("status failed", "timeout")
+        return span("status failed", "timeout")
     if "inconsistent test result" in status.other_failures:
-        ostatus += "/"+span("status failed", "unexpected return code")
+        ostatus.append(span("status failed", "unexpected return code"))
     bstatus = "/".join([span_status(s) for s in status.stages])
     if bstatus == "":
         bstatus = "?"
-    return bstatus + ostatus
+    return "/".join([bstatus] + ostatus)
 
 
 def build_status_html(myself, build):
