@@ -154,6 +154,7 @@ def subunit_to_buildfarm_result(subunit_result):
     else:
         return "unknown"
 
+
 def format_subunit_reason(reason):
     reason = re.sub("^\[\n+(.*?)\n+\]$", "\\1", reason)
     return "<div class=\"reason\">%s</div>" % reason
@@ -173,16 +174,16 @@ class LogPrettyPrinter(object):
              output = print_log_cc_checker(output)
 
         self.indice += 1
-        return make_collapsible_html('action', actionName, output, self.indice, status)
+        return "".join(make_collapsible_html('action', actionName, output, self.indice, status))
 
     # log is already CGI-escaped, so handle '>' in test name by handling &gt
     def _format_stage(self, m):
         self.indice += 1
-        return make_collapsible_html('test', m.group(1), m.group(2), self.indice, m.group(3))
+        return "".join(make_collapsible_html('test', m.group(1), m.group(2), self.indice, m.group(3)))
 
     def _format_skip_testsuite(self, m):
         self.indice += 1
-        return make_collapsible_html('test', m.group(1), '', self.indice, 'skipped')
+        return "".join(make_collapsible_html('test', m.group(1), '', self.indice, 'skipped'))
 
     def _format_testsuite(self, m):
         testName = m.group(1)
@@ -193,11 +194,11 @@ class LogPrettyPrinter(object):
         else:
             errorReason = ""
         self.indice += 1
-        return make_collapsible_html('test', testName, content+errorReason, self.indice, status)
+        return "".join(make_collapsible_html('test', testName, content+errorReason, self.indice, status))
 
     def _format_test(self, m):
         self.indice += 1
-        return make_collapsible_html('test', m.group(1), m.group(2)+format_subunit_reason(m.group(4)), self.indice, subunit_to_buildfarm_result(m.group(3)))
+        return "".join(make_collapsible_html('test', m.group(1), m.group(2)+format_subunit_reason(m.group(4)), self.indice, subunit_to_buildfarm_result(m.group(3))))
 
     def pretty_print(self, log):
         # do some pretty printing for the actions
@@ -253,7 +254,7 @@ def print_log_cc_checker(input):
         if line.startswith("-- "):
             # got a new entry
             if inEntry:
-                output += make_collapsible_html('cc_checker', title, content, id, status)
+                output += "".join(make_collapsible_html('cc_checker', title, content, id, status))
             else:
                 output += content
 
@@ -267,7 +268,7 @@ def print_log_cc_checker(input):
             (title, status, id) = ("%s %s" % (m.group(1), m.group(4)), m.group(2), m.group(3))
         elif line.startswith("CC_CHECKER STATUS"):
             if inEntry:
-                output += make_collapsible_html('cc_checker', title, content, id, status)
+                output += "".join(make_collapsible_html('cc_checker', title, content, id, status))
 
             inEntry = False
             content = ""
@@ -295,7 +296,7 @@ def make_collapsible_html(type, title, output, id, status=""):
     :param type: the logical type of it. e.g. "test" or "action"
     :param title: the title to be displayed
     """
-    if ((status == "" or "failed" == status.lower())):
+    if status.lower() in ("", "failed"):
         icon = 'icon_hide_16.png'
     else:
         icon = 'icon_unhide_16.png'
@@ -305,17 +306,15 @@ def make_collapsible_html(type, title, output, id, status=""):
 
     # note that we may be inside a <pre>, so we don't put any extra whitespace
     # in this html
-    ret = "<div class='%s unit %s' id='%s-%s'>" % (type, status, type, id)
-    ret += "<a href=\"javascript:handle('%s');\">" % id
-    ret += "<img id='img-%s' name='img-%s' alt='%s' src='%s' />" %(id, id, status, icon)
-    ret += "<div class='%s title'>%s</div></a>" % (type, title)
-    #ret += " "
-    ret += "<div class='%s status %s'>%s</div>" % (type, status, status)
-    ret += "<div class='%s output' id='output-%s'>" % (type, id)
-    if output and len(output):
-        ret += "<pre>%s</pre>>" % (output)
-    ret += "</div></div>"
-    return ret
+    yield "<div class='%s unit %s' id='%s-%s'>" % (type, status, type, id)
+    yield "<a href=\"javascript:handle('%s');\">" % id
+    yield "<img id='img-%s' name='img-%s' alt='%s' src='%s' />" % (id, id, status, icon)
+    yield "<div class='%s title'>%s</div></a>" % (type, title)
+    yield "<div class='%s status %s'>%s</div>" % (type, status, status)
+    yield "<div class='%s output' id='output-%s'>" % (type, id)
+    if output:
+        yield "<pre>%s</pre>" % (output,)
+    yield "</div></div>"
 
 
 def web_paths(t, paths):
@@ -432,8 +431,7 @@ class ViewBuildPage(BuildFarmPage):
             if m:
                 config = m.group(1)
 
-        if err:
-            err = cgi.escape(err)
+        err = cgi.escape(err)
         yield '<h2>Host information:</h2>'
 
         host_web_file = "../web/%s.html" % host
@@ -478,7 +476,7 @@ class ViewBuildPage(BuildFarmPage):
                 yield "<h2>No error log available</h2>\n"
             else:
                 yield "<h2>Error log:</h2>"
-                yield make_collapsible_html('action', "Error Output", "\n%s" % err, "stderr-0", "errorlog")
+                yield "".join(make_collapsible_html('action', "Error Output", "\n%s" % err, "stderr-0", "errorlog"))
 
             if log is None:
                 yield "<h2>No build log available</h2>"
@@ -687,7 +685,6 @@ class ViewSummaryPage(BuildFarmPage):
         return (host_count, broken_count, panic_count)
 
     def render_text(self, myself):
-
         (host_count, broken_count, panic_count) = self._get_counts()
         # for the text report, include the current time
         yield "Build status as of %s\n\n" % time.asctime()
@@ -698,7 +695,6 @@ class ViewSummaryPage(BuildFarmPage):
         for tree in sorted(self.buildfarm.trees.keys()):
             yield "%-12s %-6s %-6s %-6s\n" % (tree, host_count[tree],
                     broken_count[tree], panic_count[tree])
-
         yield "\n"
 
     def render_html(self, myself):
@@ -797,7 +793,6 @@ class HistoryPage(BuildFarmPage):
         for build in builds:
             yield "%s(%s) " % (build_link(myself, build), host_link(myself, build.host))
         yield "</div>\n"
-
         yield "</div>\n"
 
 
@@ -958,7 +953,8 @@ class BuildFarmApp(object):
 if __name__ == '__main__':
     import optparse
     parser = optparse.OptionParser("[options]")
-    parser.add_option("--port", help="Port to listen on [localhost:8000]", default="localhost:8000", type=str)
+    parser.add_option("--port", help="Port to listen on [localhost:8000]",
+        default="localhost:8000", type=str)
     opts, args = parser.parse_args()
     from buildfarm.sqldb import StormCachingBuildFarm
     buildfarm = StormCachingBuildFarm()
