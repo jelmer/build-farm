@@ -699,8 +699,7 @@ class ViewSummaryPage(BuildFarmPage):
 
         (host_count, broken_count, panic_count) = self._get_counts()
         # for the text report, include the current time
-        t = time.gmtime()
-        yield "Build status as of %s\n\n" % t
+        yield "Build status as of %s\n\n" % time.asctime()
 
         yield "Build counts:\n"
         yield "%-12s %-6s %-6s %-6s\n" % ("Tree", "Total", "Broken", "Panic")
