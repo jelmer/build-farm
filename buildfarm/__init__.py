@@ -63,11 +63,11 @@ def read_trees_from_conf(path):
 
 def lcov_extract_percentage(f):
     """Extract the coverage percentage from the lcov file."""
-    for l in f:
-        m = re.search('\<td class="headerItem".*?\>Code\&nbsp\;covered\:\<\/td\>.*?\n.*?\<td class="headerValue".*?\>([0-9.]+) \%', l)
-        if m:
-            return m.group(1)
-    return None
+    m = re.search('\<td class="headerItem".*?\>Code\&nbsp\;covered\:\<\/td\>.*?\n.*?\<td class="headerValue".*?\>([0-9.]+) \%', f.read())
+    if m:
+        return m.group(1)
+    else:
+        return None
 
 
 class BuildFarm(object):
