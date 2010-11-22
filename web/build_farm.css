@@ -70,9 +70,6 @@ a + div.action.status {margin-left: 0.5em;}
 .status.checker { 
         color: rgb(255, 127, 0);
 }
-.status.checker:before { 
-        content: "Checker: ";
-}
 .status.unknown { 
         color: rgb(0, 0, 255);
 }
