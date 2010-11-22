@@ -828,7 +828,7 @@ class RecentCheckinsPage(HistoryPage):
         for entry in branch.log(limit=HISTORY_HORIZON):
             m = re_author.match(entry.author)
             authors[m.group(2)] = m.group(1)
-            if author in ("ALL", "", m.group(2)):
+            if author in (None, "ALL", m.group(2)):
                 interesting.append(entry)
 
         yield "<h2>Recent checkins for %s (%s branch %s)</h2>\n" % (
