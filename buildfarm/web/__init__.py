@@ -353,7 +353,7 @@ class BuildFarmPage(object):
     def red_age(self, age):
         """show an age as a string"""
         if age > self.buildfarm.OLDAGE:
-            return "<span clsas='old'>%s</span>" % util.dhm_time(age)
+            return "<span class='old'>%s</span>" % util.dhm_time(age)
         return util.dhm_time(age)
 
     def tree_link(self, myself, tree):
