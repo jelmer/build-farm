@@ -79,7 +79,7 @@ class StormBuild(Build):
         return BuildStatus.__deserialize__(self.status_str)
 
     def revision_details(self):
-        return (self.revision, None)
+        return self.revision
 
     def log_checksum(self):
         return self.checksum
@@ -221,7 +221,7 @@ class StormCachingBuildResultStore(BuildResultStore):
             assert build.host == existing_build.host
             assert build.compiler == existing_build.compiler
             return existing_build
-        rev, timestamp = build.revision_details()
+        rev = build.revision_details()
         super(StormCachingBuildResultStore, self).upload_build(build)
         new_basename = self.build_fname(build.tree, build.host, build.compiler, rev)
         new_build = StormBuild(new_basename, build.tree, build.host,

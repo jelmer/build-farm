@@ -203,15 +203,12 @@ def build_status_from_logs(log, err):
 
 def revision_from_log(log):
     revid = None
-    timestamp = None
     for l in log:
         if l.startswith("BUILD COMMIT REVISION: "):
             revid = l.split(":", 1)[1].strip()
-        elif l.startswith("BUILD COMMIT TIME"):
-            timestamp = l.split(":", 1)[1].strip()
     if revid is None:
         raise MissingRevisionInfo()
-    return (revid, timestamp)
+    return revid
 
 
 class NoSuchBuildError(Exception):
@@ -294,14 +291,14 @@ class Build(object):
             f.close()
 
     def summary(self):
-        (revid, timestamp) = self.revision_details()
+        revid = self.revision_details()
         status = self.status()
         return BuildSummary(self.host, self.tree, self.compiler, revid, status)
 
     def revision_details(self):
         """get the revision of build
 
-        :return: Tuple with revision id and timestamp (if available)
+        :return: revision id
         """
         f = self.read_log()
         try:
@@ -384,7 +381,7 @@ class BuildResultStore(object):
             if build.revision:
                 rev = build.revision
             else:
-                rev, timestamp = build.revision_details()
+                rev = build.revision_details()
             self.get_build(build.tree, build.host, build.compiler, rev)
         except NoSuchBuildError:
             return False
@@ -427,7 +424,7 @@ class BuildResultStore(object):
         return ret
 
     def upload_build(self, build):
-        (rev, rev_timestamp) = build.revision_details()
+        rev = build.revision_details()
 
         new_basename = self.build_fname(build.tree, build.host, build.compiler, rev)
         try:

@@ -40,14 +40,17 @@ class BuildResultStoreTestBase(object):
             "%s/data/oldrevs/build.mytree.myhost.cc-123" % self.path)
 
     def test_build_remove(self):
-        path = self.create_mock_logfile("tdb", "charis", "cc", "12")
+        path = self.upload_mock_logfile(self.x, "tdb", "charis", "cc", 
+                "BUILD COMMIT REVISION: 12\n")
         build = self.x.get_build("tdb", "charis", "cc", "12")
+        logname = build.basename + ".log"
         build.remove()
-        self.assertFalse(os.path.exists(path))
+        self.assertFalse(os.path.exists(logname))
         self.assertRaises(data.NoSuchBuildError, self.x.get_build, "tdb", "charis", "cc", "12")
 
     def test_build_repr(self):
-        path = self.create_mock_logfile("tdb", "charis", "cc", "12")
+        path = self.upload_mock_logfile(self.x, "tdb", "charis", "cc", 
+            "BUILD COMMIT REVISION: 12\n")
         build = self.x.get_build("tdb", "charis", "cc", "12")
         self.assertEquals("<%s: revision 12 of tdb on charis using cc>" % build.__class__.__name__, repr(build))
 
@@ -55,56 +58,59 @@ class BuildResultStoreTestBase(object):
         self.assertRaises(data.NoSuchBuildError, self.x.get_build, "tdb",
             "charis", "cc", "12")
 
-    def test_build_age_ctime(self):
-        path = self.create_mock_logfile("tdb", "charis", "cc", "12")
-        # Set mtime to something in the past
-        os.utime(path, (5, 5))
+    def test_build_upload_time(self):
+        path = self.upload_mock_logfile(self.x, "tdb", "charis", "cc", 
+                "BUILD COMMIT REVISION: 12\n", mtime=5)
         build = self.x.get_build("tdb", "charis", "cc", "12")
         self.assertEquals(5, build.upload_time)
 
     def test_read_log(self):
-        path = self.create_mock_logfile("tdb", "charis", "cc", "12",
-            contents="This is what a log file looks like.")
+        path = self.upload_mock_logfile(self.x, "tdb", "charis", "cc", 
+            stdout_contents="This is what a log file looks like.\n"
+            "BUILD COMMIT REVISION: 12\n")
         build = self.x.get_build("tdb", "charis", "cc", "12")
-        self.assertEquals("This is what a log file looks like.", build.read_log().read())
+        self.assertEquals("This is what a log file looks like.\n"
+                          "BUILD COMMIT REVISION: 12\n",
+                          build.read_log().read())
 
     def test_read_err(self):
-        self.create_mock_logfile("tdb", "charis", "cc", "12")
-        path = self.create_mock_logfile("tdb", "charis", "cc", "12",
-            kind="stderr",
-            contents="This is what an stderr file looks like.")
+        self.upload_mock_logfile(self.x, "tdb", "charis", "cc",
+            stdout_contents="BUILD COMMIT REVISION: 12\n",
+            stderr_contents="This is what an stderr file looks like.")
         build = self.x.get_build("tdb", "charis", "cc", "12")
-        self.assertEquals("This is what an stderr file looks like.", build.read_err().read())
+        self.assertEquals("This is what an stderr file looks like.",
+                build.read_err().read())
 
     def test_read_err_nofile(self):
-        self.create_mock_logfile("tdb", "charis", "cc", "12")
+        self.upload_mock_logfile(self.x, "tdb", "charis", "cc",
+                stdout_contents="BUILD COMMIT REVISION: 12\n")
         build = self.x.get_build("tdb", "charis", "cc", "12")
         self.assertEquals("", build.read_err().read())
 
     def test_revision_details(self):
-        self.create_mock_logfile("tdb", "charis", "cc", "12", contents="""
+        self.upload_mock_logfile(self.x, "tdb", "charis", "cc", stdout_contents="""
 BUILD COMMIT REVISION: 43
 bla
 BUILD COMMIT TIME: 3 August 2010
 """)
-        build = self.x.get_build("tdb", "charis", "cc", "12")
-        (rev, timestamp) = build.revision_details()
+        build = self.x.get_build("tdb", "charis", "cc", "43")
+        rev = build.revision_details()
         self.assertIsInstance(rev, str)
-        self.assertIsInstance(timestamp, str)
-        self.assertEquals(("43", "3 August 2010"), (rev, timestamp))
+        self.assertEquals("43", rev)
 
     def test_revision_details_no_timestamp(self):
-        self.create_mock_logfile("tdb", "charis", "cc", rev="12", contents="""
+        self.upload_mock_logfile(self.x, "tdb", "charis", "cc", stdout_contents="""
 BUILD COMMIT REVISION: 43
 BUILD REVISION: 42
 BLA
 """)
-        build = self.x.get_build("tdb", "charis", "cc", "12")
-        self.assertEquals(("43", None), build.revision_details())
+        build = self.x.get_build("tdb", "charis", "cc", "43")
+        self.assertEquals("43", build.revision_details())
 
     def test_err_count(self):
-        self.create_mock_logfile("tdb", "charis", "cc", "12")
-        self.create_mock_logfile("tdb", "charis", "cc", "12", kind="stderr", contents="""error1
+        self.upload_mock_logfile(self.x, "tdb", "charis", "cc",
+            stdout_contents="BUILD COMMIT REVISION: 12\n",
+            stderr_contents="""error1
 error2
 error3""")
         build = self.x.get_build("tdb", "charis", "cc", "12")

@@ -108,10 +108,10 @@ class BuildFarmTestBase(object):
         builds = list(self.x.get_last_builds())
         self.assertEquals(2, len(builds))
         self.assertEquals(4200, builds[0].upload_time)
-        self.assertEquals("42", builds[0].revision_details()[0])
+        self.assertEquals("42", builds[0].revision_details())
         self.assertEquals("trivial", builds[0].tree)
         self.assertEquals(1200, builds[1].upload_time)
-        self.assertEquals("12", builds[1].revision_details()[0])
+        self.assertEquals("12", builds[1].revision_details())
         self.assertEquals("other", builds[1].tree)
 
     def test_get_host_builds_empty(self):
@@ -128,8 +128,9 @@ class BuildFarmTestBase(object):
         self.assertEquals("master", tree.branch)
 
     def test_get_build_rev(self):
-        path = self.create_mock_logfile("tdb", "charis", "cc", "12",
-            contents="This is what a log file looks like.")
+        path = self.upload_mock_logfile(self.x.builds, "tdb", "charis", "cc",
+            stdout_contents="This is what a log file looks like.\n"
+            "BUILD COMMIT REVISION: 12\n")
         build = self.x.get_build("tdb", "charis", "cc", "12")
         self.assertEquals("tdb", build.tree)
         self.assertEquals("charis", build.host)

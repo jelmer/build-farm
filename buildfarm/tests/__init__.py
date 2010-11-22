@@ -36,6 +36,7 @@ class BuildFarmTestCase(TestCase):
             err_path = self.create_mock_logfile(tree, host, compiler, kind="stderr", contents=stderr_contents, mtime=mtime)
         build = Build(log_path[:-4], tree, host, compiler)
         store.upload_build(build)
+        return log_path
 
     def create_mock_logfile(self, tree, host, compiler, rev=None,
             kind="stdout", contents="FOO", mtime=None):

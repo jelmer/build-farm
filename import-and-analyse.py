@@ -31,10 +31,10 @@ smtp.connect()
 def check_and_send_mails(tree, host, compiler, cur, old):
     t = buildfarm.trees[tree]
 
-    (cur_rev, cur_rev_timestamp) = cur.revision_details()
+    cur_rev = cur.revision_details()
     cur_status = cur.status()
 
-    (old_rev, old_rev_timestamp) = old.revision_details()
+    old_rev = old.revision_details()
     old_status = old.status()
 
     if not cur_status.regressed_since(old_status):
@@ -102,7 +102,7 @@ for build in buildfarm.get_new_builds():
             continue
 
     try:
-        (rev, rev_timestamp) = build.revision_details()
+        rev = build.revision_details()
     except data.MissingRevisionInfo:
         print "No revision info in %r, skipping" % build
         continue
