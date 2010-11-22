@@ -34,22 +34,6 @@ def load_list(fname):
     return ret
 
 
-def load_hash(fname):
-    """load a hash from a file, using : to separate"""
-    lines = load_list(fname)
-    ret = {}
-    for l in lines:
-        try:
-            (key, value) = l.split(":", 1)
-        except ValueError:
-            pass # Raise error ??
-        else:
-            key = key.rstrip()
-            value = value.lstrip().rstrip("\n")
-            ret[key] = value
-    return ret
-
-
 def FileLoad(filename):
     """read a file into a string"""
     f = open(filename, 'r')
