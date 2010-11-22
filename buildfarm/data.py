@@ -92,11 +92,13 @@ class BuildStatus(object):
         """Check if this build has regressed since another build."""
         if "disk full" in self.other_failures:
             return False
-        if "timeout" in self.other_failures and "timeout" in older.other_failures:
-            # When the timeout happens exactly can differ slightly, so it's okay
-            # if the numbers are a bit different..
+        if ("timeout" in self.other_failures and
+            "timeout" in older.other_failures):
+            # When the timeout happens exactly can differ slightly, so it's
+            # okay if the numbers are a bit different..
             return False
-        if "panic" in self.other_failures and not "panic" in older.other_failures:
+        if ("panic" in self.other_failures and
+            not "panic" in older.other_failures):
             return True
         if len(self.stages) < len(older.stages):
             # Less stages completed
