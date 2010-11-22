@@ -61,13 +61,13 @@ def read_trees_from_conf(path):
     return ret
 
 
-def lcov_extract_percentage(text):
+def lcov_extract_percentage(f):
     """Extract the coverage percentage from the lcov file."""
-    m = re.search('\<td class="headerItem".*?\>Code\&nbsp\;covered\:\<\/td\>.*?\n.*?\<td class="headerValue".*?\>([0-9.]+) \%', text)
-    if m:
-        return m.group(1)
-    else:
-        return None
+    for l in f:
+        m = re.search('\<td class="headerItem".*?\>Code\&nbsp\;covered\:\<\/td\>.*?\n.*?\<td class="headerValue".*?\>([0-9.]+) \%', l)
+        if m:
+            return m.group(1)
+    return None
 
 
 class BuildFarm(object):
@@ -116,20 +116,17 @@ class BuildFarm(object):
 
     def lcov_status(self, tree):
         """get status of build"""
-        from buildfarm import data, util
+        from buildfarm import data
         file = os.path.join(self.lcovdir, self.LCOVHOST, tree, "index.html")
         try:
-            lcov_html = util.FileLoad(file)
+            lcov_html = open(file, 'r')
         except (OSError, IOError):
             # File does not exist
             raise data.NoSuchBuildError(tree, self.LCOVHOST, "lcov")
-
-        perc = lcov_extract_percentage(lcov_html)
-        if perc is None:
-            ret = ""
-        else:
-            ret = perc
-        return perc
+        try:
+            return lcov_extract_percentage(lcov_html)
+        finally:
+            lcov_html.close()
 
     def get_build(self, tree, host, compiler, rev=None, checksum=None):
         if rev is not None:
