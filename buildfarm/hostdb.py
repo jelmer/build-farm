@@ -122,12 +122,6 @@ class HostDatabase(object):
             else:
                 yield "# %s password is unknown\n\n" % host.name
 
-    def create_hosts_list(self):
-        """Write out the web/"""
-
-        for host in self.hosts():
-            yield "%s: %s\n" % (host.name, host.platform.encode("utf-8"))
-
     def commit(self):
         pass
 

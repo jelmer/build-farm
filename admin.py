@@ -38,14 +38,6 @@ def update_rsyncd_secrets():
 
     os.rename(temp_rsyncd_secrets, "../rsyncd.secrets")
 
-def update_hosts_list():
-    temp_hosts_list_file = os.path.join(os.path.dirname(__file__), "web", "hosts.list.new")
-    f = open(temp_hosts_list_file, "w")
-    f.writelines(buildfarm.hostdb.create_hosts_list())
-    f.close()
-
-    os.rename(temp_hosts_list_file, os.path.join(os.path.dirname(__file__), "web/hosts.list"))
-
 dry_run = False
 
 print "Samba Build farm management tool"
@@ -82,7 +74,6 @@ elif op == "remove":
         else:
             buildfarm.hostdb.commit()
             update_rsyncd_secrets()
-            update_hosts_list()
 elif op == "modify":
     hostname = raw_input("Please enter hostname to modify: ")
     try:
@@ -109,7 +100,6 @@ elif op == "modify":
         print "Unknown subcommand %s" % mod_op
         sys.exit(1)
     update_rsyncd_secrets()
-    update_hosts_list()
 elif op == "add":
     hostname = raw_input("Machine hostname: ")
     try:
@@ -193,7 +183,6 @@ Thanks, your friendly Samba build farm administrator <build@samba.org>""" % owne
             s.sendmail(msg["From"], recipients, msg.as_string())
         s.quit()
         update_rsyncd_secrets()
-        update_hosts_list()
 elif op == "info":
     if not args:
         args = [raw_input("Hostname: ")]

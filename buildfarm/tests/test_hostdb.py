@@ -67,19 +67,6 @@ class HostDatabaseTests(object):
         host = self.db.createhost(name="foo", owner=u"Jelmer", owner_email=u"jelmer@samba.org")
         host.update_owner(new_owner=u"Matthieu", new_owner_email=u"mat@samba.org")
 
-    def test_create_hosts_list(self):
-        self.db.createhost(name="foo", owner=u"Jelmer", owner_email=u"jelmer@samba.org",
-            platform=u"Debian")
-        self.db.createhost(name="bla", owner=u"Jelmer", owner_email=u"jelmer@samba.org",
-            platform=u"Fedora")
-        expected = [
-            "foo: Debian\n",
-            "bla: Fedora\n"]
-        expected.sort()
-        got = list(self.db.create_hosts_list())
-        got.sort()
-        self.assertEquals(expected, got)
-
     def test_create_rsync_secrets(self):
         self.db.createhost(name="foo")
         self.db.createhost(name="bla", owner=u"Jelmer", owner_email=u"jelmer@samba.org",
