@@ -17,8 +17,6 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-import re
-
 def load_list(fname):
     """load a list from a file, using : to separate"""
     ret = []
@@ -32,34 +30,6 @@ def load_list(fname):
     finally:
         f.close()
     return ret
-
-
-def FileLoad(filename):
-    """read a file into a string"""
-    f = open(filename, 'r')
-    try:
-        return f.read()
-    finally:
-        f.close()
-
-
-def FileSave(filename, contents):
-    """write a string into a file"""
-    f = open(filename, 'w')
-    try:
-        f.write(contents)
-    finally:
-        f.close()
-
-
-def ChangeExtension(fname, ext):
-    """return a filename with a changed extension"""
-    try:
-        (base, oldext) = fname.rsplit(".", 1)
-    except ValueError:
-        return "%s.%s" % (fname, ext)
-    else:
-        return "%s.%s" % (base, ext)
 
 
 def dhm_time(sec):
@@ -78,16 +48,3 @@ def dhm_time(sec):
     if min != 0:
         return "%dm" % min
     return "%ds" % sec
-
-
-def strip_html(string):
-    """simple html markup stripper"""
-    # get rid of comments
-    string = re.sub("<!\-\-(.*?)\-\->", "", string)
-
-    # and remove tags.
-    count = True
-    while count:
-        (string, count) = re.subn("<(\w+).*?>(.*?)</\\1>", "\\2", string)
-
-    return string

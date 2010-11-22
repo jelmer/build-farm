@@ -128,18 +128,6 @@ def build_link(myself, build):
     return "<a href='%s?function=View+Build;%s'>%s</a>" % (myself, ";".join(["%s=%s" % k for k in params.iteritems()]), html_build_status(build.status()))
 
 
-def build_status_vals(status):
-    """translate a status into a set of int representing status"""
-    status = util.strip_html(status)
-
-    status = status.replace("ok", "0")
-    status = status.replace("-", "0")
-    status = status.replace("?", "0.1")
-    status = status.replace("PANIC", "1")
-
-    return status.split("/")
-
-
 def host_link(myself, host):
     return "<a href='%s?function=View+Host;host=%s'>%s</a>" % (
         myself, host, host)
