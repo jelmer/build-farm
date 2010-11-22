@@ -45,7 +45,7 @@ for build in store.find(StormBuild, StormBuild.revision == None):
         build.remove()
         continue
     try:
-        (revision, revision_time) = revision_from_log(log)
+        revision = revision_from_log(log)
     except MissingRevisionInfo:
         continue
     assert revision
