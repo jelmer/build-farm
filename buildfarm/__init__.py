@@ -94,14 +94,14 @@ class BuildFarm(object):
         return "%s(%r)" % (self.__class__.__name__, self.path)
 
     def _open_build_results(self):
-        from buildfarm import data
+        from buildfarm.build import BuildResultStore
         path = os.path.join(self.path, "data", "oldrevs")
-        return data.BuildResultStore(path)
+        return BuildResultStore(path)
 
     def _open_upload_build_results(self):
-        from buildfarm import data
+        from buildfarm.build import UploadBuildResultStore
         path = os.path.join(self.path, "data", "upload")
-        return data.UploadBuildResultStore(path)
+        return UploadBuildResultStore(path)
 
     def _open_hostdb(self):
         from buildfarm import hostdb
@@ -116,13 +116,13 @@ class BuildFarm(object):
 
     def lcov_status(self, tree):
         """get status of build"""
-        from buildfarm import data
+        from buildfarm.build import NoSuchBuildError
         file = os.path.join(self.lcovdir, self.LCOVHOST, tree, "index.html")
         try:
             lcov_html = open(file, 'r')
         except (OSError, IOError):
             # File does not exist
-            raise data.NoSuchBuildError(tree, self.LCOVHOST, "lcov")
+            raise NoSuchBuildError(tree, self.LCOVHOST, "lcov")
         try:
             return lcov_extract_percentage(lcov_html)
         finally:
@@ -158,13 +158,13 @@ class BuildFarm(object):
         return max([build.upload_time for build in self.get_host_builds(host)])
 
     def get_host_builds(self, host):
-        from buildfarm import data
+        from buildfarm.build import NoSuchBuildError
         ret = []
         for compiler in self.compilers:
             for tree in sorted(self.trees.keys()):
                 try:
                     ret.append(self.get_build(tree, host, compiler))
-                except data.NoSuchBuildError:
+                except NoSuchBuildError:
                     pass
         ret.sort(reverse=True)
         return ret

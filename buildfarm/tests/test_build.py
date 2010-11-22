@@ -20,7 +20,14 @@ import os
 import testtools
 import unittest
 
-from buildfarm import data
+from buildfarm.build import (
+    Build,
+    BuildResultStore,
+    BuildStatus,
+    NoSuchBuildError,
+    UploadBuildResultStore,
+    build_status_from_logs,
+    )
 
 from buildfarm.tests import BuildFarmTestCase
 
@@ -29,7 +36,7 @@ class NonexistantTests(unittest.TestCase):
 
     def test_nonexistant(self):
         self.assertRaises(
-            Exception, data.BuildResultStore, "somedirthatdoesn'texist", None)
+            Exception, BuildResultStore, "somedirthatdoesn'texist", None)
 
 
 class BuildResultStoreTestBase(object):
@@ -46,7 +53,7 @@ class BuildResultStoreTestBase(object):
         logname = build.basename + ".log"
         build.remove()
         self.assertFalse(os.path.exists(logname))
-        self.assertRaises(data.NoSuchBuildError, self.x.get_build, "tdb", "charis", "cc", "12")
+        self.assertRaises(NoSuchBuildError, self.x.get_build, "tdb", "charis", "cc", "12")
 
     def test_build_repr(self):
         path = self.upload_mock_logfile(self.x, "tdb", "charis", "cc", 
@@ -55,7 +62,7 @@ class BuildResultStoreTestBase(object):
         self.assertEquals("<%s: revision 12 of tdb on charis using cc>" % build.__class__.__name__, repr(build))
 
     def test_get_build_nonexistant(self):
-        self.assertRaises(data.NoSuchBuildError, self.x.get_build, "tdb",
+        self.assertRaises(NoSuchBuildError, self.x.get_build, "tdb",
             "charis", "cc", "12")
 
     def test_build_upload_time(self):
@@ -120,7 +127,7 @@ error3""")
         path = self.create_mock_logfile("tdb", "charis", "cc", contents="""
 BUILD COMMIT REVISION: myrev
 """)
-        build = data.Build(path[:-4], "tdb", "charis", "cc")
+        build = Build(path[:-4], "tdb", "charis", "cc")
         self.x.upload_build(build)
         uploaded_build = self.x.get_build("tdb", "charis", "cc", "myrev")
         self.assertEquals(uploaded_build.log_checksum(), build.log_checksum())
@@ -128,14 +135,14 @@ BUILD COMMIT REVISION: myrev
     def test_upload_build_no_rev(self):
         path = self.create_mock_logfile("tdb", "charis", "cc", contents="""
 """)
-        build = data.Build(path[:-4], "tdb", "charis", "cc")
+        build = Build(path[:-4], "tdb", "charis", "cc")
         self.assertRaises(Exception, self.x.upload_build, build)
 
     def test_get_previous_revision(self):
-        self.assertRaises(data.NoSuchBuildError, self.x.get_previous_revision, "tdb", "charis", "cc", "12")
+        self.assertRaises(NoSuchBuildError, self.x.get_previous_revision, "tdb", "charis", "cc", "12")
 
     def test_get_latest_revision_none(self):
-        self.assertRaises(data.NoSuchBuildError, self.x.get_latest_revision, "tdb", "charis", "cc")
+        self.assertRaises(NoSuchBuildError, self.x.get_latest_revision, "tdb", "charis", "cc")
 
     def test_get_old_builds_none(self):
         self.assertEquals([],
@@ -146,13 +153,13 @@ BUILD COMMIT REVISION: myrev
             contents="""
 BUILD COMMIT REVISION: 12
 """)
-        build = data.Build(path[:-4], "tdb", "charis", "cc")
+        build = Build(path[:-4], "tdb", "charis", "cc")
         b1 = self.x.upload_build(build)
         path = self.create_mock_logfile("tdb", "charis", "cc",
             contents="""
 BUILD COMMIT REVISION: 15
 """)
-        build = data.Build(path[:-4], "tdb", "charis", "cc")
+        build = Build(path[:-4], "tdb", "charis", "cc")
         b2 = self.x.upload_build(build)
         path = self.create_mock_logfile("tdb", "charis", "cc",
             contents="""
@@ -167,14 +174,14 @@ class BuildResultStoreTests(BuildFarmTestCase,BuildResultStoreTestBase):
     def setUp(self):
         super(BuildResultStoreTests, self).setUp()
 
-        self.x = data.BuildResultStore(
+        self.x = BuildResultStore(
             os.path.join(self.path, "data", "oldrevs"))
 
 
 class BuildStatusFromLogs(testtools.TestCase):
 
     def parse_logs(self, log, err):
-        return data.build_status_from_logs(StringIO(log), StringIO(err))
+        return build_status_from_logs(StringIO(log), StringIO(err))
 
     def test_nothing(self):
         s = self.parse_logs("", "")
@@ -248,30 +255,30 @@ CC_CHECKER STATUS:	2
 class BuildStatusTest(testtools.TestCase):
 
     def test_cmp_equal(self):
-        a = data.BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 2)])
-        b = data.BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 2)])
+        a = BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 2)])
+        b = BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 2)])
 
         self.assertEquals(cmp(a, b), 0)
 
     def test_cmp_empty(self):
-        self.assertEquals(cmp(data.BuildStatus(), data.BuildStatus()), 0)
+        self.assertEquals(cmp(BuildStatus(), BuildStatus()), 0)
 
     def test_cmp_other_failures(self):
         self.assertEquals(cmp(
-            data.BuildStatus((), set(["foo"])), data.BuildStatus((), set(["foo"]))),
+            BuildStatus((), set(["foo"])), BuildStatus((), set(["foo"]))),
             0)
 
     def test_cmp_intermediate_errors(self):
-        a = data.BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 3)])
-        b = data.BuildStatus([("CONFIGURE", 2), ("TEST", 7), ("CC_CHECKER", 3)])
+        a = BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 3)])
+        b = BuildStatus([("CONFIGURE", 2), ("TEST", 7), ("CC_CHECKER", 3)])
         self.assertEquals(cmp(a, b), 1)
 
     def test_cmp_bigger(self):
-        a = data.BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 3)])
-        b = data.BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 2)])
-        c = data.BuildStatus([("CONFIGURE", 2), ("TEST", 3)])
-        d = data.BuildStatus([], set(["super error"]))
-        e = data.BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 1)], set(["super error"]))
+        a = BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 3)])
+        b = BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 2)])
+        c = BuildStatus([("CONFIGURE", 2), ("TEST", 3)])
+        d = BuildStatus([], set(["super error"]))
+        e = BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 1)], set(["super error"]))
 
         # less stage means smaller, more error/higher error code means smaller as well
         self.assertEquals(cmp(b, a), 1)
@@ -283,11 +290,11 @@ class BuildStatusTest(testtools.TestCase):
         self.assertEquals(cmp(b, e), 1)
 
     def test_cmp_smaller(self):
-        a = data.BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 2)])
-        b = data.BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 1)])
-        c = data.BuildStatus([("CONFIGURE", 2), ("TEST", 3)])
-        d = data.BuildStatus([], set(["super error"]))
-        e = data.BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 1)], set(["super error"]))
+        a = BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 2)])
+        b = BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 1)])
+        c = BuildStatus([("CONFIGURE", 2), ("TEST", 3)])
+        d = BuildStatus([], set(["super error"]))
+        e = BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 1)], set(["super error"]))
 
         # less stage means smaller, more error/higher error code means smaller as well
         self.assertEquals(cmp(a, b), -1)
@@ -299,16 +306,16 @@ class BuildStatusTest(testtools.TestCase):
         self.assertEquals(cmp(e, c), -1)
 
     def test_cmp_with_other_failures(self):
-        d = data.BuildStatus([], set(["super error"]))
-        e = data.BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 1)], set(["super error"]))
+        d = BuildStatus([], set(["super error"]))
+        e = BuildStatus([("CONFIGURE", 2), ("TEST", 3), ("CC_CHECKER", 1)], set(["super error"]))
         self.assertEquals(cmp(d, e), -1)
 
     def test_str(self):
-        a = data.BuildStatus([("CONFIGURE", 3), ("BUILD", 2)])
+        a = BuildStatus([("CONFIGURE", 3), ("BUILD", 2)])
         self.assertEquals("3/2", str(a))
 
     def test_str_other_failures(self):
-        a = data.BuildStatus([("CONFIGURE", 3), ("BUILD", 2)], set(["panic"]))
+        a = BuildStatus([("CONFIGURE", 3), ("BUILD", 2)], set(["panic"]))
         self.assertEquals("panic", str(a))
 
 
@@ -317,8 +324,8 @@ class BuildStatusRegressedSinceTests(testtools.TestCase):
     def assertRegressedSince(self, expected, old_status, new_status):
         (stages1, other_failures1) = old_status
         (stages2, other_failures2) = new_status
-        a = data.BuildStatus(stages1, set(other_failures1))
-        b = data.BuildStatus(stages2, set(other_failures2))
+        a = BuildStatus(stages1, set(other_failures1))
+        b = BuildStatus(stages2, set(other_failures2))
         self.assertEquals(expected, b.regressed_since(a))
 
     def test_same(self):
@@ -380,7 +387,7 @@ class UploadBuildResultStoreTests(UploadBuildResultStoreTestBase,BuildFarmTestCa
     def setUp(self):
         super(UploadBuildResultStoreTests, self).setUp()
 
-        self.x = data.UploadBuildResultStore(
+        self.x = UploadBuildResultStore(
             os.path.join(self.path, "data", "upload"))
 
 

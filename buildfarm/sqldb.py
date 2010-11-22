@@ -21,7 +21,7 @@ from buildfarm import (
     BuildFarm,
     Tree,
     )
-from buildfarm.data import (
+from buildfarm.build import (
     Build,
     BuildResultStore,
     BuildStatus,

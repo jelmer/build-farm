@@ -35,9 +35,12 @@ from collections import defaultdict
 import os
 
 from buildfarm import (
-    data,
     hostdb,
     util,
+    )
+from buildfarm.build import (
+    LogFileMissing,
+    NoSuchBuildError,
     )
 
 import cgi
@@ -400,7 +403,7 @@ class ViewBuildPage(BuildFarmPage):
         try:
             build = self.buildfarm.get_build(tree, host, compiler, rev,
                 checksum=checksum)
-        except data.NoSuchBuildError:
+        except NoSuchBuildError:
             yield "No such build: %s on %s with %s, rev %r, checksum %r" % (
                 tree, host, compiler, rev, checksum)
             return
@@ -410,7 +413,7 @@ class ViewBuildPage(BuildFarmPage):
                 log = f.read()
             finally:
                 f.close()
-        except data.LogFileMissing:
+        except LogFileMissing:
             log = None
         f = build.read_err()
         try:
@@ -720,7 +723,7 @@ class ViewSummaryPage(BuildFarmPage):
             yield "%d</td>" % panic_count[tree]
             try:
                 lcov_status = self.buildfarm.lcov_status(tree)
-            except data.NoSuchBuildError:
+            except NoSuchBuildError:
                 yield "<td></td>"
             else:
                 if lcov_status is not None:

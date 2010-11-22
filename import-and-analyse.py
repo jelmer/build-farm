@@ -10,7 +10,10 @@ some mail chastising the possible culprits when the build fails, based
 on recent commits.
 """
 
-from buildfarm import data
+from buildfarm.build import (
+    MissingRevisionInfo,
+    NoSuchBuildError,
+    )
 from buildfarm.sqldb import StormCachingBuildFarm
 from email.mime.text import MIMEText
 import logging
@@ -97,13 +100,13 @@ for build in buildfarm.get_new_builds():
     if not opts.dry_run:
         try:
             build = buildfarm.builds.upload_build(build)
-        except data.MissingRevisionInfo:
+        except MissingRevisionInfo:
             print "No revision info in %r, skipping" % build
             continue
 
     try:
         rev = build.revision_details()
-    except data.MissingRevisionInfo:
+    except MissingRevisionInfo:
         print "No revision info in %r, skipping" % build
         continue
 
@@ -117,7 +120,7 @@ for build in buildfarm.get_new_builds():
             prev_rev = buildfarm.builds.get_latest_revision(build.tree, build.host, build.compiler)
         else:
             prev_rev = buildfarm.builds.get_previous_revision(build.tree, build.host, build.compiler, rev)
-    except data.NoSuchBuildError:
+    except NoSuchBuildError:
         if opts.verbose >= 1:
             print "Unable to find previous build for %s,%s,%s" % (build.tree, build.host, build.compiler)
         # Can't send a nastygram until there are 2 builds..
@@ -125,7 +128,7 @@ for build in buildfarm.get_new_builds():
         try:
             assert prev_rev is not None
             prev_build = buildfarm.builds.get_build(build.tree, build.host, build.compiler, prev_rev)
-        except data.NoSuchBuildError:
+        except NoSuchBuildError:
             if opts.verbose >= 1:
                 print "Previous build %s has disappeared" % prev_build
         else:

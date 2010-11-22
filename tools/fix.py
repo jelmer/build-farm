@@ -35,6 +35,7 @@ for build in store.find(StormBuild, StormBuild.status_str == None):
     build.status_str = status.__serialize__()
     print "Updating status for %r" % build
 
+
 for build in store.find(StormBuild, StormBuild.revision == None):
     try:
         log = build.read_log()

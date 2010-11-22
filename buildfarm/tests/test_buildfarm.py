@@ -17,9 +17,9 @@
 
 from buildfarm import (
     BuildFarm,
-    data,
     read_trees_from_conf,
     )
+from buildfarm.build import NoSuchBuildError
 from buildfarm.tests import BuildFarmTestCase
 
 import os
@@ -118,7 +118,7 @@ class BuildFarmTestBase(object):
         self.assertEquals([], list(self.x.get_host_builds("myhost")))
 
     def test_lcov_status_none(self):
-        self.assertRaises(data.NoSuchBuildError, self.x.lcov_status, "trivial")
+        self.assertRaises(NoSuchBuildError, self.x.lcov_status, "trivial")
 
     def test_tree(self):
         self.assertEquals("trivial", self.x.trees["trivial"].name)

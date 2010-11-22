@@ -15,13 +15,13 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-from buildfarm.data import (
+from buildfarm.build import (
     Build,
     NoSuchBuildError,
     )
 from buildfarm.tests import BuildFarmTestCase
 from buildfarm.tests.test_buildfarm import BuildFarmTestBase
-from buildfarm.tests.test_data import BuildResultStoreTestBase
+from buildfarm.tests.test_build import BuildResultStoreTestBase
 from buildfarm.tests.test_hostdb import HostDatabaseTests
 from buildfarm.sqldb import (
     StormHostDatabase,
