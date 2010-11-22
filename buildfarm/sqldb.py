@@ -180,7 +180,7 @@ class StormCachingBuildResultStore(BuildResultStore):
             StormBuild.tree == tree,
             StormBuild.host == host,
             StormBuild.compiler == compiler,
-            StormBuild.revision == revision)
+            Cast(StormBuild.revision, "TEXT") == revision)
         cur_build = result.any()
         if cur_build is None:
             raise NoSuchBuildError(tree, host, compiler, revision)
@@ -189,7 +189,7 @@ class StormCachingBuildResultStore(BuildResultStore):
             StormBuild.tree == tree,
             StormBuild.host == host,
             StormBuild.compiler == compiler,
-            StormBuild.revision != revision,
+            Cast(StormBuild.revision, "TEXT") != revision,
             StormBuild.id < cur_build.id)
         result = result.order_by(Desc(StormBuild.id))
         prev_build = result.first()
@@ -210,7 +210,7 @@ class StormCachingBuildResultStore(BuildResultStore):
 
     def _get_by_checksum(self, build):
         result = self.store.find(StormBuild,
-            StormBuild.checksum == build.log_checksum())
+            Cast(StormBuild.checksum, "TEXT") == build.log_checksum())
         return result.one()
 
     def upload_build(self, build):
@@ -304,8 +304,8 @@ class StormCachingBuildFarm(BuildFarm):
 
     def get_revision_builds(self, tree, revision=None):
         return self._get_store().find(StormBuild,
-            StormBuild.tree == tree,
-            StormBuild.revision == revision)
+            Cast(StormBuild.tree, "TEXT") == tree,
+            Cast(StormBuild.revision, "TEXT") == revision)
 
     def commit(self):
         self.store.commit()
