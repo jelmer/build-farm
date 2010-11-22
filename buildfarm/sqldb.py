@@ -40,8 +40,25 @@ try:
 except ImportError:
     import sqlite3
 from storm.database import create_database
+from storm.expr import EXPR, FuncExpr, compile
 from storm.locals import Bool, Desc, Int, Unicode, RawStr
 from storm.store import Store
+
+
+class Cast(FuncExpr):
+    __slots__ = ("column", "type")
+    name = "CAST"
+
+    def __init__(self, column, type):
+        self.column = column
+        self.type = type
+
+@compile.when(Cast)
+def compile_count(compile, cast, state):
+    state.push("context", EXPR)
+    column = compile(cast.column, state)
+    state.pop()
+    return "CAST(%s AS %s)" % (column, cast.type)
 
 
 class StormBuild(Build):
@@ -230,9 +247,9 @@ class StormCachingBuildResultStore(BuildResultStore):
             StormBuild.compiler == compiler,
             ]
         if revision is not None:
-            expr.append(StormBuild.revision == revision)
+            expr.append(Cast(StormBuild.revision, "TEXT") == revision)
         if checksum is not None:
-            expr.append(StormBuild.checksum == checksum)
+            expr.append(Cast(StormBuild.checksum, "TEXT") == checksum)
         result = self.store.find(StormBuild, *expr).order_by(Desc(StormBuild.upload_time))
         ret = result.first()
         if ret is None:
@@ -278,7 +295,7 @@ class StormCachingBuildFarm(BuildFarm):
         return distinct_builds(result.order_by(Desc(StormBuild.upload_time)))
 
     def get_tree_builds(self, tree):
-        result = self._get_store().find(StormBuild, StormBuild.tree == tree)
+        result = self._get_store().find(StormBuild, Cast(StormBuild.tree, "TEXT") == tree)
         return distinct_builds(result.order_by(Desc(StormBuild.upload_time)))
 
     def get_last_builds(self):
