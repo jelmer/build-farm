@@ -285,6 +285,11 @@ class StormCachingBuildFarm(BuildFarm):
         result = self._get_store().find(StormBuild)
         return distinct_builds(result.order_by(Desc(StormBuild.upload_time)))
 
+    def get_revision_builds(self, tree, revision=None):
+        return self._get_store().find(StormBuild,
+            StormBuild.tree == tree,
+            StormBuild.revision == revision)
+
     def commit(self):
         self.store.commit()
 

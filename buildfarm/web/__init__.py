@@ -345,60 +345,6 @@ def web_paths(t, paths):
         raise Exception("Unknown scm %s" % t.scm)
 
 
-def history_row_html(myself, entry, tree, changes):
-    """show one row of history table"""
-    msg = cgi.escape(entry.message)
-    t = time.asctime(time.gmtime(entry.date))
-    age = util.dhm_time(time.time()-entry.date)
-
-    t = t.replace(" ", "&nbsp;")
-
-    yield """
-<div class=\"history_row\">
-    <div class=\"datetime\">
-        <span class=\"date\">%s</span><br />
-        <span class=\"age\">%s ago</span>""" % (t, age)
-    if entry.revision:
-        yield " - <span class=\"revision\">%s</span><br/>" % entry.revision
-        revision_url = "revision=%s" % entry.revision
-    else:
-        revision_url = "author=%s" % entry.author
-    yield """    </div>
-    <div class=\"diff\">
-        <span class=\"html\"><a href=\"%s?function=diff;tree=%s;date=%s;%s\">show diffs</a></span>
-    <br />
-        <span class=\"text\"><a href=\"%s?function=text_diff;tree=%s;date=%s;%s\">download diffs</a></span>
-        <br />
-        <div class=\"history_log_message\">
-            <pre>%s</pre>
-        </div>
-    </div>
-    <div class=\"author\">
-    <span class=\"label\">Author: </span>%s
-    </div>""" % (myself, tree.name, entry.date, revision_url,
-                 myself, tree.name, entry.date, revision_url,
-                 msg, entry.author)
-
-    (added, modified, removed) = changes
-
-    if modified:
-        yield "<div class=\"files\"><span class=\"label\">Modified: </span>"
-        yield web_paths(tree, modified)
-        yield "</div>\n"
-
-    if added:
-        yield "<div class=\"files\"><span class=\"label\">Added: </span>"
-        yield web_paths(tree, added)
-        yield "</div>\n"
-
-    if removed:
-        yield "<div class=\"files\"><span class=\"label\">Removed: </span>"
-        yield web_paths(tree, removed)
-        yield "</div>\n"
-
-    yield "</div>\n"
-
-
 def history_row_text(entry, tree, changes):
     """show one row of history table"""
     msg = cgi.escape(entry.message)
@@ -812,7 +758,69 @@ class ViewSummaryPage(BuildFarmPage):
         yield "</div>"
 
 
-class DiffPage(BuildFarmPage):
+class HistoryPage(BuildFarmPage):
+
+    def history_row_html(self, myself, entry, tree, changes):
+        """show one row of history table"""
+        msg = cgi.escape(entry.message)
+        t = time.asctime(time.gmtime(entry.date))
+        age = util.dhm_time(time.time()-entry.date)
+
+        t = t.replace(" ", "&nbsp;")
+
+        yield """
+    <div class=\"history_row\">
+        <div class=\"datetime\">
+            <span class=\"date\">%s</span><br />
+            <span class=\"age\">%s ago</span>""" % (t, age)
+        if entry.revision:
+            yield " - <span class=\"revision\">%s</span><br/>" % entry.revision
+            revision_url = "revision=%s" % entry.revision
+        else:
+            revision_url = "author=%s" % entry.author
+        yield """    </div>
+        <div class=\"diff\">
+            <span class=\"html\"><a href=\"%s?function=diff;tree=%s;date=%s;%s\">show diffs</a></span>
+        <br />
+            <span class=\"text\"><a href=\"%s?function=text_diff;tree=%s;date=%s;%s\">download diffs</a></span>
+            <br />
+            <div class=\"history_log_message\">
+                <pre>%s</pre>
+            </div>
+        </div>
+        <div class=\"author\">
+        <span class=\"label\">Author: </span>%s
+        </div>""" % (myself, tree.name, entry.date, revision_url,
+                     myself, tree.name, entry.date, revision_url,
+                     msg, entry.author)
+
+        (added, modified, removed) = changes
+
+        if modified:
+            yield "<div class=\"files\"><span class=\"label\">Modified: </span>"
+            yield web_paths(tree, modified)
+            yield "</div>\n"
+
+        if added:
+            yield "<div class=\"files\"><span class=\"label\">Added: </span>"
+            yield web_paths(tree, added)
+            yield "</div>\n"
+
+        if removed:
+            yield "<div class=\"files\"><span class=\"label\">Removed: </span>"
+            yield web_paths(tree, removed)
+            yield "</div>\n"
+
+        yield "<div class=\"builds\">\n"
+        yield "<span class=\"label\">Builds: </span>\n"
+        for build in self.buildfarm.get_revision_builds(tree.name, entry.revision):
+            yield "%s " % build_status_html(myself, build)
+        yield "</div>\n"
+
+        yield "</div>\n"
+
+
+class DiffPage(HistoryPage):
 
     def render(self, myself, tree, revision):
         t = self.buildfarm.trees[tree]
@@ -823,12 +831,12 @@ class DiffPage(BuildFarmPage):
             tree, t.branch, revision)
         yield "<h2>%s</h2>" % title
         changes = branch.changes_summary(revision)
-        yield "".join(history_row_html(myself, entry, t, changes))
+        yield "".join(self.history_row_html(myself, entry, t, changes))
         diff = highlight(diff, DiffLexer(), HtmlFormatter())
         yield "<pre>%s</pre>\n" % diff.encode("utf-8")
 
 
-class RecentCheckinsPage(BuildFarmPage):
+class RecentCheckinsPage(HistoryPage):
 
     limit = 40
 
@@ -856,7 +864,7 @@ class RecentCheckinsPage(BuildFarmPage):
 
         for entry in interesting[:self.limit]:
             changes = branch.changes_summary(entry.revision)
-            yield "".join(history_row_html(myself, entry, t, changes))
+            yield "".join(self.history_row_html(myself, entry, t, changes))
         yield "\n"
 
 
