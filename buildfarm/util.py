@@ -32,6 +32,15 @@ def load_list(fname):
     return ret
 
 
+def FileLoad(filename):
+    """read a file into a string"""
+    f = open(filename, 'r')
+    try:
+        return f.read()
+    finally:
+        f.close()
+
+
 def dhm_time(sec):
     """display a time as days, hours, minutes"""
     days = int(sec / (60*60*24));
