@@ -186,23 +186,20 @@ div.build-section {
 	background:transparent;
 }
 
-.diff_index {
+.gh {
         color: blue;
 }
-.diff_removed {
+.gd {
         color: #a00000;
 }
-.diff_added {
+.gi {
         color: #0a0;
 }
-.diff_fragment_header {
+.gh {
         color: purple;
 }
-.diff_separator {
+.gu {
         color: green;
-}
-.diff_diff {
-        color: red;
 }
 
 .history_row { 
