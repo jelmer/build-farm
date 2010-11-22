@@ -144,16 +144,9 @@ def host_link(myself, host):
 
 def revision_link(myself, revision, tree):
     """return a link to a particular revision"""
-
     if revision is None:
         return "unknown"
-
-    revision = revision.lstrip()
-    rev_short = revision
-    if len(revision) == 40:
-        rev_short = re.sub("(^.{7}).*", "\\1(git)", rev_short)
-
-    return "<a href='%s?function=diff;tree=%s;revision=%s' title='View Diff for %s'>%s</a>" % (myself, tree, revision, revision, rev_short)
+    return "<a href='%s?function=diff;tree=%s;revision=%s' title='View Diff for %s'>%s</a>" % (myself, tree, revision, revision, revision[:7])
 
 
 def subunit_to_buildfarm_result(subunit_result):
@@ -814,7 +807,8 @@ class HistoryPage(BuildFarmPage):
         yield "<div class=\"builds\">\n"
         yield "<span class=\"label\">Builds: </span>\n"
         for build in self.buildfarm.get_revision_builds(tree.name, entry.revision):
-            yield "%s " % build_status_html(myself, build)
+            yield "%s(%s) " % (build_status_html(myself, build),
+                               host_link(myself, build.host))
         yield "</div>\n"
 
         yield "</div>\n"
