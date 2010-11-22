@@ -141,7 +141,9 @@ class BuildFarm(object):
     def get_new_builds(self):
         hostnames = set([host.name for host in self.hostdb.hosts()])
         for build in self.upload_builds.get_new_builds():
-            if build.tree in self.trees and build.compiler in self.compilers and build.host in hostnames:
+            if (build.tree in self.trees and
+                build.compiler in self.compilers and
+                build.host in hostnames):
                 yield build
 
     def get_last_builds(self):
@@ -160,9 +162,12 @@ class BuildFarm(object):
 
     def get_host_builds(self, host):
         from buildfarm import data
+        ret = []
         for compiler in self.compilers:
             for tree in sorted(self.trees.keys()):
                 try:
-                    yield self.get_build(tree, host, compiler)
+                    ret.append(self.get_build(tree, host, compiler))
                 except data.NoSuchBuildError:
                     pass
+        ret.sort(reverse=True)
+        return ret

@@ -240,6 +240,16 @@ class StormCachingBuildResultStore(BuildResultStore):
         return ret
 
 
+def distinct_builds(builds):
+    done = set()
+    for build in builds:
+        key = (build.tree, build.compiler, build.host)
+        if key in done:
+            continue
+        done.add(key)
+        yield build
+
+
 class StormCachingBuildFarm(BuildFarm):
 
     def __init__(self, path=None, store=None, timeout=0.5):
@@ -265,18 +275,15 @@ class StormCachingBuildFarm(BuildFarm):
 
     def get_host_builds(self, host):
         result = self._get_store().find(StormBuild, StormBuild.host == host)
-        return result.group_by(StormBuild.compiler, StormBuild.tree)
+        return distinct_builds(result.order_by(Desc(StormBuild.upload_time)))
 
     def get_tree_builds(self, tree):
         result = self._get_store().find(StormBuild, StormBuild.tree == tree)
-        return result.group_by(StormBuild.host, StormBuild.compiler).order_by(
-            Desc(StormBuild.upload_time))
+        return distinct_builds(result.order_by(Desc(StormBuild.upload_time)))
 
     def get_last_builds(self):
         result = self._get_store().find(StormBuild)
-        return result.group_by(
-            StormBuild.tree, StormBuild.compiler, StormBuild.host).order_by(
-                Desc(StormBuild.upload_time))
+        return distinct_builds(result.order_by(Desc(StormBuild.upload_time)))
 
     def commit(self):
         self.store.commit()
