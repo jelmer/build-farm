@@ -4,12 +4,13 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from buildfarm.data import (
+from buildfarm.build import (
     build_status_from_logs,
     LogFileMissing,
     MissingRevisionInfo,
     revision_from_log,
     )
+from buildfarm.hostdb import NoSuchHost
 
 from buildfarm.sqldb import StormCachingBuildFarm, StormBuild
 
@@ -50,5 +51,11 @@ for build in store.find(StormBuild, StormBuild.revision == None):
     assert revision
     build.revision = revision
     print "Updating revision for %r" % build
+
+for build in store.find(StormBuild, StormBuild.host_id == None):
+    try:
+        build.host_id = buildfarm.hostdb[build.host].id
+    except NoSuchHost, e:
+        print "Unable to find host %s" % e.name
 
 buildfarm.commit()

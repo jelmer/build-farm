@@ -155,7 +155,8 @@ class StormHostDatabase(HostDatabase):
         return self.store.find(StormHost).order_by(StormHost.name)
 
     def __getitem__(self, name):
-        ret = self.store.find(StormHost, StormHost.name==name).one()
+        result = self.store.find(StormHost, Cast(StormHost.name, "TEXT") == Cast(name, "TEXT"))
+        ret = result.one()
         if ret is None:
             raise NoSuchHost(name)
         return ret
@@ -229,6 +230,8 @@ class StormCachingBuildResultStore(BuildResultStore):
         new_build.upload_time = build.upload_time
         new_build.status_str = build.status().__serialize__()
         new_build.basename = new_basename
+        new_build.host_id = self.store.find(
+            StormHost, Cast(StormHost.name, "TEXT") == build.host).one().id
         self.store.add(new_build)
         return new_build
 
