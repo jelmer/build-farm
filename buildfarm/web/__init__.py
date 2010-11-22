@@ -591,14 +591,10 @@ class ViewHostPage(BuildFarmPage):
         yield "<tbody>"
 
     def _render_build_html(self, myself, build):
-        try:
-            (revision, revision_time) = build.revision_details()
-        except data.MissingRevisionInfo:
-            revision = None
         warnings = build.err_count()
         yield "<tr>"
         yield "<td><span class='tree'>" + self.tree_link(myself, build.tree) +"</span>/" + build.compiler + "</td>"
-        yield "<td>" + revision_link(myself, revision, build.tree) + "</td>"
+        yield "<td>" + revision_link(myself, build.revision, build.tree) + "</td>"
         yield "<td><div class='age'>" + self.red_age(build.age) + "</div></td>"
         yield "<td><div class='status'>%s</div></td>" % build_status_html(myself, build)
         yield "<td>%s</td>" % warnings
