@@ -803,7 +803,8 @@ class HistoryPage(BuildFarmPage):
 
         yield "<div class=\"builds\">\n"
         yield "<span class=\"label\">Builds: </span>\n"
-        for build in self.buildfarm.get_revision_builds(tree.name, entry.revision):
+        builds = self.buildfarm.get_revision_builds(tree.name, entry.revision)
+        for build in builds:
             yield "%s(%s) " % (build_status_html(myself, build),
                                host_link(myself, build.host))
         yield "</div>\n"

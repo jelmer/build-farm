@@ -1,4 +1,5 @@
 #!/usr/bin/perl -w
+exec("/usr/bin/python", "/home/build/master/web/build.cgi", @ARGV);
 # This CGI script presents the results of the build_farm build
 #
 # Copyright (C) Andrew Tridgell <tridge@samba.org>     2001-2005
