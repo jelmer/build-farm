@@ -26,6 +26,7 @@ import resource
 
 resource.setrlimit(resource.RLIMIT_RSS, (300000, 300000))
 resource.setrlimit(resource.RLIMIT_DATA, (300000, 300000))
+resource.setrlimit(resource.RLIMIT_CPU, (60, 60))
 
 handler = wsgiref.handlers.CGIHandler()
 CGI_DEBUG = False
