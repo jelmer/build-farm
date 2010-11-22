@@ -336,7 +336,7 @@ class UploadBuildResultStore(object):
         """
         self.path = path
 
-    def get_new_builds(self):
+    def get_all_builds(self):
         for name in os.listdir(self.path):
             try:
                 (build, tree, host, compiler, extension) = name.split(".")

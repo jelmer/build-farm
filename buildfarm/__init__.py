@@ -137,7 +137,7 @@ class BuildFarm(object):
 
     def get_new_builds(self):
         hostnames = set([host.name for host in self.hostdb.hosts()])
-        for build in self.upload_builds.get_new_builds():
+        for build in self.upload_builds.get_all_builds():
             if (build.tree in self.trees and
                 build.compiler in self.compilers and
                 build.host in hostnames):
