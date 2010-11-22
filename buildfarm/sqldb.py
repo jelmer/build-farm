@@ -74,6 +74,8 @@ class StormBuild(Build):
     status_str = RawStr(name="status")
     basename = RawStr()
     host_id = Int()
+    tree_id = Int()
+    compiler_id = Int()
 
     def status(self):
         return BuildStatus.__deserialize__(self.status_str)
@@ -341,15 +343,19 @@ CREATE TABLE IF NOT EXISTS host (
 CREATE TABLE IF NOT EXISTS build (
     id integer primary key autoincrement,
     tree blob not null,
+    tree_id int,
     revision blob,
     host blob not null,
     host_id integer,
     compiler blob not null,
+    compiler_id int,
     checksum blob,
     age int,
     status blob,
     basename blob,
-    FOREIGN KEY (host_id) REFERENCES host (id)
+    FOREIGN KEY (host_id) REFERENCES host (id),
+    FOREIGN KEY (tree_id) REFERENCES tree (id),
+    FOREIGN KEY (compiler_id) REFERENCES compiler (id)
 );""", noresult=True)
     db.execute("CREATE UNIQUE INDEX IF NOT EXISTS unique_checksum ON build (checksum);", noresult=True)
     db.execute("""
@@ -360,7 +366,20 @@ CREATE TABLE IF NOT EXISTS tree (
     branch blob,
     subdir blob,
     repo blob
-    );""", noresult=True)
+    );
+    """, noresult=True)
+    db.execute("""
+CREATE UNIQUE INDEX IF NOT EXISTS unique_tree_name ON tree(name);
+""", noresult=True)
+    db.execute("""
+CREATE TABLE IF NOT EXISTS compiler (
+    id integer primary key autoincrement,
+    name blob not null
+    );
+    """, noresult=True)
+    db.execute("""
+CREATE UNIQUE INDEX IF NOT EXISTS unique_compiler_name ON compiler(name);
+""", noresult=True)
 
 
 def memory_store():
