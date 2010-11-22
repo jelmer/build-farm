@@ -345,6 +345,11 @@ class BuildStatusRegressedSinceTests(testtools.TestCase):
             ([("CONFIGURE", 0), ("BUILD", 0), ("TEST", 0), ("INSTALL", 1)], []),
             ([("CONFIGURE", 0), ("BUILD", 0), ("TEST", 0), ("INSTALL", 0)], []))
 
+    def test_no_longer_inconsistent(self):
+        self.assertRegressedSince(
+            False,
+            ([("CONFIGURE", 0)], ["inconsistent test result"]),
+            ([("CONFIGURE", 0)], []))
 
 
 class UploadBuildResultStoreTestBase(object):
