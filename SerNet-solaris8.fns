@@ -13,6 +13,18 @@ SAMBA_MAXTIME=18000
 
 LD_LIBRARY_PATH=/usr/local/ssl/lib:/usr/local/lib
 export MAXTIME TORTURE_MAXTIME SMBD_MAXTIME SAMBA_MAXTIME LD_LIBRARY_PATH
+PREHOOKS="configure"
+
+prehook_configure()
+{
+case "$tree" in
+	samba_4*)
+	(cd ${builddir}/..; gpatch -p 1 <$HOME/build_farm/patch
+		;;
+	*)
+		;;
+esac
+}
 
 compilers="cc gcc"
 
