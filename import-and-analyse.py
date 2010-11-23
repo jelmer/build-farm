@@ -138,7 +138,7 @@ for build in buildfarm.get_new_builds():
 
     if not opts.dry_run:
         # When the new web script is introduced, kill the build here:
-        # build.remove()
+        build.remove()
         buildfarm.commit()
 
 smtp.quit()
