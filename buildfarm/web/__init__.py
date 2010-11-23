@@ -128,7 +128,7 @@ def build_uri(myself, build):
         }
     if build.revision:
         params["revision"] = build.revision
-    return "%s?function=View+Build;%s'>%s</a>" % (myself, ";".join(["%s=%s" % k for k in params.iteritems()]))
+    return "%s?function=View+Build;%s" % (myself, ";".join(["%s=%s" % k for k in params.iteritems()]))
 
 
 def build_link(myself, build):
