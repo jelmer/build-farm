@@ -135,9 +135,11 @@ def build_link(myself, build):
     return "<a href='%s'>%s</a>" % (build_uri(myself, build), html_build_status(build.status()))
 
 
+def host_uri(myself, host):
+    return "%s?function=View+Host;host=%s" % (myself, host)
+
 def host_link(myself, host):
-    return "<a href='%s?function=View+Host;host=%s'>%s</a>" % (
-        myself, host, host)
+    return "<a href='%s'>%s</a>" % (host_uri(myself, host), host)
 
 
 def revision_link(myself, revision, tree):

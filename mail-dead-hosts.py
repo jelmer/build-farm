@@ -18,6 +18,7 @@
 #
 
 from buildfarm.sqldb import StormCachingBuildFarm
+from buildfarm.web import host_uri
 import optparse
 import smtplib
 from email.MIMEText import MIMEText
@@ -53,13 +54,12 @@ If you no longer wish your host to participate in the Samba Build
 Farm, then please let us know so we can remove its records.
 
 You can see the summary for your host at:
-http://build.samba.org/?function=View+Host;host=%s
 
 Thanks,
 
 The Build Farm administration team.
 
-""" % (host.name, last_update, host.name)
+""" % (host.name, last_update, host_uri("http://build.samba.org/build.cgi", host.name))
 
     msg = MIMEText(body)
 
