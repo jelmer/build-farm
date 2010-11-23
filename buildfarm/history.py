@@ -69,6 +69,8 @@ class GitBranch(Branch):
             message=commit.message)
 
     def log(self, from_rev=None, exclude_revs=None, limit=None):
+        if exclude_revs is None:
+            exclude_revs = set()
         if from_rev is None:
             try:
                 commit = self.repo["refs/heads/%s" % self.branch]
@@ -84,11 +86,13 @@ class GitBranch(Branch):
              done.add(commit.id)
              if len(done) >= limit:
                  return
+             exclude_revs.add(commit.id)
              # FIXME: Add sorted by commit_time
              for p in commit.parents:
-                 if exclude_revs is not None and p in exclude_revs:
+                 if p in exclude_revs:
                      continue
                  pending_commits.append(p)
+                 exclude_revs.add(p)
 
     def changes_summary(self, revision):
         commit = self.repo[revision]
