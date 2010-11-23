@@ -896,7 +896,8 @@ class BuildFarmApp(object):
             page = ViewSummaryPage(self.buildfarm)
             yield "".join(page.render_text(myself))
         else:
-            start_response('200 OK', [('Content-type', 'text/html')])
+            start_response('200 OK', [
+                ('Content-type', 'text/html; charset=utf-8')])
 
             yield "<html>\n"
             yield "  <head>\n"
