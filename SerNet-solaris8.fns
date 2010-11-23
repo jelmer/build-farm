@@ -2,10 +2,10 @@ per_run_hook
 
 global_lock
 
-MAXTIME=36000
+MAXTIME=42200
 TORTURE_MAXTIME=3600
-SMBD_MAXTIME=18000
-SAMBA_MAXTIME=18000
+SMBD_MAXTIME=42200
+SAMBA_MAXTIME=42200
 
 # this is needed because python depends on openssl for some modules like hashlib
 # that in turn samba pretty much depends on
