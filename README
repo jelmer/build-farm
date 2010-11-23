@@ -11,6 +11,6 @@ To set it up on a new box you need to do this:
    in ~build/build_farm/build_test.settings.local
 5) arrange for ~build/build_farm/build_test to be run regularly
    from cron
-6) add the host to svn://svn.samba.org/home/svn/build-farm/trunk/web/hosts.list
+6) add the host to the buildfarm using admin.py.
 7) if desired, create a HOSTNAME.fns file that defines what gets built on
    build.samba.org
