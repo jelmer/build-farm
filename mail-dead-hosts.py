@@ -41,7 +41,7 @@ for host in hosts:
 
     body = """
 Your host %s has been part of the Samba Build farm, hosted
-at http://build.samba.org.
+at http://build.samba.org/.
 
 Sadly however we have not heard from it since %s.
 

@@ -15,6 +15,7 @@ from buildfarm.build import (
     NoSuchBuildError,
     )
 from buildfarm.sqldb import StormCachingBuildFarm
+from buildfarm.web import build_uri
 from email.mime.text import MIMEText
 import logging
 import optparse
@@ -31,8 +32,8 @@ buildfarm = StormCachingBuildFarm(timeout=40.0)
 smtp = smtplib.SMTP()
 smtp.connect()
 
-def check_and_send_mails(tree, host, compiler, cur, old):
-    t = buildfarm.trees[tree]
+def check_and_send_mails(cur, old):
+    t = buildfarm.trees[cur.tree]
 
     cur_rev = cur.revision_details()
     cur_status = cur.status()
@@ -67,13 +68,13 @@ Tree %(tree)s is %(scm)s branch %(branch)s.
 Build status for new revision %(cur_rev)s is %(cur_status)s
 Build status for old revision %(old_rev)s was %(old_status)s
 
-See http://build.samba.org/?function=View+Build;host=%(host)s;tree=%(tree)s;compiler=%(compiler)s
+See %s 
 
 The build may have been broken by one of the following commits:
 
 %(change_log)s
     """ % {
-        "tree": tree, "host": host, "compiler": compiler,
+        "tree": cur.tree, "host": cur.host, "compiler": cur.compiler,
         "change_log": change_log,
         "scm": t.scm,
         "branch": t.branch,
@@ -81,10 +82,11 @@ The build may have been broken by one of the following commits:
         "old_rev": old_rev,
         "cur_status": cur_status,
         "old_status": old_status,
+        "build_link": build_uri("http://build.samba.org/build.cgi", cur)
         }
 
     msg = MIMEText(body)
-    msg["Subject"] = "BUILD of %s:%s BROKEN on %s with %s AT REVISION %s" % (tree, t.branch, host, compiler, cur_rev)
+    msg["Subject"] = "BUILD of %s:%s BROKEN on %s with %s AT REVISION %s" % (cur.tree, t.branch, cur.host, cur.compiler, cur_rev)
     msg["From"] = "\"Build Farm\" <build@samba.org>"
     msg["To"] = ",".join(recipients)
     if not opts.dry_run:
@@ -132,7 +134,7 @@ for build in buildfarm.get_new_builds():
             if opts.verbose >= 1:
                 print "Previous build %s has disappeared" % prev_build
         else:
-            check_and_send_mails(build.tree, build.host, build.compiler, build, prev_build)
+            check_and_send_mails(build, prev_build)
 
     if not opts.dry_run:
         # When the new web script is introduced, kill the build here:

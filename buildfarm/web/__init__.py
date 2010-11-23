@@ -119,7 +119,7 @@ def html_build_status(status):
     return ret
 
 
-def build_link(myself, build):
+def build_uri(myself, build):
     params = {
         "host": build.host,
         "tree": build.tree,
@@ -128,7 +128,11 @@ def build_link(myself, build):
         }
     if build.revision:
         params["revision"] = build.revision
-    return "<a href='%s?function=View+Build;%s'>%s</a>" % (myself, ";".join(["%s=%s" % k for k in params.iteritems()]), html_build_status(build.status()))
+    return "%s?function=View+Build;%s'>%s</a>" % (myself, ";".join(["%s=%s" % k for k in params.iteritems()]))
+
+
+def build_link(myself, build):
+    return "<a href='%s'>%s</a>" % (build_uri(myself, build), html_build_status(build.status()))
 
 
 def host_link(myself, host):
