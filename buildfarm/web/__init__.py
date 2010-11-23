@@ -128,7 +128,8 @@ def build_uri(myself, build):
         }
     if build.revision:
         params["revision"] = build.revision
-    return "%s?function=View+Build;%s" % (myself, ";".join(["%s=%s" % k for k in params.iteritems()]))
+    return "%s?function=View+Build;%s" % (
+        myself, ";".join(["%s=%s" % k for k in params.iteritems()]))
 
 
 def build_link(myself, build):
@@ -142,11 +143,16 @@ def host_link(myself, host):
     return "<a href='%s'>%s</a>" % (host_uri(myself, host), host)
 
 
+def revision_uri(myself, revision, tree):
+    return "%s?function=diff;tree=%s;revision=%s" % (myself, tree, revision)
+
+
 def revision_link(myself, revision, tree):
     """return a link to a particular revision"""
     if revision is None:
         return "unknown"
-    return "<a href='%s?function=diff;tree=%s;revision=%s' title='View Diff for %s'>%s</a>" % (myself, tree, revision, revision, revision[:7])
+    return "<a href='%s' title='View Diff for %s'>%s</a>" % (
+        revision_uri(myself, revision, tree), revision, revision[:7])
 
 
 def subunit_to_buildfarm_result(subunit_result):
