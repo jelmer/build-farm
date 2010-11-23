@@ -26,6 +26,8 @@ from buildfarm.build import (
     BuildResultStore,
     BuildStatus,
     NoSuchBuildError,
+    Test,
+    TestResult,
     )
 from buildfarm.hostdb import (
     Host,
@@ -41,7 +43,7 @@ except ImportError:
     import sqlite3
 from storm.database import create_database
 from storm.expr import EXPR, FuncExpr, compile
-from storm.locals import Bool, Desc, Int, Unicode, RawStr
+from storm.locals import Bool, Desc, Int, RawStr, Reference, Unicode
 from storm.store import Store
 
 
@@ -325,6 +327,24 @@ class StormTree(Tree):
     scm = RawStr()
 
 
+class StormTest(Test):
+    __storm_table__ = "test"
+
+    id = Int(primary=True)
+    name = RawStr()
+
+
+class StormTestResult(TestResult):
+    __storm_table__ = "test_result"
+
+    id = Int(primary=True)
+    build_id = Int(name="build")
+    build = Reference(build_id, StormBuild)
+
+    test_id = Int(name="test")
+    test = Reference(test_id, StormTest)
+
+
 def setup_schema(db):
     db.execute("PRAGMA foreign_keys = 1;", noresult=True)
     db.execute("""
@@ -383,6 +403,19 @@ CREATE TABLE IF NOT EXISTS compiler (
     db.execute("""
 CREATE UNIQUE INDEX IF NOT EXISTS unique_compiler_name ON compiler(name);
 """, noresult=True)
+    db.execute("""
+CREATE TABLE IF NOT EXISTS test (
+    id integer primary key autoincrement,
+    name text not null);
+    """, noresult=True)
+    db.execute("CREATE UNIQUE INDEX IF NOT EXISTS test_name ON test(name);",
+        noresult=True)
+    db.execute("""CREATE TABLE IF NOT EXISTS test_result (
+        build int,
+        test int,
+        result int
+        );""", noresult=True)
+    db.execute("""CREATE UNIQUE INDEX IF NOT EXISTS build_test_result ON test_result(build, test);""", noresult=True)
 
 
 def memory_store():

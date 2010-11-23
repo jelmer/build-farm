@@ -29,6 +29,21 @@ import re
 import time
 
 
+class Test(object):
+
+    def __init__(self, name):
+        self.name = name
+
+
+
+class TestResult(object):
+
+    def __init__(self, build, test, result):
+        self.build = build
+        self.test = test
+        self.result = result
+
+
 class BuildSummary(object):
 
     def __init__(self, host, tree, compiler, revision, status):
