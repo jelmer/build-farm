@@ -797,7 +797,7 @@ class HistoryPage(BuildFarmPage):
             for build in builds:
                 yield "%s(%s) " % (build_link(myself, build), host_link(myself, build.host))
             yield "</div>\n"
-            yield "</div>\n"
+        yield "</div>\n"
 
 
 class DiffPage(HistoryPage):
