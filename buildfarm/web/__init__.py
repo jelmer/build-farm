@@ -790,13 +790,14 @@ class HistoryPage(BuildFarmPage):
             yield web_paths(tree, removed)
             yield "</div>\n"
 
-        yield "<div class=\"builds\">\n"
-        yield "<span class=\"label\">Builds: </span>\n"
-        builds = self.buildfarm.get_revision_builds(tree.name, entry.revision)
-        for build in builds:
-            yield "%s(%s) " % (build_link(myself, build), host_link(myself, build.host))
-        yield "</div>\n"
-        yield "</div>\n"
+        builds = list(self.buildfarm.get_revision_builds(tree.name, entry.revision))
+        if builds:
+            yield "<div class=\"builds\">\n"
+            yield "<span class=\"label\">Builds: </span>\n"
+            for build in builds:
+                yield "%s(%s) " % (build_link(myself, build), host_link(myself, build.host))
+            yield "</div>\n"
+            yield "</div>\n"
 
 
 class DiffPage(HistoryPage):
