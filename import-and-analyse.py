@@ -100,17 +100,18 @@ for build in buildfarm.get_new_builds():
         continue
 
     if not opts.dry_run:
+        old_build = build
         try:
-            build = buildfarm.builds.upload_build(build)
+            build = buildfarm.builds.upload_build(old_build)
         except MissingRevisionInfo:
             print "No revision info in %r, skipping" % build
             continue
-
-    try:
-        rev = build.revision_details()
-    except MissingRevisionInfo:
-        print "No revision info in %r, skipping" % build
-        continue
+    else:
+        try:
+            rev = build.revision_details()
+        except MissingRevisionInfo:
+            print "No revision info in %r, skipping" % build
+            continue
 
     if opts.verbose >= 2:
         print "%s... " % build,
@@ -137,8 +138,7 @@ for build in buildfarm.get_new_builds():
             check_and_send_mails(build, prev_build)
 
     if not opts.dry_run:
-        # When the new web script is introduced, kill the build here:
-        build.remove()
+        old_build.remove()
         buildfarm.commit()
 
 smtp.quit()
