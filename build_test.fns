@@ -13,6 +13,7 @@ SMBD_MAXTIME=18000 # 5 hours for a samba process ..
 MAXMEM=100000
 RUN_FROM_BUILD_FARM=yes
 export RUN_FROM_BUILD_FARM
+export MAXTIME SMBD_MAXTIME
 
 deptrees="";
 
