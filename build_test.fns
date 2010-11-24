@@ -344,7 +344,7 @@ action_configure() {
 		return $cstatus;
 	fi
 
-	echo "CFLAGS=-g $CFLAGS"
+	echo "CFLAGS=$CFLAGS"
 	echo configure options: $config_and_prefix
 	echo CC="$CCACHE $compiler" $srcdir/configure $config_and_prefix
 
