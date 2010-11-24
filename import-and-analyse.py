@@ -19,6 +19,7 @@ from buildfarm.web import build_uri
 from email.mime.text import MIMEText
 import logging
 import optparse
+import resource
 import smtplib
 
 parser = optparse.OptionParser("import-and-analyse [options]")
@@ -26,6 +27,9 @@ parser.add_option("--dry-run", help="Will cause the script to send output to std
 parser.add_option("--verbose", help="Be verbose", action="count")
 
 (opts, args) = parser.parse_args()
+
+resource.setrlimit(resource.RLIMIT_RSS, (300000, 300000))
+resource.setrlimit(resource.RLIMIT_DATA, (300000, 300000))
 
 buildfarm = StormCachingBuildFarm(timeout=40.0)
 
