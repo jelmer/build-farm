@@ -106,12 +106,12 @@ for build in buildfarm.get_new_builds():
         except MissingRevisionInfo:
             print "No revision info in %r, skipping" % build
             continue
-    else:
-        try:
-            rev = build.revision_details()
-        except MissingRevisionInfo:
-            print "No revision info in %r, skipping" % build
-            continue
+
+    try:
+        rev = build.revision_details()
+    except MissingRevisionInfo:
+        print "No revision info in %r, skipping" % build
+        continue
 
     if opts.verbose >= 2:
         print "%s... " % build,
