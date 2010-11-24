@@ -8,6 +8,7 @@
 
 # default maximum runtime for any command
 MAXTIME=25200 # 7 hours
+SMBD_MAXTIME=18000 # 5 hours for a samba process ..
 # default maximum memory size (100M) for any command
 MAXMEM=100000
 RUN_FROM_BUILD_FARM=yes
