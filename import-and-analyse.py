@@ -68,7 +68,7 @@ Tree %(tree)s is %(scm)s branch %(branch)s.
 Build status for new revision %(cur_rev)s is %(cur_status)s
 Build status for old revision %(old_rev)s was %(old_status)s
 
-See %s 
+See %(build_link)s
 
 The build may have been broken by one of the following commits:
 
