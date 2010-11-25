@@ -169,6 +169,9 @@ def build_status_from_logs(log, err):
         if l.startswith("No space left on device"):
             ret.other_failures.add("disk full")
             continue
+        if "Maximum time expired in timelimit" in l: # Ugh.
+            ret.other_failures.add("timeout")
+            continue
         if "maximum runtime exceeded" in l: # Ugh.
             ret.other_failures.add("timeout")
             continue
