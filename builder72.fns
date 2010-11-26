@@ -1,0 +1,8 @@
+CFLAGS="-g $CFLAGS"
+export CFLAGS
+MAXTIME=32400 # 9 hours
+SMBD_MAXTIME=25200 # 7 hours for a samba process ..
+# default maximum memory size (100M) for any command
+export MAXTIME SMBD_MAXTIME
+
+. generic.fns
