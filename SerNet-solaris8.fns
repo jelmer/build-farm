@@ -26,6 +26,8 @@ case "$tree" in
 esac
 }
 
+CFLAGS="-g $CFLAGS"
+export CFLAGS
 compilers="cc gcc"
 
 for compiler in $compilers; do
