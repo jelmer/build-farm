@@ -177,9 +177,19 @@ class StormCachingBuildResultStore(BuildResultStore):
 
         self.store = store
 
+    def get_by_checksum(self, checksum):
+        result = self.store.find(StormBuild, Cast(StormBuild.checksum, "TEXT") == checksum)
+        ret = result.one()
+        if ret is None:
+            raise NoSuchBuildError(None, None, None, None)
+        return ret
+
     def __contains__(self, build):
-        return not (self.store.find(StormBuild,
-            Cast(StormBuild.checksum, "TEXT") == build.log_checksum()).is_empty())
+        try:
+            self.get_by_checksum(build.log_checksum())
+            return True
+        except NoSuchBuildError:
+            return False
 
     def get_previous_revision(self, tree, host, compiler, revision):
         result = self.store.find(StormBuild,
