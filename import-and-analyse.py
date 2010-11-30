@@ -50,10 +50,11 @@ def check_and_send_mails(cur, old):
             print "... hasn't regressed since %s: %s" % (old_rev, old_status)
         return
 
+    branch = t.get_branch()
     recipients = set()
     change_log = ""
 
-    for rev in t.get_branch().log(from_rev=cur.revision, exclude_revs=set([old.revision])):
+    for rev in branch.log(from_rev=cur.revision, exclude_revs=set([old.revision])):
         recipients.add(rev.author)
         recipients.add(rev.committer)
         change_log += """
