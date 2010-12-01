@@ -20,7 +20,7 @@ for compiler in gcc cc icc; do
 
     # We do not want to build with the same compiler twice
     # cc is a symlink to gcc on some systems
-    cur_compiler_sum="`sum $path`"
+    cur_compiler_sum="`sum $path | sed 's/ .*//'`"
     test x"$cur_compiler_sum" = x"" && {
        cur_compiler_sum="$path"
     }
