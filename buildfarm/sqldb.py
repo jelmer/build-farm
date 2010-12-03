@@ -225,9 +225,11 @@ class StormCachingBuildResultStore(BuildResultStore):
         return build.revision
 
     def upload_build(self, build):
-        existing_build = self.store.find(StormBuild,
-            Cast(StormBuild.checksum, "TEXT") == build.log_checksum()).order_by(StormBuild.upload_time).first()
-        if existing_build is not None:
+        try:
+            existing_build = self.get_by_checksum(build.log_checksum())
+        except NoSuchBuildError:
+            pass
+        else:
             # Already present
             assert build.tree == existing_build.tree
             assert build.host == existing_build.host
@@ -235,15 +237,16 @@ class StormCachingBuildResultStore(BuildResultStore):
             return existing_build
         rev = build.revision_details()
         super(StormCachingBuildResultStore, self).upload_build(build)
-        new_basename = self.build_fname(build.tree, build.host, build.compiler, rev)
+        new_basename = self.build_fname(build.tree, build.host, build.compiler,
+                rev)
         new_build = StormBuild(new_basename, build.tree, build.host,
             build.compiler, rev)
         new_build.checksum = build.log_checksum()
         new_build.upload_time = build.upload_time
         new_build.status_str = build.status().__serialize__()
         new_build.basename = new_basename
-        new_build.host_id = self.store.find(
-            StormHost, Cast(StormHost.name, "TEXT") == build.host).one().id
+        new_build.host = self.store.find(
+            StormHost, Cast(StormHost.name, "TEXT") == build.host).one()
         self.store.add(new_build)
         return new_build
 
