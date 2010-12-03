@@ -23,6 +23,7 @@ from storm.store import Store
 from testtools import TestCase
 import shutil
 import tempfile
+import unittest
 
 
 class BuildFarmTestCase(TestCase):
@@ -95,11 +96,29 @@ class BuildFarmTestCase(TestCase):
         for subdir in ["data", "data/upload", "data/oldrevs", "db", "web", "lcov", "lcov/data"]:
             os.mkdir(os.path.join(self.path, subdir))
 
-        db = database.create_database("sqlite:"+os.path.join(self.path, "db", "hostdb.sqlite"))
+        self.db_url = "sqlite:"+os.path.join(self.path, "db", "hostdb.sqlite")
+        db = database.create_database(self.db_url)
         store = Store(db)
         setup_schema(store)
-        store.flush()
+        store.commit()
 
     def tearDown(self):
         shutil.rmtree(self.path)
         super(BuildFarmTestCase, self).tearDown()
+
+
+def test_suite():
+    names = [
+        '__init__',
+        'test_build',
+        'test_history',
+        'test_hostdb',
+        'test_sqldb',
+        'test_util',
+        ]
+    module_names = ['buildfarm.tests.' + name for name in names]
+    result = unittest.TestSuite()
+    loader = unittest.TestLoader()
+    suite = loader.loadTestsFromNames(module_names)
+    result.addTests(suite)
+    return result
