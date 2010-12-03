@@ -175,18 +175,6 @@ BUILD COMMIT REVISION: 15
             list(self.x.get_old_builds("tdb", "charis", "cc")))
 
 
-class BuildResultStoreTests(BuildFarmTestCase,BuildResultStoreTestBase):
-
-    def setUp(self):
-        BuildFarmTestCase.setUp(self)
-        BuildResultStoreTestBase.setUp(self)
-
-        self.buildfarm = BuildFarm(self.path)
-
-        self.x = BuildResultStore(
-            os.path.join(self.path, "data", "oldrevs"))
-
-
 class BuildStatusFromLogs(testtools.TestCase):
 
     def parse_logs(self, log, err):
@@ -398,6 +386,3 @@ class UploadBuildResultStoreTests(UploadBuildResultStoreTestBase,BuildFarmTestCa
 
         self.x = UploadBuildResultStore(
             os.path.join(self.path, "data", "upload"))
-
-
-
