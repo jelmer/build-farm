@@ -157,7 +157,8 @@ class StormHostDatabase(HostDatabase):
         return self.store.find(StormHost).order_by(StormHost.name)
 
     def __getitem__(self, name):
-        result = self.store.find(StormHost, Cast(StormHost.name, "TEXT") == Cast(name, "TEXT"))
+        result = self.store.find(StormHost,
+            Cast(StormHost.name, "TEXT") == Cast(name, "TEXT"))
         ret = result.one()
         if ret is None:
             raise NoSuchHost(name)
@@ -178,7 +179,8 @@ class StormCachingBuildResultStore(BuildResultStore):
         self.store = store
 
     def get_by_checksum(self, checksum):
-        result = self.store.find(StormBuild, Cast(StormBuild.checksum, "TEXT") == checksum)
+        result = self.store.find(StormBuild,
+            Cast(StormBuild.checksum, "TEXT") == checksum)
         ret = result.one()
         if ret is None:
             raise NoSuchBuildError(None, None, None, None)
@@ -192,20 +194,13 @@ class StormCachingBuildResultStore(BuildResultStore):
             return False
 
     def get_previous_revision(self, tree, host, compiler, revision):
-        result = self.store.find(StormBuild,
-            StormBuild.tree == tree,
-            StormBuild.host == host,
-            StormBuild.compiler == compiler,
-            Cast(StormBuild.revision, "TEXT") == revision)
-        cur_build = result.any()
-        if cur_build is None:
-            raise NoSuchBuildError(tree, host, compiler, revision)
+        cur_build = self.get_build(tree, host, compiler, revision)
 
         result = self.store.find(StormBuild,
-            StormBuild.tree == tree,
-            StormBuild.host == host,
-            StormBuild.compiler == compiler,
-            Cast(StormBuild.revision, "TEXT") != revision,
+            Cast(StormBuild.tree, "TEXT") == Cast(tree, "TEXT"),
+            Cast(StormBuild.host, "TEXT") == Cast(host, "TEXT"),
+            Cast(StormBuild.compiler, "TEXT") == Cast(compiler, "TEXT"),
+            Cast(StormBuild.revision, "TEXT") != Cast(revision, "TEXT"),
             StormBuild.id < cur_build.id)
         result = result.order_by(Desc(StormBuild.id))
         prev_build = result.first()
@@ -245,8 +240,10 @@ class StormCachingBuildResultStore(BuildResultStore):
         new_build.upload_time = build.upload_time
         new_build.status_str = build.status().__serialize__()
         new_build.basename = new_basename
-        new_build.host = self.store.find(
-            StormHost, Cast(StormHost.name, "TEXT") == build.host).one()
+        host = self.store.find(StormHost,
+            Cast(StormHost.name, "TEXT") == Cast(build.host, "TEXT")).one()
+        assert host is not None, "Unable to find host %r" % build.host
+        new_build.host_id = host.id
         self.store.add(new_build)
         return new_build
 
@@ -259,14 +256,14 @@ class StormCachingBuildResultStore(BuildResultStore):
 
     def get_build(self, tree, host, compiler, revision=None, checksum=None):
         expr = [
-            StormBuild.tree == tree,
-            StormBuild.host == host,
-            StormBuild.compiler == compiler,
+            Cast(StormBuild.tree, "TEXT") == Cast(tree, "TEXT"),
+            Cast(StormBuild.host, "TEXT") == Cast(host, "TEXT"),
+            Cast(StormBuild.compiler, "TEXT") == Cast(compiler, "TEXT"),
             ]
         if revision is not None:
-            expr.append(Cast(StormBuild.revision, "TEXT") == revision)
+            expr.append(Cast(StormBuild.revision, "TEXT") == Cast(revision, "TEXT"))
         if checksum is not None:
-            expr.append(Cast(StormBuild.checksum, "TEXT") == checksum)
+            expr.append(Cast(StormBuild.checksum, "TEXT") == Cast(checksum, "TEXT"))
         result = self.store.find(StormBuild, *expr).order_by(Desc(StormBuild.upload_time))
         ret = result.first()
         if ret is None:
@@ -312,7 +309,8 @@ class StormCachingBuildFarm(BuildFarm):
         return distinct_builds(result.order_by(Desc(StormBuild.upload_time)))
 
     def get_tree_builds(self, tree):
-        result = self._get_store().find(StormBuild, Cast(StormBuild.tree, "TEXT") == tree)
+        result = self._get_store().find(StormBuild,
+            Cast(StormBuild.tree, "TEXT") == Cast(tree, "TEXT"))
         return distinct_builds(result.order_by(Desc(StormBuild.upload_time)))
 
     def get_last_builds(self):
@@ -321,8 +319,8 @@ class StormCachingBuildFarm(BuildFarm):
 
     def get_revision_builds(self, tree, revision=None):
         return self._get_store().find(StormBuild,
-            Cast(StormBuild.tree, "TEXT") == tree,
-            Cast(StormBuild.revision, "TEXT") == revision)
+            Cast(StormBuild.tree, "TEXT") == Cast(tree, "TEXT"),
+            Cast(StormBuild.revision, "TEXT") == Cast(revision, "TEXT"))
 
     def commit(self):
         self.store.commit()

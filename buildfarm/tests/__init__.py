@@ -101,6 +101,8 @@ class BuildFarmTestCase(TestCase):
         store = Store(db)
         setup_schema(store)
         store.commit()
+        self.write_compilers([])
+        self.write_hosts({})
 
     def tearDown(self):
         shutil.rmtree(self.path)

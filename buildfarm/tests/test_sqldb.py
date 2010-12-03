@@ -25,12 +25,21 @@ from buildfarm.tests.test_build import BuildResultStoreTestBase
 from buildfarm.tests.test_hostdb import HostDatabaseTests
 from buildfarm.sqldb import (
     StormHostDatabase,
-    StormCachingBuildResultStore,
     StormCachingBuildFarm,
     )
 
-import os
 import testtools
+
+
+class StormCachingBuildFarmTestCase(BuildFarmTestCase):
+
+    def setUp(self):
+        super(StormCachingBuildFarmTestCase, self).setUp()
+        self.buildfarm = StormCachingBuildFarm(self.path)
+
+    def write_hosts(self, hosts):
+        for host in hosts:
+            self.buildfarm.hostdb.createhost(host)
 
 
 class StormHostDatabaseTests(testtools.TestCase, HostDatabaseTests):
@@ -40,13 +49,12 @@ class StormHostDatabaseTests(testtools.TestCase, HostDatabaseTests):
         self.db = StormHostDatabase()
 
 
-class StormCachingBuildResultStoreTests(BuildFarmTestCase,BuildResultStoreTestBase):
+class StormCachingBuildResultStoreTests(StormCachingBuildFarmTestCase,BuildResultStoreTestBase):
 
     def setUp(self):
-        super(StormCachingBuildResultStoreTests, self).setUp()
-
-        self.x = StormCachingBuildResultStore(
-            os.path.join(self.path, "data", "oldrevs"))
+        StormCachingBuildFarmTestCase.setUp(self)
+        BuildResultStoreTestBase.setUp(self)
+        self.x = self.buildfarm.builds
 
     def test_get_previous_revision_result(self):
         path = self.create_mock_logfile("tdb", "charis", "cc", contents="""
@@ -70,9 +78,9 @@ BUILD COMMIT REVISION: myrev
 
 
 
-class StormCachingBuildFarmTests(BuildFarmTestBase, BuildFarmTestCase):
+class StormCachingBuildFarmTests(BuildFarmTestBase, StormCachingBuildFarmTestCase):
 
     def setUp(self):
-        BuildFarmTestCase.setUp(self)
+        StormCachingBuildFarmTestCase.setUp(self)
         BuildFarmTestBase.setUp(self)
-        self.x = StormCachingBuildFarm(self.path)
+        self.x = self.buildfarm

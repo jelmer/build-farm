@@ -75,7 +75,8 @@ class BuildFarmTestBase(object):
 
     def setUp(self):
         self.write_compilers(["cc"])
-        self.write_hosts({"myhost": "Fedora"})
+        self.write_hosts({"myhost": "Fedora",
+                          "charis": "Debian"})
         self.write_trees({"trivial": {"scm": "git", "repo": "git://foo", "branch": "master"},
                           "other": {"scm": "git", "repo": "other.git", "branch": "HEAD"}})
 
@@ -129,7 +130,7 @@ class BuildFarmTestBase(object):
 
     def test_get_build_rev(self):
         path = self.upload_mock_logfile(self.x.builds, "tdb", "charis", "cc",
-            stdout_contents="This is what a log file looks like.\n"
+            stdout_contents="tHIS is what a log file looks like.\n"
             "BUILD COMMIT REVISION: 12\n")
         build = self.x.get_build("tdb", "charis", "cc", "12")
         self.assertEquals("tdb", build.tree)

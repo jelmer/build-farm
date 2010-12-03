@@ -29,6 +29,7 @@ from buildfarm.build import (
     build_status_from_logs,
     )
 
+from buildfarm import BuildFarm
 from buildfarm.tests import BuildFarmTestCase
 
 
@@ -40,6 +41,11 @@ class NonexistantTests(unittest.TestCase):
 
 
 class BuildResultStoreTestBase(object):
+
+    def setUp(self):
+        self.write_compilers(["cc", "gcc"])
+        self.write_hosts({"charis": "Some machine",
+                          "myhost": "Another host"})
 
     def test_build_fname(self):
         self.assertEquals(
@@ -172,7 +178,10 @@ BUILD COMMIT REVISION: 15
 class BuildResultStoreTests(BuildFarmTestCase,BuildResultStoreTestBase):
 
     def setUp(self):
-        super(BuildResultStoreTests, self).setUp()
+        BuildFarmTestCase.setUp(self)
+        BuildResultStoreTestBase.setUp(self)
+
+        self.buildfarm = BuildFarm(self.path)
 
         self.x = BuildResultStore(
             os.path.join(self.path, "data", "oldrevs"))
