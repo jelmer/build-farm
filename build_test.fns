@@ -197,7 +197,7 @@ lock_file() {
 		fi
 
 		if test -f "$lckf"; then
-			test $machine = $host || {
+			test x$machine = x$host || {
 				echo "lock file $lckf is valid for other machine $machine"
 				return 1
 			}
