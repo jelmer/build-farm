@@ -71,14 +71,16 @@ branch = HEAD
         self.assertEquals(t["pidl"].scm, "git")
 
 
-class BuildFarmTestBase(object):
+class BuildFarmTests(BuildFarmTestCase):
 
     def setUp(self):
+        super(BuildFarmTests, self).setUp()
         self.write_compilers(["cc"])
         self.write_hosts({"myhost": "Fedora",
                           "charis": "Debian"})
         self.write_trees({"trivial": {"scm": "git", "repo": "git://foo", "branch": "master"},
                           "other": {"scm": "git", "repo": "other.git", "branch": "HEAD"}})
+        self.x = BuildFarm(self.path)
 
     def test_get_new_builds_empty(self):
         self.assertEquals([], list(self.x.get_new_builds()))
@@ -147,10 +149,3 @@ class BuildFarmTestBase(object):
         self.assertEquals("cc", build.compiler)
         self.assertIs(None, build.revision)
 
-
-class BuildFarmTests(BuildFarmTestBase, BuildFarmTestCase):
-
-    def setUp(self):
-        BuildFarmTestCase.setUp(self)
-        BuildFarmTestBase.setUp(self)
-        self.x = BuildFarm(self.path)

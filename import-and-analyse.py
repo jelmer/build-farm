@@ -14,7 +14,7 @@ from buildfarm.build import (
     MissingRevisionInfo,
     NoSuchBuildError,
     )
-from buildfarm.sqldb import StormCachingBuildFarm
+from buildfarm.sqldb import BuildFarm
 from buildfarm.web import build_uri
 from email.mime.text import MIMEText
 import logging
@@ -31,7 +31,7 @@ parser.add_option("--verbose", help="Be verbose", action="count")
 resource.setrlimit(resource.RLIMIT_RSS, (300000, 300000))
 resource.setrlimit(resource.RLIMIT_DATA, (300000, 300000))
 
-buildfarm = StormCachingBuildFarm(timeout=40.0)
+buildfarm = BuildFarm(timeout=40.0)
 
 smtp = smtplib.SMTP()
 smtp.connect()

@@ -124,31 +124,3 @@ class HostDatabase(object):
 
     def commit(self):
         pass
-
-
-class PlainTextHostDatabase(HostDatabase):
-
-    def __init__(self, hosts):
-        self._hosts = hosts
-
-    @classmethod
-    def from_file(cls, path):
-        ret = {}
-        f = open(path, 'r')
-        try:
-            for l in f:
-                (host, platform) = l.split(":", 1)
-                ret[host] = platform.strip().decode("utf-8")
-        finally:
-            f.close()
-        return cls(ret)
-
-    def hosts(self):
-        for name, platform in self._hosts.iteritems():
-            yield Host(name, platform=platform)
-
-    def __getitem__(self, name):
-        try:
-            return Host(name=name, platform=self._hosts[name])
-        except KeyError:
-            raise NoSuchHost(name)

@@ -17,35 +17,15 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+from buildfarm.sqldb import distinct_builds, Cast, StormBuild, setup_schema, StormCachingBuildResultStore, StormHostDatabase
+from buildfarm.tree import Tree
+from storm.database import create_database
+from storm.expr import Desc
+from storm.store import Store
+
 import ConfigParser
 import os
 import re
-
-GIT_ROOT = "/data/git"
-
-
-class Tree(object):
-    """A tree to build."""
-
-    def __init__(self, name, scm, repo, branch, subdir="", srcdir=""):
-        self.name = name
-        self.repo = repo
-        self.scm = scm
-        self.branch = branch
-        self.subdir = subdir
-        self.srcdir = srcdir
-        self.scm = scm
-
-    def get_branch(self):
-        if self.scm == "git":
-            from buildfarm.history import GitBranch
-            return GitBranch(os.path.join(GIT_ROOT, self.repo), self.branch)
-        else:
-            raise NotImplementedError(self.scm)
-
-    def __repr__(self):
-        return "<%s %r>" % (self.__class__.__name__, self.name)
-
 
 def read_trees_from_conf(path):
     """Read trees from a configuration file.
@@ -76,7 +56,9 @@ class BuildFarm(object):
     OLDAGE = 60*60*4,
     DEADAGE = 60*60*24*4
 
-    def __init__(self, path=None):
+    def __init__(self, path=None, store=None, timeout=0.5):
+        self.timeout = timeout
+        self.store = store
         if path is None:
             path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         self.path = path
@@ -94,9 +76,8 @@ class BuildFarm(object):
         return "%s(%r)" % (self.__class__.__name__, self.path)
 
     def _open_build_results(self):
-        from buildfarm.build import BuildResultStore
         path = os.path.join(self.path, "data", "oldrevs")
-        return BuildResultStore(path)
+        return StormCachingBuildResultStore(path, self._get_store())
 
     def _open_upload_build_results(self):
         from buildfarm.build import UploadBuildResultStore
@@ -104,15 +85,15 @@ class BuildFarm(object):
         return UploadBuildResultStore(path)
 
     def _open_hostdb(self):
-        from buildfarm import hostdb
-        return hostdb.PlainTextHostDatabase.from_file(os.path.join(self.webdir, "hosts.list"))
+        return StormHostDatabase(self._get_store())
 
     def _load_compilers(self):
         from buildfarm import util
         return set(util.load_list(os.path.join(self.webdir, "compilers.list")))
 
     def commit(self):
-        pass
+        if self.store is not None:
+            self.store.commit()
 
     def lcov_status(self, tree):
         """get status of build"""
@@ -144,27 +125,31 @@ class BuildFarm(object):
                 yield build
 
     def get_last_builds(self):
-        return sorted(self.get_new_builds(), reverse=True)
+        result = self._get_store().find(StormBuild)
+        return distinct_builds(result.order_by(Desc(StormBuild.upload_time)))
 
     def get_tree_builds(self, tree):
-        ret = []
-        for build in self.builds.get_all_builds():
-            if build.tree == tree:
-                ret.append(build)
-        ret.sort(reverse=True)
-        return ret
+        result = self._get_store().find(StormBuild,
+            Cast(StormBuild.tree, "TEXT") == Cast(tree, "TEXT"))
+        return distinct_builds(result.order_by(Desc(StormBuild.upload_time)))
 
     def host_last_build(self, host):
         return max([build.upload_time for build in self.get_host_builds(host)])
 
     def get_host_builds(self, host):
-        from buildfarm.build import NoSuchBuildError
-        ret = []
-        for compiler in self.compilers:
-            for tree in sorted(self.trees.keys()):
-                try:
-                    ret.append(self.get_build(tree, host, compiler))
-                except NoSuchBuildError:
-                    pass
-        ret.sort(reverse=True)
-        return ret
+        result = self._get_store().find(StormBuild, StormBuild.host == host)
+        return distinct_builds(result.order_by(Desc(StormBuild.upload_time)))
+
+    def _get_store(self):
+        if self.store is not None:
+            return self.store
+        db_path = os.path.join(self.path, "db", "hostdb.sqlite")
+        db = create_database("sqlite:%s?timeout=%f" % (db_path, self.timeout))
+        self.store = Store(db)
+        setup_schema(self.store)
+        return self.store
+
+    def get_revision_builds(self, tree, revision=None):
+        return self._get_store().find(StormBuild,
+            Cast(StormBuild.tree, "TEXT") == Cast(tree, "TEXT"),
+            Cast(StormBuild.revision, "TEXT") == Cast(revision, "TEXT"))

@@ -12,9 +12,9 @@ from buildfarm.build import (
     )
 from buildfarm.hostdb import NoSuchHost
 
-from buildfarm.sqldb import StormCachingBuildFarm, StormBuild
+from buildfarm.sqldb import BuildFarm, StormBuild
 
-buildfarm = StormCachingBuildFarm()
+buildfarm = BuildFarm()
 
 store = buildfarm._get_store()
 

@@ -17,8 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from buildfarm import (
-    BuildFarm,
+from buildfarm.tree import (
     Tree,
     )
 from buildfarm.build import (
@@ -279,51 +278,6 @@ def distinct_builds(builds):
             continue
         done.add(key)
         yield build
-
-
-class StormCachingBuildFarm(BuildFarm):
-
-    def __init__(self, path=None, store=None, timeout=0.5):
-        self.timeout = timeout
-        self.store = store
-        super(StormCachingBuildFarm, self).__init__(path)
-
-    def _get_store(self):
-        if self.store is not None:
-            return self.store
-        db_path = os.path.join(self.path, "db", "hostdb.sqlite")
-        db = create_database("sqlite:%s?timeout=%f" % (db_path, self.timeout))
-        self.store = Store(db)
-        setup_schema(self.store)
-        return self.store
-
-    def _open_hostdb(self):
-        return StormHostDatabase(self._get_store())
-
-    def _open_build_results(self):
-        path = os.path.join(self.path, "data", "oldrevs")
-        return StormCachingBuildResultStore(path, self._get_store())
-
-    def get_host_builds(self, host):
-        result = self._get_store().find(StormBuild, StormBuild.host == host)
-        return distinct_builds(result.order_by(Desc(StormBuild.upload_time)))
-
-    def get_tree_builds(self, tree):
-        result = self._get_store().find(StormBuild,
-            Cast(StormBuild.tree, "TEXT") == Cast(tree, "TEXT"))
-        return distinct_builds(result.order_by(Desc(StormBuild.upload_time)))
-
-    def get_last_builds(self):
-        result = self._get_store().find(StormBuild)
-        return distinct_builds(result.order_by(Desc(StormBuild.upload_time)))
-
-    def get_revision_builds(self, tree, revision=None):
-        return self._get_store().find(StormBuild,
-            Cast(StormBuild.tree, "TEXT") == Cast(tree, "TEXT"),
-            Cast(StormBuild.revision, "TEXT") == Cast(revision, "TEXT"))
-
-    def commit(self):
-        self.store.commit()
 
 
 class StormTree(Tree):

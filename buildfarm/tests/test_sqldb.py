@@ -20,26 +20,13 @@ from buildfarm.build import (
     NoSuchBuildError,
     )
 from buildfarm.tests import BuildFarmTestCase
-from buildfarm.tests.test_buildfarm import BuildFarmTestBase
 from buildfarm.tests.test_build import BuildResultStoreTestBase
 from buildfarm.tests.test_hostdb import HostDatabaseTests
 from buildfarm.sqldb import (
     StormHostDatabase,
-    StormCachingBuildFarm,
     )
 
 import testtools
-
-
-class StormCachingBuildFarmTestCase(BuildFarmTestCase):
-
-    def setUp(self):
-        super(StormCachingBuildFarmTestCase, self).setUp()
-        self.buildfarm = StormCachingBuildFarm(self.path)
-
-    def write_hosts(self, hosts):
-        for host in hosts:
-            self.buildfarm.hostdb.createhost(host)
 
 
 class StormHostDatabaseTests(testtools.TestCase, HostDatabaseTests):
@@ -49,10 +36,10 @@ class StormHostDatabaseTests(testtools.TestCase, HostDatabaseTests):
         self.db = StormHostDatabase()
 
 
-class StormCachingBuildResultStoreTests(StormCachingBuildFarmTestCase,BuildResultStoreTestBase):
+class StormCachingBuildResultStoreTests(BuildFarmTestCase,BuildResultStoreTestBase):
 
     def setUp(self):
-        StormCachingBuildFarmTestCase.setUp(self)
+        BuildFarmTestCase.setUp(self)
         BuildResultStoreTestBase.setUp(self)
         self.x = self.buildfarm.builds
 
@@ -75,12 +62,3 @@ BUILD COMMIT REVISION: myrev
 """)
         self.x.upload_build(Build(path[:-4], "tdb", "charis", "cc"))
         self.assertEquals("myrev", self.x.get_latest_revision("tdb", "charis", "cc"))
-
-
-
-class StormCachingBuildFarmTests(BuildFarmTestBase, StormCachingBuildFarmTestCase):
-
-    def setUp(self):
-        StormCachingBuildFarmTestCase.setUp(self)
-        BuildFarmTestBase.setUp(self)
-        self.x = self.buildfarm

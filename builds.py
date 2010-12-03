@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from buildfarm.sqldb import StormCachingBuildFarm
+from buildfarm.sqldb import BuildFarm
 import optparse
 import sys
 
@@ -26,7 +26,7 @@ parser.add_option("--last", help="Print last builds.", action="store_true")
 
 (opts, args) = parser.parse_args()
 
-buildfarm = StormCachingBuildFarm()
+buildfarm = BuildFarm()
 
 if opts.tree:
     builds = buildfarm.get_tree_builds(opts.tree)

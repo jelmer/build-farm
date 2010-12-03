@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from buildfarm.sqldb import StormCachingBuildFarm
+from buildfarm.sqldb import BuildFarm
 from buildfarm.web import host_uri
 import optparse
 import smtplib
@@ -28,7 +28,7 @@ parser = optparse.OptionParser()
 parser.add_option("--dry-run", help="Don't actually send any emails.", action="store_true")
 (opts, args) = parser.parse_args()
 
-buildfarm = StormCachingBuildFarm(timeout=40.0)
+buildfarm = BuildFarm(timeout=40.0)
 
 smtp = smtplib.SMTP()
 smtp.connect()

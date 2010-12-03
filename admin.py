@@ -18,9 +18,9 @@
 #
 
 from buildfarm import (
+    BuildFarm,
     hostdb,
     )
-from buildfarm.sqldb import StormCachingBuildFarm
 import commands
 import os
 import smtplib
@@ -28,7 +28,7 @@ import sys
 import time
 from email.MIMEText import MIMEText
 
-buildfarm = StormCachingBuildFarm()
+buildfarm = BuildFarm()
 
 def update_rsyncd_secrets():
     temp_rsyncd_secrets = os.path.join(os.path.dirname(__file__), "../rsyncd.secrets.new")
