@@ -21,6 +21,7 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+import bz2
 from cStringIO import StringIO
 import collections
 import hashlib
@@ -30,6 +31,13 @@ from storm.locals import Int, RawStr
 from storm.store import Store
 from storm.expr import Desc
 import time
+
+
+def open_opt_compressed_file(path):
+    try:
+        return bz2.BZ2File(path+".bz2", 'r')
+    except IOError:
+        return open(path, 'r')
 
 
 class Test(object):
@@ -322,21 +330,21 @@ class Build(object):
     def read_subunit(self):
         """read the test output as subunit"""
         try:
-            return open(self.basename+".subunit", "r")
+            return open_opt_compressed_file(self.basename+".subunit")
         except IOError:
             raise NoTestOutput()
 
     def read_log(self):
         """read full log file"""
         try:
-            return open(self.basename+".log", "r")
+            return open_opt_compressed_file(self.basename+".log")
         except IOError:
             raise LogFileMissing()
 
     def read_err(self):
         """read full err file"""
         try:
-            return open(self.basename+".err", 'r')
+            return open_opt_compressed_file(self.basename+".err")
         except IOError:
             # No such file
             return StringIO()
@@ -534,10 +542,10 @@ class BuildResultStore(object):
         rev = build.revision_details()
 
         new_basename = self.build_fname(build.tree, build.host, build.compiler, rev)
-        if os.path.exists(new_basename+".log"):
-            os.remove(new_basename+".log")
-        if os.path.exists(new_basename+".err"):
-            os.remove(new_basename+".err")
+        for name in os.listdir(self.path):
+            p = os.path.join(self.path, name)
+            if p.startswith(new_basename+"."):
+                os.remove(p)
         os.link(build.basename+".log", new_basename+".log")
         if os.path.exists(build.basename+".err"):
             os.link(build.basename+".err", new_basename+".err")
@@ -546,7 +554,7 @@ class BuildResultStore(object):
         except NoTestOutput:
             pass
         else:
-            f = open(new_basename+".subunit", 'w')
+            f = bz2.BZ2File(new_basename+".subunit.bz2", 'w')
             try:
                 f.writelines(subunit_output)
             finally:
