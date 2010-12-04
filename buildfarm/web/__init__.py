@@ -922,7 +922,7 @@ class BuildFarmApp(object):
             start_response('200 OK', [('Content-type', 'text/plain')])
             page = ViewSummaryPage(self.buildfarm)
             yield "".join(page.render_text(myself))
-        else:
+        elif fn_name:
             start_response('200 OK', [
                 ('Content-type', 'text/html; charset=utf-8')])
 
@@ -960,37 +960,53 @@ class BuildFarmApp(object):
                 page = DiffPage(self.buildfarm)
                 yield "".join(self.html_page(form, page.render(myself, tree, revision)))
             else:
-                fn = wsgiref.util.shift_path_info(environ)
-                if fn == "tree":
-                    tree = wsgiref.util.shift_path_info(environ)
-                    subfn = wsgiref.util.shift_path_info(environ)
-                    if subfn in ("", None, "+recent"):
-                        page = ViewRecentBuildsPage(self.buildfarm)
-                        yield "".join(self.html_page(form, page.render(myself, tree, get_param(form, 'sortby') or 'age')))
-                    else:
-                        yield "Unknown subfn %s" % subfn
-                elif fn == "host":
-                    page = ViewHostPage(self.buildfarm)
-                    yield "".join(self.html_page(form, page.render_html(myself, wsgiref.util.shift_path_info(environ))))
-                elif fn == "build":
-                    build_checksum = wsgiref.util.shift_path_info(environ)
-                    build = self.buildfarm.builds.get_by_checksum(build_checksum)
-                    page = ViewBuildPage(self.buildfarm)
-                    subfn = wsgiref.util.shift_path_info(environ)
-                    if subfn == "+plain":
-                        yield "".join(page.render(myself, build, True))
-                    elif subfn == "+subunit":
-                        try:
-                            yield build.read_subunit().read()
-                        except NoTestOutput:
-                            yield "There was no test output"
-                    elif subfn in ("", None):
-                        yield "".join(self.html_page(form, page.render(myself, build, False)))
-                elif fn in ("", None):
-                    page = ViewSummaryPage(self.buildfarm)
-                    yield "".join(self.html_page(form, page.render_html(myself)))
+                yield "Unknown function %s" % fn_name
+        else:
+            fn = wsgiref.util.shift_path_info(environ)
+            if fn == "tree":
+                start_response('200 OK', [
+                    ('Content-type', 'text/html; charset=utf-8')])
+                tree = wsgiref.util.shift_path_info(environ)
+                subfn = wsgiref.util.shift_path_info(environ)
+                if subfn in ("", None, "+recent"):
+                    page = ViewRecentBuildsPage(self.buildfarm)
+                    yield "".join(self.html_page(form, page.render(myself, tree, get_param(form, 'sortby') or 'age')))
                 else:
-                    yield "Unknown function %s" % fn
+                    yield "Unknown subfn %s" % subfn
+            elif fn == "host":
+                start_response('200 OK', [
+                    ('Content-type', 'text/html; charset=utf-8')])
+                page = ViewHostPage(self.buildfarm)
+                yield "".join(self.html_page(form, page.render_html(myself, wsgiref.util.shift_path_info(environ))))
+            elif fn == "build":
+                build_checksum = wsgiref.util.shift_path_info(environ)
+                build = self.buildfarm.builds.get_by_checksum(build_checksum)
+                page = ViewBuildPage(self.buildfarm)
+                subfn = wsgiref.util.shift_path_info(environ)
+                if subfn == "+plain":
+                    start_response('200 OK', [
+                        ('Content-type', 'text/html; charset=utf-8')])
+                    yield "".join(page.render(myself, build, True))
+                elif subfn == "+subunit":
+                    start_response('200 OK', [
+                        ('Content-type', 'text/x-subunit; charset=utf-8')])
+                    try:
+                        yield build.read_subunit().read()
+                    except NoTestOutput:
+                        yield "There was no test output"
+                elif subfn in ("", None):
+                    start_response('200 OK', [
+                        ('Content-type', 'text/html; charset=utf-8')])
+                    yield "".join(self.html_page(form, page.render(myself, build, False)))
+            elif fn in ("", None):
+                start_response('200 OK', [
+                    ('Content-type', 'text/html; charset=utf-8')])
+                page = ViewSummaryPage(self.buildfarm)
+                yield "".join(self.html_page(form, page.render_html(myself)))
+            else:
+                start_response('404 Page Not Found', [
+                    ('Content-type', 'text/html; charset=utf-8')])
+                yield "Unknown function %s" % fn
 
 
 if __name__ == '__main__':
