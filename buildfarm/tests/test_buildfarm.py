@@ -75,11 +75,13 @@ class BuildFarmTests(BuildFarmTestCase):
 
     def setUp(self):
         super(BuildFarmTests, self).setUp()
+        self.buildfarm = BuildFarm(self.path)
         self.write_compilers(["cc"])
         self.write_hosts({"myhost": "Fedora",
                           "charis": "Debian"})
         self.write_trees({"trivial": {"scm": "git", "repo": "git://foo", "branch": "master"},
                           "other": {"scm": "git", "repo": "other.git", "branch": "HEAD"}})
+        self.buildfarm.commit()
         self.x = BuildFarm(self.path)
 
     def test_get_new_builds_empty(self):

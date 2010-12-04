@@ -17,7 +17,7 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-from buildfarm.sqldb import distinct_builds, Cast, StormBuild, setup_schema, StormCachingBuildResultStore, StormHostDatabase
+from buildfarm.sqldb import distinct_builds, Cast, StormBuild, setup_schema, StormHostDatabase
 from buildfarm.tree import Tree
 from storm.database import create_database
 from storm.expr import Desc
@@ -77,7 +77,8 @@ class BuildFarm(object):
 
     def _open_build_results(self):
         path = os.path.join(self.path, "data", "oldrevs")
-        return StormCachingBuildResultStore(path, self._get_store())
+        from buildfarm.build import BuildResultStore
+        return BuildResultStore(path, self._get_store())
 
     def _open_upload_build_results(self):
         from buildfarm.build import UploadBuildResultStore

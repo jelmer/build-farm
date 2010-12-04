@@ -33,19 +33,35 @@ from buildfarm import BuildFarm
 from buildfarm.tests import BuildFarmTestCase
 
 
-class NonexistantTests(unittest.TestCase):
-
-    def test_nonexistant(self):
-        self.assertRaises(
-            Exception, BuildResultStore, "somedirthatdoesn'texist", None)
-
-
-class BuildResultStoreTestBase(object):
+class BuildResultStoreTests(BuildFarmTestCase):
 
     def setUp(self):
+        super(BuildResultStoreTests, self).setUp()
+        self.buildfarm = BuildFarm(self.path)
         self.write_compilers(["cc", "gcc"])
         self.write_hosts({"charis": "Some machine",
                           "myhost": "Another host"})
+        self.x = self.buildfarm.builds
+
+    def test_get_previous_revision_result(self):
+        path = self.create_mock_logfile("tdb", "charis", "cc", contents="""
+BUILD COMMIT REVISION: myrev
+""")
+        self.x.upload_build(Build(path[:-4], "tdb", "charis", "cc"))
+        path = self.create_mock_logfile("tdb", "charis", "cc", contents="""
+BUILD COMMIT REVISION: myotherrev
+""")
+        self.x.upload_build(Build(path[:-4], "tdb", "charis", "cc"))
+        self.assertRaises(NoSuchBuildError, self.x.get_previous_revision, "tdb", "charis", "cc", "unknown")
+        self.assertRaises(NoSuchBuildError, self.x.get_previous_revision, "tdb", "charis", "cc", "myrev")
+        self.assertEquals("myrev", self.x.get_previous_revision("tdb", "charis", "cc", "myotherrev"))
+
+    def test_get_latest_revision(self):
+        path = self.create_mock_logfile("tdb", "charis", "cc", "22", contents="""
+BUILD COMMIT REVISION: myrev
+""")
+        self.x.upload_build(Build(path[:-4], "tdb", "charis", "cc"))
+        self.assertEquals("myrev", self.x.get_latest_revision("tdb", "charis", "cc"))
 
     def test_build_fname(self):
         self.assertEquals(

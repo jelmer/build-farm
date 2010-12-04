@@ -71,12 +71,8 @@ class BuildFarmTestCase(TestCase):
             f.close()
 
     def write_hosts(self, hosts):
-        f = open(os.path.join(self.path, "web", "hosts.list"), "w")
-        try:
-            for name, platform in hosts.iteritems():
-                f.write("%s: %s\n" % (name, platform))
-        finally:
-            f.close()
+        for host in hosts:
+            self.buildfarm.hostdb.createhost(host)
 
     def write_trees(self, trees):
         f = open(os.path.join(self.path, "web", "trees.conf"), "w")

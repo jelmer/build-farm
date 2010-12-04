@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from buildfarm.sqldb import BuildFarm
+from buildfarm import BuildFarm
 from buildfarm.web import host_uri
 import optparse
 import smtplib

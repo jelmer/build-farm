@@ -973,7 +973,7 @@ if __name__ == '__main__':
     parser.add_option("--port", help="Port to listen on [localhost:8000]",
         default="localhost:8000", type=str)
     opts, args = parser.parse_args()
-    from buildfarm.sqldb import BuildFarm
+    from buildfarm import BuildFarm
     buildfarm = BuildFarm()
     buildApp = BuildFarmApp(buildfarm)
     from wsgiref.simple_server import make_server

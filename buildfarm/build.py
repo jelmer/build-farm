@@ -26,6 +26,9 @@ import collections
 import hashlib
 import os
 import re
+from storm.locals import Int, RawStr
+from storm.store import Store
+from storm.expr import Desc
 import time
 
 
@@ -384,34 +387,74 @@ class UploadBuildResultStore(object):
         return Build(basename, tree, host, compiler)
 
 
+class StormBuild(Build):
+    __storm_table__ = "build"
+
+    id = Int(primary=True)
+    tree = RawStr()
+    revision = RawStr()
+    host = RawStr()
+    compiler = RawStr()
+    checksum = RawStr()
+    upload_time = Int(name="age")
+    status_str = RawStr(name="status")
+    basename = RawStr()
+    host_id = Int()
+    tree_id = Int()
+    compiler_id = Int()
+
+    def status(self):
+        return BuildStatus.__deserialize__(self.status_str)
+
+    def revision_details(self):
+        return self.revision
+
+    def log_checksum(self):
+        return self.checksum
+
+    def remove(self):
+        super(StormBuild, self).remove()
+        Store.of(self).remove(self)
+
+    def remove_logs(self):
+        super(StormBuild, self).remove_logs()
+        self.basename = None
+
+
 class BuildResultStore(object):
     """The build farm build result database."""
 
-    def __init__(self, path):
-        """Open the database.
+    def __init__(self, basedir, store=None):
+        from buildfarm.sqldb import memory_store
+        if store is None:
+            store = memory_store()
 
-        :param path: Build result base directory
-        """
-        self.path = path
+        self.store = store
+        self.path = basedir
 
     def __contains__(self, build):
         try:
-            if build.revision:
-                rev = build.revision
-            else:
-                rev = build.revision_details()
-            self.get_build(build.tree, build.host, build.compiler, rev)
+            self.get_by_checksum(build.log_checksum())
+            return True
         except NoSuchBuildError:
             return False
-        else:
-            return True
 
-    def get_build(self, tree, host, compiler, rev, checksum=None):
-        basename = self.build_fname(tree, host, compiler, rev)
-        logf = "%s.log" % basename
-        if not os.path.exists(logf):
-            raise NoSuchBuildError(tree, host, compiler, rev)
-        return Build(basename, tree, host, compiler, rev)
+    def get_build(self, tree, host, compiler, revision=None, checksum=None):
+        from buildfarm.sqldb import Cast
+        expr = [
+            Cast(StormBuild.tree, "TEXT") == Cast(tree, "TEXT"),
+            Cast(StormBuild.host, "TEXT") == Cast(host, "TEXT"),
+            Cast(StormBuild.compiler, "TEXT") == Cast(compiler, "TEXT"),
+            ]
+        if revision is not None:
+            expr.append(Cast(StormBuild.revision, "TEXT") == Cast(revision, "TEXT"))
+        if checksum is not None:
+            expr.append(Cast(StormBuild.checksum, "TEXT") == Cast(checksum, "TEXT"))
+        result = self.store.find(StormBuild, *expr).order_by(Desc(StormBuild.upload_time))
+        ret = result.first()
+        if ret is None:
+            raise NoSuchBuildError(tree, host, compiler, revision)
+        return ret
 
     def build_fname(self, tree, host, compiler, rev):
         """get the name of the build file"""
@@ -433,15 +476,24 @@ class BuildResultStore(object):
             yield self.get_build(tree, host, compiler, rev)
 
     def get_old_builds(self, tree, host, compiler):
-        """get a list of old builds and their status."""
-        ret = []
-        for build in self.get_all_builds():
-            if build.tree == tree and build.host == host and build.compiler == compiler:
-                ret.append(build)
-        ret.sort(lambda a, b: cmp(a.upload_time, b.upload_time))
-        return ret
+        result = self.store.find(StormBuild,
+            StormBuild.tree == tree,
+            StormBuild.host == host,
+            StormBuild.compiler == compiler)
+        return result.order_by(Desc(StormBuild.upload_time))
 
     def upload_build(self, build):
+        from buildfarm.sqldb import Cast, StormHost
+        try:
+            existing_build = self.get_by_checksum(build.log_checksum())
+        except NoSuchBuildError:
+            pass
+        else:
+            # Already present
+            assert build.tree == existing_build.tree
+            assert build.host == existing_build.host
+            assert build.compiler == existing_build.compiler
+            return existing_build
         rev = build.revision_details()
 
         new_basename = self.build_fname(build.tree, build.host, build.compiler, rev)
@@ -457,10 +509,53 @@ class BuildResultStore(object):
         os.link(build.basename+".log", new_basename+".log")
         if os.path.exists(build.basename+".err"):
             os.link(build.basename+".err", new_basename+".err")
-        return Build(new_basename, build.tree, build.host, build.compiler, rev)
+        new_basename = self.build_fname(build.tree, build.host, build.compiler,
+                rev)
+        new_build = StormBuild(new_basename, build.tree, build.host,
+            build.compiler, rev)
+        new_build.checksum = build.log_checksum()
+        new_build.upload_time = build.upload_time
+        new_build.status_str = build.status().__serialize__()
+        new_build.basename = new_basename
+        host = self.store.find(StormHost,
+            Cast(StormHost.name, "TEXT") == Cast(build.host, "TEXT")).one()
+        assert host is not None, "Unable to find host %r" % build.host
+        new_build.host_id = host.id
+        self.store.add(new_build)
+        return new_build
+
+    def get_by_checksum(self, checksum):
+        from buildfarm.sqldb import Cast
+        result = self.store.find(StormBuild,
+            Cast(StormBuild.checksum, "TEXT") == checksum)
+        ret = result.one()
+        if ret is None:
+            raise NoSuchBuildError(None, None, None, None)
+        return ret
 
     def get_previous_revision(self, tree, host, compiler, revision):
-        raise NoSuchBuildError(tree, host, compiler, revision)
+        from buildfarm.sqldb import Cast
+        cur_build = self.get_build(tree, host, compiler, revision)
+
+        result = self.store.find(StormBuild,
+            Cast(StormBuild.tree, "TEXT") == Cast(tree, "TEXT"),
+            Cast(StormBuild.host, "TEXT") == Cast(host, "TEXT"),
+            Cast(StormBuild.compiler, "TEXT") == Cast(compiler, "TEXT"),
+            Cast(StormBuild.revision, "TEXT") != Cast(revision, "TEXT"),
+            StormBuild.id < cur_build.id)
+        result = result.order_by(Desc(StormBuild.id))
+        prev_build = result.first()
+        if prev_build is None:
+            raise NoSuchBuildError(tree, host, compiler, revision)
+        return prev_build.revision
 
     def get_latest_revision(self, tree, host, compiler):
-        raise NoSuchBuildError(tree, host, compiler)
+        result = self.store.find(StormBuild,
+            StormBuild.tree == tree,
+            StormBuild.host == host,
+            StormBuild.compiler == compiler)
+        result = result.order_by(Desc(StormBuild.id))
+        build = result.first()
+        if build is None:
+            raise NoSuchBuildError(tree, host, compiler)
+        return build.revision

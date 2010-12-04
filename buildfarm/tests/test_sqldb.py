@@ -15,12 +15,12 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+from buildfarm import BuildFarm
 from buildfarm.build import (
     Build,
     NoSuchBuildError,
     )
 from buildfarm.tests import BuildFarmTestCase
-from buildfarm.tests.test_build import BuildResultStoreTestBase
 from buildfarm.tests.test_hostdb import HostDatabaseTests
 from buildfarm.sqldb import (
     StormHostDatabase,
@@ -36,29 +36,4 @@ class StormHostDatabaseTests(testtools.TestCase, HostDatabaseTests):
         self.db = StormHostDatabase()
 
 
-class StormCachingBuildResultStoreTests(BuildFarmTestCase,BuildResultStoreTestBase):
 
-    def setUp(self):
-        BuildFarmTestCase.setUp(self)
-        BuildResultStoreTestBase.setUp(self)
-        self.x = self.buildfarm.builds
-
-    def test_get_previous_revision_result(self):
-        path = self.create_mock_logfile("tdb", "charis", "cc", contents="""
-BUILD COMMIT REVISION: myrev
-""")
-        self.x.upload_build(Build(path[:-4], "tdb", "charis", "cc"))
-        path = self.create_mock_logfile("tdb", "charis", "cc", contents="""
-BUILD COMMIT REVISION: myotherrev
-""")
-        self.x.upload_build(Build(path[:-4], "tdb", "charis", "cc"))
-        self.assertRaises(NoSuchBuildError, self.x.get_previous_revision, "tdb", "charis", "cc", "unknown")
-        self.assertRaises(NoSuchBuildError, self.x.get_previous_revision, "tdb", "charis", "cc", "myrev")
-        self.assertEquals("myrev", self.x.get_previous_revision("tdb", "charis", "cc", "myotherrev"))
-
-    def test_get_latest_revision(self):
-        path = self.create_mock_logfile("tdb", "charis", "cc", "22", contents="""
-BUILD COMMIT REVISION: myrev
-""")
-        self.x.upload_build(Build(path[:-4], "tdb", "charis", "cc"))
-        self.assertEquals("myrev", self.x.get_latest_revision("tdb", "charis", "cc"))
