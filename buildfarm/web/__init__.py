@@ -989,7 +989,8 @@ class BuildFarmApp(object):
                     yield "".join(page.render(myself, build, True))
                 elif subfn == "+subunit":
                     start_response('200 OK', [
-                        ('Content-type', 'text/x-subunit; charset=utf-8')])
+                        ('Content-type', 'text/x-subunit; charset=utf-8'),
+                        ('Content-Disposition', 'attachment; filename="%s.%s.%s-%s.subunit"' % (build.tree, build.host, build.compiler, build.revision))])
                     try:
                         yield build.read_subunit().read()
                     except NoTestOutput:
