@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import bz2
 import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -63,14 +64,14 @@ for build in store.find(StormBuild, StormBuild.host_id == None):
 
 for build in store.find(StormBuild, StormBuild.basename != None):
     subunit_path = build.basename + ".subunit"
-    if os.path.exists(subunit_path):
+    if os.path.exists(subunit_path) or os.path.exists(subunit_path+".bz2"):
         continue
     try:
         test_output = "".join(extract_test_output(build.read_log()))
     except (LogFileMissing, NoTestOutput):
         continue
     print "Writing subunit file for %r" % build
-    f = open(subunit_path, 'w')
+    f = bz2.BZ2File(subunit_path+".bz2", 'w')
     try:
         f.write(test_output)
     finally:
