@@ -158,11 +158,27 @@ def check_dir_exists(kind, path):
 def extract_phase_output(f):
     name = None
     output = None
+    re_action = re.compile("^ACTION (PASSED|FAILED):\s+(.*)$")
     for l in f:
+        if l.startwith("Running action "):
+            name = l[len("Running action "):].strip()
+            output = []
+            continue
+        m = re_action.match(l)
+        if m:
+            assert name == m.group(1)
+            yield name, output
+            name = None
+            output = []
+        elif output is not None:
+            output.append(l)
 
 
 def extract_test_output(f):
-    raise NotImplementedError
+    for name, output in extract_phase_output(f):
+        if name == "test":
+            return output
+    return None
 
 
 def build_status_from_logs(log, err):
