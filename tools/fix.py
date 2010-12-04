@@ -69,6 +69,7 @@ for build in store.find(StormBuild, StormBuild.basename != None):
         test_output = "".join(extract_test_output(build.read_log()))
     except (LogFileMissing, NoTestOutput):
         continue
+    print "Writing subunit file for %r" % build
     f = open(subunit_path, 'w')
     try:
         f.write(test_output)
