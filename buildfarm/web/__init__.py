@@ -128,6 +128,15 @@ def build_link(myself, build):
     return "<a href='%s'>%s</a>" % (build_uri(myself, build), html_build_status(build.status()))
 
 
+def tree_uri(myself, tree):
+    return "%s/tree/%s" % (myself, tree.name)
+
+
+def tree_link(myself, tree):
+    """return a link to a particular tree"""
+    return "<a href='%s' title='View recent builds for %s'>%s:%s</a>" % (tree.name, tree.name, tree.branch)
+
+
 def host_uri(myself, host):
     return "%s/host/%s" % (myself, host)
 
@@ -362,13 +371,6 @@ class BuildFarmPage(object):
             return "<span class='old'>%s</span>" % util.dhm_time(age)
         return util.dhm_time(age)
 
-    def tree_link(self, myself, tree):
-        # return a link to a particular tree
-        branch = ""
-        if tree in self.buildfarm.trees:
-            branch = ":%s" % self.buildfarm.trees[tree].branch
-
-        return "<a href='%s?function=Recent+Builds;tree=%s' title='View recent builds for %s'>%s%s</a>" % (myself, tree, tree, tree, branch)
 
     def render(self, output_type):
         raise NotImplementedError(self.render)
@@ -444,7 +446,7 @@ class ViewBuildPage(BuildFarmPage):
                 (myself, build.host, build.tree, build.compiler, build.host, self.buildfarm.hostdb[build.host].platform.encode("utf-8"))
         if uname is not None:
             yield "<tr><td>Uname:</td><td>%s</td></tr>\n" % uname
-        yield "<tr><td>Tree:</td><td>%s</td></tr>\n" % self.tree_link(myself, build.tree)
+        yield "<tr><td>Tree:</td><td>%s</td></tr>\n" % tree_link(myself, self.buildfarm.trees[build.tree])
         yield "<tr><td>Build Revision:</td><td>%s</td></tr>\n" % revision_link(myself, build.revision, build.tree)
         yield "<tr><td>Build age:</td><td><div class='age'>%s</div></td></tr>\n" % self.red_age(build.age)
         yield "<tr><td>Status:</td><td>%s</td></tr>\n" % build_link(myself, build)
@@ -583,7 +585,7 @@ class ViewHostPage(BuildFarmPage):
     def _render_build_html(self, myself, build):
         warnings = build.err_count()
         yield "<tr>"
-        yield "<td><span class='tree'>" + self.tree_link(myself, build.tree) +"</span>/" + build.compiler + "</td>"
+        yield "<td><span class='tree'>" + tree_link(myself, self.buildfarm.trees[build.tree]) +"</span>/" + build.compiler + "</td>"
         yield "<td>" + revision_link(myself, build.revision, build.tree) + "</td>"
         yield "<td><div class='age'>" + self.red_age(build.age) + "</div></td>"
         yield "<td><div class='status'>%s</div></td>" % build_link(myself, build)
@@ -710,7 +712,7 @@ class ViewSummaryPage(BuildFarmPage):
 
         for tree in sorted(self.buildfarm.trees.keys()):
             yield "<tr>"
-            yield "<td>%s</td>" % self.tree_link(myself, tree)
+            yield "<td>%s</td>" % tree_link(myself, self.buildfarm.trees[tree])
             yield "<td>%s</td>" % host_count[tree]
             yield "<td>%s</td>" % broken_count[tree]
             if panic_count[tree]:
