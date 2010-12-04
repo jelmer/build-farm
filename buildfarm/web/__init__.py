@@ -467,6 +467,9 @@ class ViewBuildPage(BuildFarmPage):
         yield "<div id='log'>"
 
         yield "<p><a href='%s/+subunit'>Subunit output</a></p>" % build_uri(myself, build)
+        yield "<p><a href='%s/+stdout'>Standard output (as plain text)</a>, " % build_uri(myself, build)
+        yield "<a href='%s/+stderr'>Standard error (as plain text)</a>" % build_uri(myself, build)
+        yield "</p>"
 
         if not plain_logs:
             yield "<p>Switch to the <a href='%s?function=View+Build;host=%s;tree=%s"\
@@ -998,6 +1001,16 @@ class BuildFarmApp(object):
                         yield build.read_subunit().read()
                     except NoTestOutput:
                         yield "There was no test output"
+                elif subfn == "+stdout":
+                    start_response('200 OK', [
+                        ('Content-type', 'text/plain; charset=utf-8'),
+                        ('Content-Disposition', 'attachment; filename="%s.%s.%s-%s.log"' % (build.tree, build.host, build.compiler, build.revision))])
+                    yield build.read_log().read()
+                elif subfn == "+stderr":
+                    start_response('200 OK', [
+                        ('Content-type', 'text/plain; charset=utf-8'),
+                        ('Content-Disposition', 'attachment; filename="%s.%s.%s-%s.err"' % (build.tree, build.host, build.compiler, build.revision))])
+                    yield build.read_err().read()
                 elif subfn in ("", None):
                     start_response('200 OK', [
                         ('Content-type', 'text/html; charset=utf-8')])
