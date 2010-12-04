@@ -129,7 +129,7 @@ def build_link(myself, build):
 
 
 def host_uri(myself, host):
-    return "%s?function=View+Host;host=%s" % (myself, host)
+    return "%s/host/%s" % (myself, host)
 
 def host_link(myself, host):
     return "<a href='%s'>%s</a>" % (host_uri(myself, host), host)
@@ -957,9 +957,14 @@ class BuildFarmApp(object):
                 yield "".join(self.html_page(form, page.render(myself, tree, revision)))
             else:
                 fn = wsgiref.util.shift_path_info(environ)
-                if fn == "recent":
-                    page = ViewRecentBuildsPage(self.buildfarm)
-                    yield "".join(self.html_page(form, page.render(myself, wsgiref.util.shift_path_info(environ), get_param(form, 'sortby') or 'age')))
+                if fn == "tree":
+                    tree = wsgiref.util.shift_path_info(environ)
+                    subfn = wsgiref.util.shift_path_info(environ)
+                    if subfn in ("", None, "+recent"):
+                        page = ViewRecentBuildsPage(self.buildfarm)
+                        yield "".join(self.html_page(form, page.render(myself, tree, get_param(form, 'sortby') or 'age')))
+                    else:
+                        yield "Unknown subfn %s" % subfn
                 elif fn == "host":
                     page = ViewHostPage(self.buildfarm)
                     yield "".join(self.html_page(form, page.render_html(myself, wsgiref.util.shift_path_info(environ))))
@@ -975,9 +980,9 @@ class BuildFarmApp(object):
                             yield build.read_subunit().read()
                         except NoTestOutput:
                             yield "There was no test output"
-                    elif subfn == "":
+                    elif subfn in ("", None):
                         yield "".join(self.html_page(form, page.render(myself, build, False)))
-                elif fn == "":
+                elif fn in ("", None):
                     page = ViewSummaryPage(self.buildfarm)
                     yield "".join(self.html_page(form, page.render_html(myself)))
                 else:
