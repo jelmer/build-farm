@@ -581,7 +581,7 @@ class BuildResultStore(object):
             raise NoSuchBuildError(None, None, None, None)
         return ret
 
-    def get_previous_revision(self, tree, host, compiler, revision):
+    def get_previous_build(self, tree, host, compiler, revision):
         from buildfarm.sqldb import Cast
         cur_build = self.get_build(tree, host, compiler, revision)
 
@@ -595,9 +595,9 @@ class BuildResultStore(object):
         prev_build = result.first()
         if prev_build is None:
             raise NoSuchBuildError(tree, host, compiler, revision)
-        return prev_build.revision
+        return prev_build
 
-    def get_latest_revision(self, tree, host, compiler):
+    def get_latest_build(self, tree, host, compiler):
         result = self.store.find(StormBuild,
             StormBuild.tree == tree,
             StormBuild.host == host,
@@ -606,4 +606,4 @@ class BuildResultStore(object):
         build = result.first()
         if build is None:
             raise NoSuchBuildError(tree, host, compiler)
-        return build.revision
+        return build

@@ -52,16 +52,16 @@ BUILD COMMIT REVISION: myrev
 BUILD COMMIT REVISION: myotherrev
 """)
         self.x.upload_build(Build(path[:-4], "tdb", "charis", "cc"))
-        self.assertRaises(NoSuchBuildError, self.x.get_previous_revision, "tdb", "charis", "cc", "unknown")
-        self.assertRaises(NoSuchBuildError, self.x.get_previous_revision, "tdb", "charis", "cc", "myrev")
-        self.assertEquals("myrev", self.x.get_previous_revision("tdb", "charis", "cc", "myotherrev"))
+        self.assertRaises(NoSuchBuildError, self.x.get_previous_build, "tdb", "charis", "cc", "unknown")
+        self.assertRaises(NoSuchBuildError, self.x.get_previous_build, "tdb", "charis", "cc", "myrev")
+        self.assertEquals("myrev", self.x.get_previous_build("tdb", "charis", "cc", "myotherrev").revision)
 
     def test_get_latest_revision(self):
         path = self.create_mock_logfile("tdb", "charis", "cc", "22", contents="""
 BUILD COMMIT REVISION: myrev
 """)
         self.x.upload_build(Build(path[:-4], "tdb", "charis", "cc"))
-        self.assertEquals("myrev", self.x.get_latest_revision("tdb", "charis", "cc"))
+        self.assertEquals("myrev", self.x.get_latest_build("tdb", "charis", "cc").revision)
 
     def test_build_fname(self):
         self.assertEquals(
@@ -160,11 +160,11 @@ BUILD COMMIT REVISION: myrev
         build = Build(path[:-4], "tdb", "charis", "cc")
         self.assertRaises(Exception, self.x.upload_build, build)
 
-    def test_get_previous_revision(self):
-        self.assertRaises(NoSuchBuildError, self.x.get_previous_revision, "tdb", "charis", "cc", "12")
+    def test_get_previous_build(self):
+        self.assertRaises(NoSuchBuildError, self.x.get_previous_build, "tdb", "charis", "cc", "12")
 
     def test_get_latest_revision_none(self):
-        self.assertRaises(NoSuchBuildError, self.x.get_latest_revision, "tdb", "charis", "cc")
+        self.assertRaises(NoSuchBuildError, self.x.get_latest_build, "tdb", "charis", "cc")
 
     def test_get_old_builds_none(self):
         self.assertEquals([],

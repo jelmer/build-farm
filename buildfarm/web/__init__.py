@@ -466,7 +466,15 @@ class ViewBuildPage(BuildFarmPage):
 
         yield "<div id='log'>"
 
-        yield "<p><a href='%s/+subunit'>Subunit output</a></p>" % build_uri(myself, build)
+        yield "<p><a href='%s/+subunit'>Subunit output</a>" % build_uri(myself, build)
+        try:
+            previous_build = self.buildfarm.builds.get_previous_build(build.tree, build.host, build.compiler. build.revision)
+        except NoSuchBuildError:
+            pass
+        else:
+            yield ", <a href='%s/+subunit-diff/%s'>diff against previous</a>" % (
+                build_uri(myself, build), previous.log_checksum())
+        yield "</p>"
         yield "<p><a href='%s/+stdout'>Standard output (as plain text)</a>, " % build_uri(myself, build)
         yield "<a href='%s/+stderr'>Standard error (as plain text)</a>" % build_uri(myself, build)
         yield "</p>"
@@ -1011,6 +1019,16 @@ class BuildFarmApp(object):
                         ('Content-type', 'text/plain; charset=utf-8'),
                         ('Content-Disposition', 'attachment; filename="%s.%s.%s-%s.err"' % (build.tree, build.host, build.compiler, build.revision))])
                     yield build.read_err().read()
+                elif subfn == "+subunit-diff":
+                    start_response('200 OK', [
+                        ('Content-type', 'text/plain; charset=utf-8')])
+                    subunit_this = build.read_subunit().readlines()
+                    other_build_checksum = wsgiref.util.shift_path_info(environ)
+                    other_build = self.buildfarm.builds.get_by_checksum(other_build_checksum)
+                    subunit_other = other_build.read_subunit().readlines()
+                    import difflib
+                    yield "".join(difflib.unified_diff(subunit_other, subunit_this))
+
                 elif subfn in ("", None):
                     start_response('200 OK', [
                         ('Content-type', 'text/html; charset=utf-8')])

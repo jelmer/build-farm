@@ -125,22 +125,15 @@ for build in buildfarm.get_new_builds():
     try:
         if opts.dry_run:
             # Perhaps this is a dry run and rev is not in the database yet?
-            prev_rev = buildfarm.builds.get_latest_revision(build.tree, build.host, build.compiler)
+            prev_build = buildfarm.builds.get_latest_build(build.tree, build.host, build.compiler)
         else:
-            prev_rev = buildfarm.builds.get_previous_revision(build.tree, build.host, build.compiler, rev)
+            prev_build = buildfarm.builds.get_previous_build(build.tree, build.host, build.compiler, rev)
     except NoSuchBuildError:
         if opts.verbose >= 1:
             print "Unable to find previous build for %s,%s,%s" % (build.tree, build.host, build.compiler)
         # Can't send a nastygram until there are 2 builds..
     else:
-        try:
-            assert prev_rev is not None
-            prev_build = buildfarm.builds.get_build(build.tree, build.host, build.compiler, prev_rev)
-        except NoSuchBuildError:
-            if opts.verbose >= 1:
-                print "Previous build %s has disappeared" % prev_build
-        else:
-            check_and_send_mails(build, prev_build)
+        check_and_send_mails(build, prev_build)
 
     if not opts.dry_run:
         old_build.remove()
