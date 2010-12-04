@@ -155,6 +155,16 @@ def check_dir_exists(kind, path):
         raise Exception("%s directory %s does not exist" % (kind, path))
 
 
+def extract_phase_output(f):
+    name = None
+    output = None
+    for l in f:
+
+
+def extract_test_output(f):
+    raise NotImplementedError
+
+
 def build_status_from_logs(log, err):
     """get status of build"""
     # FIXME: Perhaps also extract revision here?
@@ -288,6 +298,10 @@ class Build(object):
     def age(self):
         """get the age of build"""
         return time.time() - self.upload_time
+
+    def read_subunit(self):
+        """read the test output as subunit"""
+        return StringIO("".join(extract_test_output(self.read_log())))
 
     def read_log(self):
         """read full log file"""
