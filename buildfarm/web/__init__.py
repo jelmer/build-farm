@@ -313,9 +313,9 @@ def make_collapsible_html(type, title, output, id, status=""):
     :param title: the title to be displayed
     """
     if status.lower() in ("", "failed"):
-        icon = 'icon_hide_16.png'
+        icon = '/icon_hide_16.png'
     else:
-        icon = 'icon_unhide_16.png'
+        icon = '/icon_unhide_16.png'
 
     # trim leading and trailing whitespace
     output = output.strip()
