@@ -120,16 +120,7 @@ def html_build_status(status):
 
 
 def build_uri(myself, build):
-    params = {
-        "host": build.host,
-        "tree": build.tree,
-        "compiler": build.compiler,
-        "checksum": build.log_checksum(),
-        }
-    if build.revision:
-        params["revision"] = build.revision
-    return "%s?function=View+Build;%s" % (
-        myself, ";".join(["%s=%s" % k for k in params.iteritems()]))
+    return "%s/build/%s" % build.log_checksum()
 
 
 def build_link(myself, build):
@@ -405,20 +396,13 @@ class ViewBuildPage(BuildFarmPage):
 
         yield "</tbody></table>\n"
 
-    def render(self, myself, tree, host, compiler, rev, checksum=None,
-            plain_logs=False):
+    def render(self, myself, build, plain_logs=False):
         """view one build in detail"""
 
         uname = None
         cflags = None
         config = None
-        try:
-            build = self.buildfarm.get_build(tree, host, compiler, rev,
-                checksum=checksum)
-        except NoSuchBuildError:
-            yield "No such build: %s on %s with %s, rev %r, checksum %r" % (
-                tree, host, compiler, rev, checksum)
-            return
+
         try:
             f = build.read_log()
             try:
@@ -934,8 +918,16 @@ class BuildFarmApp(object):
                 plain_logs = (get_param(form, "plain") is not None and get_param(form, "plain").lower() in ("yes", "1", "on", "true", "y"))
                 revision = get_param(form, "revision")
                 checksum = get_param(form, "checksum")
-                page = ViewBuildPage(self.buildfarm)
-                yield "".join(page.render(myself, tree, host, compiler, revision, checksum, plain_logs))
+                try:
+                    build = self.buildfarm.get_build(tree, host,
+                        compiler, revision, checksum=checksum)
+                except NoSuchBuildError:
+                    yield "No such build: %s on %s with %s, rev %r, checksum %r" % (
+                        tree, host, compiler, revision, checksum)
+                else:
+                    page = ViewBuildPage(self.buildfarm)
+                    plain_logs = (get_param(form, "plain") is not None and get_param(form, "plain").lower() in ("yes", "1", "on", "true", "y"))
+                    yield "".join(page.render(myself, build, plain_logs))
             elif fn_name == "View_Host":
                 page = ViewHostPage(self.buildfarm)
                 yield "".join(page.render_html(myself, get_param(form, 'host')))
@@ -951,17 +943,24 @@ class BuildFarmApp(object):
                 revision = get_param(form, 'revision')
                 page = DiffPage(self.buildfarm)
                 yield "".join(page.render(myself, tree, revision))
-            elif os.getenv("PATH_INFO") not in (None, "", "/"):
-                paths = os.getenv("PATH_INFO").split('/')
-                if paths[1] == "recent":
-                    page = ViewRecentBuildsPage(self.buildfarm)
-                    yield "".join(page.render(myself, paths[2], get_param(form, 'sortby') or 'age'))
-                elif paths[1] == "host":
-                    page = ViewHostPage(self.buildfarm)
-                    yield "".join(page.render_html(myself, paths[2]))
             else:
-                page = ViewSummaryPage(self.buildfarm)
-                yield "".join(page.render_html(myself))
+                fn = wsgiref.util.shift_path_info(environ)
+                if fn == "recent":
+                    page = ViewRecentBuildsPage(self.buildfarm)
+                    yield "".join(page.render(myself, wsgiref.util.shift_path_info(environ), get_param(form, 'sortby') or 'age'))
+                elif fn == "host":
+                    page = ViewHostPage(self.buildfarm)
+                    yield "".join(page.render_html(myself, wsgiref.util.shift_path_info(environ)))
+                elif fn == "build":
+                    build_checksum = wsgiref.util.shift_path_info(environ)
+                    build = self.buildfarm.get_by_checksum(build_checksum)
+                    page = ViewBuildPage(self.buildfarm)
+                    yield "".join(page.render(myself, build, plain_logs))
+                elif fn == "":
+                    page = ViewSummaryPage(self.buildfarm)
+                    yield "".join(page.render_html(myself))
+                else:
+                    yield "Unknown function %s" % fn
             yield util.FileLoad(os.path.join(webdir, "footer.html"))
             yield "</body>"
             yield "</html>"
