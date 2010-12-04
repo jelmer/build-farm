@@ -41,6 +41,7 @@ from buildfarm import (
 from buildfarm.build import (
     LogFileMissing,
     NoSuchBuildError,
+    NoTestOutput,
     )
 
 import cgi
@@ -955,8 +956,16 @@ class BuildFarmApp(object):
                     build_checksum = wsgiref.util.shift_path_info(environ)
                     build = self.buildfarm.builds.get_by_checksum(build_checksum)
                     page = ViewBuildPage(self.buildfarm)
-                    plain_logs = (get_param(form, "plain") is not None and get_param(form, "plain").lower() in ("yes", "1", "on", "true", "y"))
-                    yield "".join(page.render(myself, build, plain_logs))
+                    subfn = wsgiref.util.shift_path_info(environ)
+                    if subfn == "+plain":
+                        yield "".join(page.render(myself, build, True))
+                    elif subfn == "+subunit":
+                        try:
+                            yield build.read_subunit().read()
+                        except NoTestOutput:
+                            yield "There was no test output"
+                    elif subfn == "":
+                        yield "".join(page.render(myself, build, False))
                 elif fn == "":
                     page = ViewSummaryPage(self.buildfarm)
                     yield "".join(page.render_html(myself))
