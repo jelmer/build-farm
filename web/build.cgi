@@ -36,8 +36,8 @@ if CGI_DEBUG:
     cgitb.enable()
     handler.log_exception = cgitb.handler
 
-from buildfarm.sqldb import StormCachingBuildFarm
+from buildfarm import BuildFarm
 from buildfarm.web import BuildFarmApp
-buildfarm = StormCachingBuildFarm()
+buildfarm = BuildFarm()
 buildApp = BuildFarmApp(buildfarm)
 handler.run(buildApp)
