@@ -959,6 +959,9 @@ class BuildFarmApp(object):
                 revision = get_param(form, 'revision')
                 page = DiffPage(self.buildfarm)
                 yield "".join(self.html_page(form, page.render(myself, tree, revision)))
+            elif fn_name == "Summary":
+                page = ViewSummaryPage(self.buildfarm)
+                yield "".join(self.html_page(form, page.render_html(myself)))
             else:
                 yield "Unknown function %s" % fn_name
         else:
