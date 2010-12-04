@@ -120,7 +120,7 @@ def html_build_status(status):
 
 
 def build_uri(myself, build):
-    return "%s/build/%s" % build.log_checksum()
+    return "%s/build/%s" % (myself, build.log_checksum())
 
 
 def build_link(myself, build):
@@ -953,7 +953,7 @@ class BuildFarmApp(object):
                     yield "".join(page.render_html(myself, wsgiref.util.shift_path_info(environ)))
                 elif fn == "build":
                     build_checksum = wsgiref.util.shift_path_info(environ)
-                    build = self.buildfarm.get_by_checksum(build_checksum)
+                    build = self.buildfarm.builds.get_by_checksum(build_checksum)
                     page = ViewBuildPage(self.buildfarm)
                     yield "".join(page.render(myself, build, plain_logs))
                 elif fn == "":
