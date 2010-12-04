@@ -466,6 +466,8 @@ class ViewBuildPage(BuildFarmPage):
 
         yield "<div id='log'>"
 
+        yield "<p><a href='%s/+subunit'>Subunit output</a></p>" % build_uri(myself, build)
+
         if not plain_logs:
             yield "<p>Switch to the <a href='%s?function=View+Build;host=%s;tree=%s"\
                   ";compiler=%s%s;plain=true' title='Switch to bland, non-javascript,"\
