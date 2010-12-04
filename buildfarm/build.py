@@ -567,7 +567,7 @@ class BuildResultStore(object):
     def get_by_checksum(self, checksum):
         from buildfarm.sqldb import Cast
         result = self.store.find(StormBuild,
-            Cast(StormBuild.checksum, "TEXT") == checksum)
+            Cast(StormBuild.checksum, "TEXT") == Cast(checksum, "TEXT"))
         ret = result.one()
         if ret is None:
             raise NoSuchBuildError(None, None, None, None)

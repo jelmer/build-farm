@@ -873,6 +873,32 @@ class BuildFarmApp(object):
         yield "</div>\n"
         yield "</form>\n"
 
+    def html_page(self, form, lines):
+        yield "<html>\n"
+        yield "  <head>\n"
+        yield "    <title>samba.org build farm</title>\n"
+        yield "    <script language='javascript' src='/build_farm.js'></script>\n"
+        yield "    <meta name='keywords' contents='Samba SMB CIFS Build Farm'/>\n"
+        yield "    <meta name='description' contents='Home of the Samba Build Farm, the automated testing facility.'/>\n"
+        yield "    <meta name='robots' contents='noindex'/>"
+        yield "    <link rel='stylesheet' href='/build_farm.css' type='text/css' media='all'/>"
+        yield "    <link rel='stylesheet' href='http://master.samba.org/samba/style/common.css' type='text/css' media='all'/>"
+        yield "    <link rel='shortcut icon' href='http://www.samba.org/samba/images/favicon.ico'/>"
+        yield "  </head>"
+        yield "<body>"
+
+        yield util.FileLoad(os.path.join(webdir, "header2.html"))
+
+        tree = get_param(form, "tree")
+        host = get_param(form, "host")
+        compiler = get_param(form, "compiler")
+        yield "".join(self.main_menu(tree, host, compiler))
+        yield util.FileLoad(os.path.join(webdir, "header3.html"))
+        yield "".join(lines)
+        yield util.FileLoad(os.path.join(webdir, "footer.html"))
+        yield "</body>"
+        yield "</html>"
+
     def __call__(self, environ, start_response):
         form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
         fn_name = get_param(form, 'function') or ''
@@ -896,25 +922,10 @@ class BuildFarmApp(object):
             start_response('200 OK', [
                 ('Content-type', 'text/html; charset=utf-8')])
 
-            yield "<html>\n"
-            yield "  <head>\n"
-            yield "    <title>samba.org build farm</title>\n"
-            yield "    <script language='javascript' src='/build_farm.js'></script>\n"
-            yield "    <meta name='keywords' contents='Samba SMB CIFS Build Farm'/>\n"
-            yield "    <meta name='description' contents='Home of the Samba Build Farm, the automated testing facility.'/>\n"
-            yield "    <meta name='robots' contents='noindex'/>"
-            yield "    <link rel='stylesheet' href='/build_farm.css' type='text/css' media='all'/>"
-            yield "    <link rel='stylesheet' href='http://master.samba.org/samba/style/common.css' type='text/css' media='all'/>"
-            yield "    <link rel='shortcut icon' href='http://www.samba.org/samba/images/favicon.ico'/>"
-            yield "  </head>"
-            yield "<body>"
-
-            yield util.FileLoad(os.path.join(webdir, "header2.html"))
             tree = get_param(form, "tree")
             host = get_param(form, "host")
             compiler = get_param(form, "compiler")
-            yield "".join(self.main_menu(tree, host, compiler))
-            yield util.FileLoad(os.path.join(webdir, "header3.html"))
+
             if fn_name == "View_Build":
                 plain_logs = (get_param(form, "plain") is not None and get_param(form, "plain").lower() in ("yes", "1", "on", "true", "y"))
                 revision = get_param(form, "revision")
@@ -928,30 +939,30 @@ class BuildFarmApp(object):
                 else:
                     page = ViewBuildPage(self.buildfarm)
                     plain_logs = (get_param(form, "plain") is not None and get_param(form, "plain").lower() in ("yes", "1", "on", "true", "y"))
-                    yield "".join(page.render(myself, build, plain_logs))
+                    yield "".join(self.html_page(form, page.render(myself, build, plain_logs)))
             elif fn_name == "View_Host":
                 page = ViewHostPage(self.buildfarm)
-                yield "".join(page.render_html(myself, get_param(form, 'host')))
+                yield "".join(self.html_page(form, page.render_html(myself, get_param(form, 'host'))))
             elif fn_name == "Recent_Builds":
                 page = ViewRecentBuildsPage(self.buildfarm)
-                yield "".join(page.render(myself, get_param(form, "tree"), get_param(form, "sortby") or "age"))
+                yield "".join(self.html_page(form, page.render(myself, get_param(form, "tree"), get_param(form, "sortby") or "age")))
             elif fn_name == "Recent_Checkins":
                 # validate the tree
                 author = get_param(form, 'author')
                 page = RecentCheckinsPage(self.buildfarm)
-                yield "".join(page.render(myself, tree, author))
+                yield "".join(self.html_page(form, page.render(myself, tree, author)))
             elif fn_name == "diff":
                 revision = get_param(form, 'revision')
                 page = DiffPage(self.buildfarm)
-                yield "".join(page.render(myself, tree, revision))
+                yield "".join(self.html_page(form, page.render(myself, tree, revision)))
             else:
                 fn = wsgiref.util.shift_path_info(environ)
                 if fn == "recent":
                     page = ViewRecentBuildsPage(self.buildfarm)
-                    yield "".join(page.render(myself, wsgiref.util.shift_path_info(environ), get_param(form, 'sortby') or 'age'))
+                    yield "".join(self.html_page(form, page.render(myself, wsgiref.util.shift_path_info(environ), get_param(form, 'sortby') or 'age')))
                 elif fn == "host":
                     page = ViewHostPage(self.buildfarm)
-                    yield "".join(page.render_html(myself, wsgiref.util.shift_path_info(environ)))
+                    yield "".join(self.html_page(form, page.render_html(myself, wsgiref.util.shift_path_info(environ))))
                 elif fn == "build":
                     build_checksum = wsgiref.util.shift_path_info(environ)
                     build = self.buildfarm.builds.get_by_checksum(build_checksum)
@@ -965,15 +976,12 @@ class BuildFarmApp(object):
                         except NoTestOutput:
                             yield "There was no test output"
                     elif subfn == "":
-                        yield "".join(page.render(myself, build, False))
+                        yield "".join(self.html_page(form, page.render(myself, build, False)))
                 elif fn == "":
                     page = ViewSummaryPage(self.buildfarm)
-                    yield "".join(page.render_html(myself))
+                    yield "".join(self.html_page(form, page.render_html(myself)))
                 else:
                     yield "Unknown function %s" % fn
-            yield util.FileLoad(os.path.join(webdir, "footer.html"))
-            yield "</body>"
-            yield "</html>"
 
 
 if __name__ == '__main__':
