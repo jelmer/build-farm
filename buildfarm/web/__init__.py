@@ -468,12 +468,12 @@ class ViewBuildPage(BuildFarmPage):
 
         yield "<p><a href='%s/+subunit'>Subunit output</a>" % build_uri(myself, build)
         try:
-            previous_build = self.buildfarm.builds.get_previous_build(build.tree, build.host, build.compiler. build.revision)
+            previous_build = self.buildfarm.builds.get_previous_build(build.tree, build.host, build.compiler, build.revision)
         except NoSuchBuildError:
             pass
         else:
             yield ", <a href='%s/+subunit-diff/%s'>diff against previous</a>" % (
-                build_uri(myself, build), previous.log_checksum())
+                build_uri(myself, build), previous_build.log_checksum())
         yield "</p>"
         yield "<p><a href='%s/+stdout'>Standard output (as plain text)</a>, " % build_uri(myself, build)
         yield "<a href='%s/+stderr'>Standard error (as plain text)</a>" % build_uri(myself, build)
