@@ -433,40 +433,40 @@ class ViewBuildPage(BuildFarmPage):
         err = cgi.escape(err)
         yield '<h2>Host information:</h2>'
 
-        host_web_file = "../web/%s.html" % host
+        host_web_file = "../web/%s.html" % build.host
         if os.path.exists(host_web_file):
             yield util.FileLoad(host_web_file)
 
         yield "<table class='real'>\n"
         yield "<tr><td>Host:</td><td><a href='%s?function=View+Host;host=%s;tree=%s;"\
               "compiler=%s#'>%s</a> - %s</td></tr>\n" %\
-                (myself, host, tree, compiler, host, self.buildfarm.hostdb[host].platform.encode("utf-8"))
+                (myself, build.host, build.tree, build.compiler, build.host, self.buildfarm.hostdb[build.host].platform.encode("utf-8"))
         if uname is not None:
             yield "<tr><td>Uname:</td><td>%s</td></tr>\n" % uname
-        yield "<tr><td>Tree:</td><td>%s</td></tr>\n" % self.tree_link(myself, tree)
-        yield "<tr><td>Build Revision:</td><td>%s</td></tr>\n" % revision_link(myself, build.revision, tree)
+        yield "<tr><td>Tree:</td><td>%s</td></tr>\n" % self.tree_link(myself, build.tree)
+        yield "<tr><td>Build Revision:</td><td>%s</td></tr>\n" % revision_link(myself, build.revision, build.tree)
         yield "<tr><td>Build age:</td><td><div class='age'>%s</div></td></tr>\n" % self.red_age(build.age)
         yield "<tr><td>Status:</td><td>%s</td></tr>\n" % build_link(myself, build)
-        yield "<tr><td>Compiler:</td><td>%s</td></tr>\n" % compiler
+        yield "<tr><td>Compiler:</td><td>%s</td></tr>\n" % build.compiler
         if cflags is not None:
             yield "<tr><td>CFLAGS:</td><td>%s</td></tr>\n" % cflags
         if config is not None:
             yield "<tr><td>configure options:</td><td>%s</td></tr>\n" % config
         yield "</table>\n"
 
-        yield "".join(self.show_oldrevs(myself, tree, host, compiler))
+        yield "".join(self.show_oldrevs(myself, build.tree, build.host, build.compiler))
 
         # check the head of the output for our magic string
         rev_var = ""
-        if rev:
-            rev_var = ";revision=%s" % rev
+        if build.revision:
+            rev_var = ";revision=%s" % build.revision
 
         yield "<div id='log'>"
 
         if not plain_logs:
             yield "<p>Switch to the <a href='%s?function=View+Build;host=%s;tree=%s"\
                   ";compiler=%s%s;plain=true' title='Switch to bland, non-javascript,"\
-                  " unstyled view'>Plain View</a></p>" % (myself, host, tree, compiler, rev_var)
+                  " unstyled view'>Plain View</a></p>" % (myself, build.host, build.tree, build.compiler, rev_var)
 
             yield "<div id='actionList'>"
             # These can be pretty wide -- perhaps we need to
@@ -488,7 +488,7 @@ class ViewBuildPage(BuildFarmPage):
         else:
             yield "<p>Switch to the <a href='%s?function=View+Build;host=%s;tree=%s;"\
                   "compiler=%s%s' title='Switch to colourful, javascript-enabled, styled"\
-                  " view'>Enhanced View</a></p>" % (myself, host, tree, compiler, rev_var)
+                  " view'>Enhanced View</a></p>" % (myself, build.host, build.tree, build.compiler, rev_var)
             if err == "":
                 yield "<h2>No error log available</h2>"
             else:
