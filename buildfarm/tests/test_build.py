@@ -18,15 +18,15 @@
 from cStringIO import StringIO
 import os
 import testtools
-import unittest
 
 from buildfarm.build import (
     Build,
-    BuildResultStore,
     BuildStatus,
     NoSuchBuildError,
+    NoTestOutput,
     UploadBuildResultStore,
     build_status_from_logs,
+    extract_test_output,
     )
 
 from buildfarm import BuildFarm
@@ -402,3 +402,24 @@ class UploadBuildResultStoreTests(UploadBuildResultStoreTestBase,BuildFarmTestCa
 
         self.x = UploadBuildResultStore(
             os.path.join(self.path, "data", "upload"))
+
+
+class ExtractSubunitTests(testtools.TestCase):
+
+    def extract_test_output(self, log):
+        try:
+            return "".join(extract_test_output(StringIO(log)))
+        except NoTestOutput:
+            return None
+
+    def test_not_present(self):
+        self.assertEquals(None, self.extract_test_output(""))
+
+    def test_simple(self):
+        self.assertEquals("FOO\n", self.extract_test_output("""
+
+Running action test
+FOO
+ACTION PASSED: test
+
+"""))

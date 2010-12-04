@@ -160,13 +160,13 @@ def extract_phase_output(f):
     output = None
     re_action = re.compile("^ACTION (PASSED|FAILED):\s+(.*)$")
     for l in f:
-        if l.startwith("Running action "):
+        if l.startswith("Running action "):
             name = l[len("Running action "):].strip()
             output = []
             continue
         m = re_action.match(l)
         if m:
-            assert name == m.group(1)
+            assert name == m.group(2).strip(), "%r != %r" % (name, m.group(2))
             yield name, output
             name = None
             output = []
@@ -178,7 +178,7 @@ def extract_test_output(f):
     for name, output in extract_phase_output(f):
         if name == "test":
             return output
-    return None
+    raise NoTestOutput()
 
 
 def build_status_from_logs(log, err):
@@ -266,6 +266,10 @@ class NoSuchBuildError(Exception):
         self.host = host
         self.compiler = compiler
         self.rev = rev
+
+
+class NoTestOutput(Exception):
+    """The build did not have any associated test output."""
 
 
 class Build(object):

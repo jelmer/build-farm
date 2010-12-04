@@ -8,11 +8,13 @@ from buildfarm.build import (
     build_status_from_logs,
     LogFileMissing,
     MissingRevisionInfo,
+    NoTestOutput,
     revision_from_log,
+    extract_test_output,
     )
 from buildfarm.hostdb import NoSuchHost
 
-from buildfarm.sqldb import BuildFarm, StormBuild
+from buildfarm import BuildFarm, StormBuild
 
 buildfarm = BuildFarm()
 
@@ -57,5 +59,20 @@ for build in store.find(StormBuild, StormBuild.host_id == None):
         build.host_id = buildfarm.hostdb[build.host].id
     except NoSuchHost, e:
         print "Unable to find host %s" % e.name
+
+
+for build in store.find(StormBuild, StormBuild.basename != None):
+    subunit_path = build.basename + ".subunit"
+    if os.path.exists(subunit_path):
+        continue
+    try:
+        test_output = "".join(extract_test_output(build.read_log()))
+    except (LogFileMissing, NoTestOutput):
+        continue
+    f = open(subunit_path, 'w')
+    try:
+        f.write(test_output)
+    finally:
+        f.close()
 
 buildfarm.commit()
