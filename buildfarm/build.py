@@ -321,7 +321,10 @@ class Build(object):
 
     def read_subunit(self):
         """read the test output as subunit"""
-        return StringIO("".join(extract_test_output(self.read_log())))
+        try:
+            return open(self.basename+".subunit", "r")
+        except IOError:
+            raise NoTestOutput()
 
     def read_log(self):
         """read full log file"""
@@ -531,20 +534,23 @@ class BuildResultStore(object):
         rev = build.revision_details()
 
         new_basename = self.build_fname(build.tree, build.host, build.compiler, rev)
-        try:
-            existing_build = self.get_build(build.tree, build.host, build.compiler, rev)
-        except NoSuchBuildError:
-            if os.path.exists(new_basename+".log"):
-                os.remove(new_basename+".log")
-            if os.path.exists(new_basename+".err"):
-                os.remove(new_basename+".err")
-        else:
-            existing_build.remove_logs()
+        if os.path.exists(new_basename+".log"):
+            os.remove(new_basename+".log")
+        if os.path.exists(new_basename+".err"):
+            os.remove(new_basename+".err")
         os.link(build.basename+".log", new_basename+".log")
         if os.path.exists(build.basename+".err"):
             os.link(build.basename+".err", new_basename+".err")
-        new_basename = self.build_fname(build.tree, build.host, build.compiler,
-                rev)
+        try:
+            subunit_output = extract_test_output(build.read_log())
+        except NoTestOutput:
+            pass
+        else:
+            f = open(new_basename+".subunit", 'w')
+            try:
+                f.writelines(subunit_output)
+            finally:
+                f.close()
         new_build = StormBuild(new_basename, build.tree, build.host,
             build.compiler, rev)
         new_build.checksum = build.log_checksum()
