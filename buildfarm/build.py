@@ -329,10 +329,7 @@ class Build(object):
 
     def read_subunit(self):
         """read the test output as subunit"""
-        try:
-            return open_opt_compressed_file(self.basename+".subunit")
-        except IOError:
-            raise NoTestOutput()
+        return StringIO("".join(extract_test_output(self.read_log())))
 
     def read_log(self):
         """read full log file"""
@@ -549,16 +546,6 @@ class BuildResultStore(object):
         os.link(build.basename+".log", new_basename+".log")
         if os.path.exists(build.basename+".err"):
             os.link(build.basename+".err", new_basename+".err")
-        try:
-            subunit_output = extract_test_output(build.read_log())
-        except NoTestOutput:
-            pass
-        else:
-            f = bz2.BZ2File(new_basename+".subunit.bz2", 'w')
-            try:
-                f.writelines(subunit_output)
-            finally:
-                f.close()
         new_build = StormBuild(new_basename, build.tree, build.host,
             build.compiler, rev)
         new_build.checksum = build.log_checksum()

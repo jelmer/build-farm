@@ -62,19 +62,4 @@ for build in store.find(StormBuild, StormBuild.host_id == None):
         print "Unable to find host %s" % e.name
 
 
-for build in store.find(StormBuild, StormBuild.basename != None):
-    subunit_path = build.basename + ".subunit"
-    if os.path.exists(subunit_path) or os.path.exists(subunit_path+".bz2"):
-        continue
-    try:
-        test_output = "".join(extract_test_output(build.read_log()))
-    except (LogFileMissing, NoTestOutput):
-        continue
-    print "Writing subunit file for %r" % build
-    f = bz2.BZ2File(subunit_path+".bz2", 'w')
-    try:
-        f.write(test_output)
-    finally:
-        f.close()
-
 buildfarm.commit()
