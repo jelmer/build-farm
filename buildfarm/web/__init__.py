@@ -134,7 +134,7 @@ def tree_uri(myself, tree):
 
 def tree_link(myself, tree):
     """return a link to a particular tree"""
-    return "<a href='%s' title='View recent builds for %s'>%s:%s</a>" % (tree.name, tree.name, tree.branch)
+    return "<a href='%s' title='View recent builds for %s'>%s:%s</a>" % (tree_uri(myself, tree), tree.name, tree.name, tree.branch)
 
 
 def host_uri(myself, host):
