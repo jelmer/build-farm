@@ -17,7 +17,6 @@ from buildfarm.build import (
 from buildfarm import BuildFarm
 from buildfarm.web import build_uri
 from email.mime.text import MIMEText
-import logging
 import optparse
 import resource
 import smtplib
