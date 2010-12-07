@@ -19,7 +19,6 @@ prehook_configure()
 {
 case "$tree" in
 	samba_4*)
-		(cd ${builddir}/..; gpatch -p 1 <$HOME/build_farm/patch)
 		;;
 	*)
 		;;
