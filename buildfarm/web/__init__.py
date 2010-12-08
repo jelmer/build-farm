@@ -820,7 +820,11 @@ class HistoryPage(BuildFarmPage):
 class DiffPage(HistoryPage):
 
     def render(self, myself, tree, revision):
-        t = self.buildfarm.trees[tree]
+        try:
+            t = self.buildfarm.trees[tree]
+        except KeyError:
+            yield "Unknown tree %s" % tree
+            return
         branch = t.get_branch()
         (entry, diff) = branch.diff(revision)
         # get information about the current diff
