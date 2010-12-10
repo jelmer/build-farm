@@ -12,8 +12,9 @@ if [ "x$compilers" = "x" ]; then
 	compilers="gcc cc icc"
 fi
 
-for compiler in gcc cc icc; do
+for compiler in $compilers; do
 
+  echo "working with compiler $compiler"
   # arrgh, "which" gives no err code on solaris
   path=`which $compiler`
   if [ -x "$path" ]; then
