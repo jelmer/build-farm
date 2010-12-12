@@ -125,6 +125,7 @@ class BuildStatus(object):
             return False
         if ("panic" in self.other_failures and
             not "panic" in older.other_failures):
+            # If this build introduced panics, then that's always worse.
             return True
         if len(self.stages) < len(older.stages):
             # Less stages completed
@@ -132,8 +133,14 @@ class BuildStatus(object):
         for ((old_name, old_result), (new_name, new_result)) in zip(
             older.stages, self.stages):
             assert old_name == new_name
-            if new_result > old_result:
+            if new_result == old_result:
+                continue
+            if new_result < 0 and old_result >= 0:
                 return True
+            elif new_result >= 0 and old_result < 0:
+                return False
+            else:
+                return (abs(new_result) > abs(old_result))
         return False
 
     def __cmp__(self, other):

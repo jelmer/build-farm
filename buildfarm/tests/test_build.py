@@ -341,6 +341,20 @@ class BuildStatusRegressedSinceTests(testtools.TestCase):
         b = BuildStatus(stages2, set(other_failures2))
         self.assertEquals(expected, b.regressed_since(a))
 
+    def test_negative(self):
+        self.assertRegressedSince(
+            False,
+            ([("CONFIGURE", -1)], []),
+            ([("CONFIGURE", 2)], []))
+        self.assertRegressedSince(
+            False,
+            ([("CONFIGURE", -1)], []),
+            ([("CONFIGURE", 0)], []))
+        self.assertRegressedSince(
+            True,
+            ([("CONFIGURE", -1)], []),
+            ([("CONFIGURE", -3)], []))
+
     def test_same(self):
         self.assertRegressedSince(
             False,
