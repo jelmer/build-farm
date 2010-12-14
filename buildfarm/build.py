@@ -132,7 +132,7 @@ class BuildStatus(object):
             return True
         for ((old_name, old_result), (new_name, new_result)) in zip(
             older.stages, self.stages):
-            assert old_name == new_name
+            assert old_name == new_name, "build stage name mismatch: %s != %s" % (old_name, new_name)
             if new_result == old_result:
                 continue
             if new_result < 0 and old_result >= 0:
