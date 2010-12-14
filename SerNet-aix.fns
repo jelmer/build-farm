@@ -6,6 +6,19 @@ global_lock
 PATH=/opt/home/tridge/python/bin:$PATH
 export PATH
 
+PREHOOKS="configure"
+
+prehook_configure()
+{
+case "$tree" in
+    samba_4*)
+		(cd ${builddir}/..; gpatch -p 1 <$HOME/patch_aix)
+        ;;
+    *)
+        ;;
+esac
+}
+
 compiler="cc"
 
 . common.fns
