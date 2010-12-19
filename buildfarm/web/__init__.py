@@ -987,14 +987,20 @@ class BuildFarmApp(object):
         else:
             fn = wsgiref.util.shift_path_info(environ)
             if fn == "tree":
-                start_response('200 OK', [
-                    ('Content-type', 'text/html; charset=utf-8')])
                 tree = wsgiref.util.shift_path_info(environ)
                 subfn = wsgiref.util.shift_path_info(environ)
                 if subfn in ("", None, "+recent"):
+                    start_response('200 OK', [
+                        ('Content-type', 'text/html; charset=utf-8')])
                     page = ViewRecentBuildsPage(self.buildfarm)
                     yield "".join(self.html_page(form, page.render(myself, tree, get_param(form, 'sortby') or 'age')))
+                elif subfn == "+recent-ids":
+                    start_response('200 OK', [
+                        ('Content-type', 'text/plain; charset=utf-8')])
+                    yield "".join([x.log_checksum()+"\n" for x in self.buildfarm.get_tree_builds(tree) if x.has_log()])
                 else:
+                    start_response('200 OK', [
+                        ('Content-type', 'text/html; charset=utf-8')])
                     yield "Unknown subfn %s" % subfn
             elif fn == "host":
                 start_response('200 OK', [

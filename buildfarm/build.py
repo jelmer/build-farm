@@ -349,6 +349,15 @@ class Build(object):
         except IOError:
             raise LogFileMissing()
 
+    def has_log(self):
+        try:
+            f = self.read_log()
+        except LogFileMissing:
+            return False
+        else:
+            f.close()
+            return True
+
     def read_err(self):
         """read full err file"""
         try:
