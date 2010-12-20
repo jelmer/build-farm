@@ -11,6 +11,7 @@ on recent commits.
 """
 
 from buildfarm.build import (
+    BuildDiff,
     MissingRevisionInfo,
     NoSuchBuildError,
     )
@@ -37,23 +38,17 @@ smtp.connect()
 
 def check_and_send_mails(cur, old):
     t = buildfarm.trees[cur.tree]
+    diff = BuildDiff(t, old, cur)
 
-    cur_rev = cur.revision_details()
-    cur_status = cur.status()
-
-    old_rev = old.revision_details()
-    old_status = old.status()
-
-    if not cur_status.regressed_since(old_status):
+    if not diff.is_regression():
         if opts.verbose >= 3:
-            print "... hasn't regressed since %s: %s" % (old_rev, old_status)
+            print "... hasn't regressed since %s: %s" % (diff.old_rev, diff.old_status)
         return
 
-    branch = t.get_branch()
     recipients = set()
     change_log = ""
 
-    for rev in branch.log(from_rev=cur.revision, exclude_revs=set([old.revision])):
+    for rev in diff.revisions():
         recipients.add(rev.author)
         recipients.add(rev.committer)
         change_log += """
@@ -82,15 +77,15 @@ The build may have been broken by one of the following commits:
         "change_log": change_log,
         "scm": t.scm,
         "branch": t.branch,
-        "cur_rev": cur_rev,
-        "old_rev": old_rev,
-        "cur_status": cur_status,
-        "old_status": old_status,
+        "cur_rev": diff.new_rev,
+        "old_rev": diff.old_rev,
+        "cur_status": diff.new_status,
+        "old_status": diff.old_status,
         "build_link": build_uri("http://build.samba.org/build.cgi", cur)
         }
 
     msg = MIMEText(body)
-    msg["Subject"] = "BUILD of %s:%s BROKEN on %s with %s AT REVISION %s" % (cur.tree, t.branch, cur.host, cur.compiler, cur_rev)
+    msg["Subject"] = "BUILD of %s:%s BROKEN on %s with %s AT REVISION %s" % (cur.tree, t.branch, cur.host, cur.compiler, diff.new_rev)
     msg["From"] = "\"Build Farm\" <build@samba.org>"
     msg["To"] = ",".join(recipients)
     if not opts.dry_run:

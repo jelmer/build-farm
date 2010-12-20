@@ -614,3 +614,26 @@ class BuildResultStore(object):
         if build is None:
             raise NoSuchBuildError(tree, host, compiler)
         return build
+
+
+class BuildDiff(object):
+    """Represents the difference between two builds."""
+
+    def __init__(self, tree, old, new):
+        self.tree = tree
+        self.old = old
+        self.new = new
+        self.new_rev = new.revision_details()
+        self.new_status = new.status()
+
+        self.old_rev = old.revision_details()
+        self.old_status = old.status()
+
+    def is_regression(self):
+        """Is there a regression in new build since old build?"""
+        return self.new_status.regressed_since(self.old_status)
+
+    def revisions(self):
+        """Returns the revisions introduced since old in new."""
+        branch = self.tree.get_branch()
+        return branch.log(from_rev=self.new.revision, exclude_revs=set([self.old.revision]))
