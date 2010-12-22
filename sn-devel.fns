@@ -1,0 +1,3 @@
+. generic.fns
+# test this just on sn-devel for now
+test_tree waf-svn demos gcc

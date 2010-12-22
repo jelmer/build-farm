@@ -164,7 +164,7 @@ choose_scm() {
 	tree=$1
 
 	case "$tree" in
-			samba* | rsync | libreplace | talloc | tdb | ldb | pidl | ccache*)
+			samba* | rsync | libreplace | talloc | tdb | ldb | pidl | ccache* | waf*)
 			echo "git"
 				return 0
 			;;
@@ -237,35 +237,51 @@ unlock_file() {
 ############################
 
 do_make() {
-	if [ x"$MAKE" = x ]; then
-		MAKE=make
-	fi
+        # work out correct make command
+	case "$tree" in
+	    waf*)
+		MAKECOMMAND="./waf"
+		;;
+	    *)
+		MAKECOMMAND="$MAKE"
+		if [ x"$MAKECOMMAND" = x ]; then
+		    MAKECOMMAND=make
+		fi
+		;;
+	esac
 
 	MMTIME=$MAXTIME
 	# some trees don't need as much time
 	case "$tree" in
-		rsync | tdb | talloc | libreplace | ccache*)
+		rsync | tdb | talloc | libreplace | ccache* | waf*)
 			if [ "$compiler" != "checker" ]; then
 				MMTIME=`expr $MMTIME / 5`
 			fi
 		;;
 	esac
 
+	# special build for some trees
+	case "$tree" in
+	    waf*)
+		./waf distclean && ./waf configure build
+		;;
+	esac
+
 
 	for t in $*; do
 		if [ x"$BUILD_FARM_NUM_JOBS" = x ]; then
-			echo "$MAKE $t"
-			$builddir/timelimit $MMTIME "$MAKE" "$t"
+			echo "$MAKECOMMAND $t"
+			$builddir/timelimit $MMTIME "$MAKECOMMAND" "$t"
 			status=$?
 		else
 			# we can parallelize everything and all targets
 			if [ x"$t" = xeverything ] || [ x"$t" = xall]; then
-				echo "$MAKE" "-j$BUILD_FARM_NUM_JOBS"  "$t"
-				$builddir/timelimit $MMTIME "$MAKE" "-j$BUILD_FARM_NUM_JOBS"  "$t"
+				echo "$MAKECOMMAND" "-j$BUILD_FARM_NUM_JOBS"  "$t"
+				$builddir/timelimit $MMTIME "$MAKECOMMAND" "-j$BUILD_FARM_NUM_JOBS"  "$t"
 				status=$?
 			else
-				echo "$MAKE $t"
-				$builddir/timelimit $MMTIME "$MAKE" "$t"
+				echo "$MAKECOMMAND $t"
+				$builddir/timelimit $MMTIME "$MAKECOMMAND" "$t"
 				status=$?
 			fi
 		fi
@@ -276,7 +292,7 @@ do_make() {
 					;;
 				*)
 					#run again with V=1, so we see failed commands
-					$builddir/timelimit $MMTIME "$MAKE" "$t" V=1
+					$builddir/timelimit $MMTIME "$MAKECOMMAND" "$t" V=1
 					status=$?
 					;;
 			esac
@@ -329,6 +345,15 @@ action_lcovreport() {
 ############################
 
 action_configure() {
+
+	case "$tree" in
+	    waf*)
+		$builddir/timelimit $MAXTIME ./waf configure
+		cstatus=$?
+		echo "CONFIGURE STATUS: $cstatus"
+		return $cstatus
+		;;
+	esac
 
 	if [ ! -x $srcdir/configure -a -r $srcdir/Makefile.PL ]; then
 		perl $srcdir/Makefile.PL PREFIX="$prefix"
@@ -418,6 +443,9 @@ action_build() {
 	samba_3*)
 		do_make everything torture
 		bstatus=$?
+		;;
+	waf*)
+		do_make build
 		;;
 	*)
 		do_make all
@@ -626,30 +654,36 @@ test_tree() {
 		return
 	}
 
-	if [ ! -x $srcdir/configure ] && [ "$tree" != "pidl" ]; then
-		echo "skip: $tree.$compiler configure not present, try again next time!"
-		cd $test_root
-		unlock_file "$lck"
-		return
-	fi
+	# check for essential files
+	case "$tree" in
+	    pidl)
+		# no generated files
+		;;
+	    waf*)
+		if [ ! -x $srcdir/waf ]; then
+		    echo "skip: $tree.$compiler waf not present, try again next time!"
+		    cd $test_root
+		    unlock_file "$lck"
+		    return
+		fi
+		;;
+	    *)
+		if [ ! -x $srcdir/configure ]; then
+		    echo "skip: $tree.$compiler configure not present, try again next time!"
+		    cd $test_root
+		    unlock_file "$lck"
+		    return
+		fi
+		;;
+	esac
 
 	echo "Starting build of $tree.$compiler in process $$ at `date`"
 
 
 	# Parameters for the build depending on the tree
 	case "$tree" in
-		libreplace)
-			builddir="$test_root/tmp.$tree.$compiler"
-			usingtmpbuild=1
-			if [ -d $builddir ]; then
-				rm -rf $builddir
-			fi
-			mkdir -p $builddir
-			export builddir
-			;;
 		*)
 			builddir=$srcdir
-			usingtmpbuild=0
 			export builddir
 			;;
 	esac
@@ -864,13 +898,6 @@ test_tree() {
 	cd $test_root
 
 	/bin/rm -rf $prefix
-	if [ "$usingtmpbuild" = "1" ]; then
-		if [ "$noclean" = "yes" ]; then
-			echo builddir cleanup skipped!
-		else
-			/bin/rm -rf $builddir
-		fi
-	fi
 	# send the logs to the master site
 	send_logs "$log" "$err"
 
