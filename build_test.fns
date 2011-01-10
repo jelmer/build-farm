@@ -446,6 +446,7 @@ action_build() {
 		;;
 	waf*)
 		do_make build
+		bstatus=$?
 		;;
 	*)
 		do_make all
