@@ -37,6 +37,12 @@ smtp = smtplib.SMTP()
 smtp.connect()
 
 def check_and_send_mails(cur, old):
+
+    if cur.tree is "waf-svn":
+        # no point sending emails, as the email addresses are invalid
+        # from git svn
+        return
+
     t = buildfarm.trees[cur.tree]
     diff = BuildDiff(t, old, cur)
 
