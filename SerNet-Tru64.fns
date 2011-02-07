@@ -19,7 +19,7 @@ for compiler in $compilers; do
 	CPPFLAGS=""
 	export TDB_NO_FSYNC
 	export CPPFLAGS
-	test_tree samba_4_0_test source4 $compiler
+	test_tree samba_4_0_test . $compiler
 	CPPFLAGS="$SAVED_CPPFLAGS"
 	export CPPFLAGS
 

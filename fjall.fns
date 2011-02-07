@@ -21,7 +21,7 @@ export MAXTIME=36000
 export SMBD_MAXTIME=36000
 export SAMBA_MAXTIME=36000
 
-test_tree samba_4_0_test source4 $compiler
+test_tree samba_4_0_test . $compiler
 test_tree samba_3_current source $compiler
 test_tree samba_3_next source $compiler
 test_tree samba_3_master source $compiler

@@ -30,6 +30,6 @@ test_tree samba_3_master source $compiler
 test_tree pidl . cc build test
 
 compiler="xlc_r"
-test_tree samba_4_0_test source4 $compiler
+test_tree samba_4_0_test . $compiler
 
 global_unlock

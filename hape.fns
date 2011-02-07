@@ -19,7 +19,7 @@ for compiler in gcc ; do
 	. common.fns
 
 	export config="--bundled-libraries=popt"
-	MAKE=gmake test_tree samba_4_0_test source4 $compiler
+	MAKE=gmake test_tree samba_4_0_test . $compiler
 
 	export config="--with-acl-support --with-libiconv=/usr/local --with-included-popt"
 	test_tree samba_3_current source $compiler

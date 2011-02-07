@@ -16,7 +16,7 @@ for compiler in $compilers; do
 	. common.fns
 	TDB_NO_FSYNC=1
 	export TDB_NO_FSYNC
-	test_tree samba_4_0_test source4 $compiler
+	test_tree samba_4_0_test . $compiler
 	TDB_NO_FSYNC=0
 	export TDB_NO_FSYNC
 
