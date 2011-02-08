@@ -43,6 +43,10 @@ def check_and_send_mails(cur, old):
         # from git svn
         return
 
+    if cur.tree is "samba_3_waf":
+        # no emails for this until it stabilises a bit
+        return
+
     t = buildfarm.trees[cur.tree]
     diff = BuildDiff(t, old, cur)
 
