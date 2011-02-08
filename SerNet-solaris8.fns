@@ -35,9 +35,10 @@ for compiler in $compilers; do
 	TDB_NO_FSYNC=1
 	export TDB_NO_FSYNC
 	test_tree samba_4_0_test . $compiler
-	test_tree samba_3_current source $compiler
-	test_tree samba_3_next source $compiler
-	test_tree samba_3_master source $compiler
+	test_tree samba_3_current source3 $compiler
+	test_tree samba_3_next source3 $compiler
+	test_tree samba_3_master source3 $compiler
+	test_tree samba_3_waf source3 $compiler
 	TDB_NO_FSYNC=0
 	export TDB_NO_FSYNC
 done

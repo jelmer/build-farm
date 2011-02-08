@@ -126,6 +126,7 @@ per_run_hook
 
 . common.fns
 
-test_tree samba_3_current source gcc
-test_tree samba_3_next source gcc
-test_tree samba_3_master source gcc
+test_tree samba_3_current source3 gcc
+test_tree samba_3_next source3 gcc
+test_tree samba_3_master source3 gcc
+test_tree samba_3_waf source3 gcc

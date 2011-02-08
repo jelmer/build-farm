@@ -24,9 +24,10 @@ compiler="cc"
 . common.fns
 
 test_tree lorikeet-heimdal . $compiler
-test_tree samba_3_current source $compiler
-test_tree samba_3_next source $compiler
-test_tree samba_3_master source $compiler
+test_tree samba_3_current source3 $compiler
+test_tree samba_3_next source3 $compiler
+test_tree samba_3_master source3 $compiler
+test_tree samba_3_waf source3 $compiler
 test_tree pidl . cc build test
 
 compiler="xlc_r"

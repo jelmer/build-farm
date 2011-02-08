@@ -13,9 +13,10 @@ export PIDL_TESTS_SKIP=yes
 test_tree samba_4_0_test . $compiler configure config_log config_header build install test lcovreport
 
 export config=""
-test_tree samba_3_current source $compiler
-test_tree samba_3_next source $compiler
-test_tree samba_3_master source $compiler
+test_tree samba_3_current source3 $compiler
+test_tree samba_3_next source3 $compiler
+test_tree samba_3_master source3 $compiler
+test_tree samba_3_waf source3 $compiler
 
 #lcov and libtool disagree, enable OpenLDAP and disable OpenSSL
 export config="--with-ldap=/usr --without-openssl --disable-shared"

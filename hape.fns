@@ -22,11 +22,12 @@ for compiler in gcc ; do
 	MAKE=gmake test_tree samba_4_0_test . $compiler
 
 	export config="--with-acl-support --with-libiconv=/usr/local --with-included-popt"
-	test_tree samba_3_current source $compiler
+	test_tree samba_3_current source3 $compiler
 	export config="--with-acl-support --with-libiconv=/usr/local --with-included-popt"
-	test_tree samba_3_next source $compiler
+	test_tree samba_3_next source3 $compiler
 	export config="--with-acl-support --with-libiconv=/usr/local --with-included-popt"
-	test_tree samba_3_master source $compiler
+	test_tree samba_3_master source3 $compiler
+	test_tree samba_3_waf source3 $compiler
 
 done
 

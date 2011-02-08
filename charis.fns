@@ -10,6 +10,7 @@ system=`uname`
 compiler=gcc
 test_tree samba_4_0_test . gcc
 export config="--enable-merged-build"
-test_tree samba_3_master source gcc
+test_tree samba_3_master source3 gcc
+test_tree samba_3_waf source3 gcc
 
 global_unlock

@@ -13,10 +13,11 @@ export config="--with-selftest-prefix=/data/bf/st.samba_4_0_test"
 test_tree samba_4_0_test . $compiler
 export config=""
 
-test_tree samba_3_current source $compiler
-test_tree samba_3_next source $compiler
+test_tree samba_3_current source3 $compiler
+test_tree samba_3_next source3 $compiler
 export config="--enable-developer"
-test_tree samba_3_master source $compiler
+test_tree samba_3_master source3 $compiler
+test_tree samba_3_waf source3 $compiler
 export config=""
 test_tree pidl . $compiler build test
 
