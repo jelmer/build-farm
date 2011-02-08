@@ -345,13 +345,22 @@ action_lcovreport() {
 ############################
 
 action_configure() {
-
+        # special handling for some trees
 	case "$tree" in
 	    waf*)
 		$builddir/timelimit $MAXTIME ./waf configure
 		cstatus=$?
 		echo "CONFIGURE STATUS: $cstatus"
 		return $cstatus
+		;;
+	    samba_3_waf)
+		$builddir/timelimit $MAXTIME $srcdir/autogen-waf.sh
+		cstatus=$?
+		echo "autogen-waf.sh STATUS: $cstatus"
+		if [ x"$cstatus" != x"0" ]; then
+		    return $cstatus
+		fi
+		# fall through
 		;;
 	esac
 
