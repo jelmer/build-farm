@@ -426,7 +426,7 @@ action_config_log() {
 ############################
 
 action_config_header() {
-	hdr_files="config.h include/config.h bin/default/config.h bin/default/include/config.h bin/default/source3/include/config.h"
+	hdr_files="config.h include/config.h include/autoconf/config.h bin/default/config.h bin/default/include/config.h bin/default/source3/include/config.h"
 	for h in $hdr_files; do
 		if [ -f $h ]; then
 			echo "contents of $h:"
