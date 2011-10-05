@@ -38,9 +38,8 @@ smtp.connect()
 
 def check_and_send_mails(cur, old):
 
-    if cur.tree is "waf-svn":
+    if cur.tree is "waf":
         # no point sending emails, as the email addresses are invalid
-        # from git svn
         return
 
     if cur.tree is "samba_3_waf":
