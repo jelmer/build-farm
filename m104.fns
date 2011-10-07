@@ -129,4 +129,3 @@ per_run_hook
 test_tree samba_3_current source3 gcc
 test_tree samba_3_next source3 gcc
 test_tree samba_3_master source3 gcc
-test_tree samba_3_waf source3 gcc

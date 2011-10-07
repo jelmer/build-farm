@@ -27,7 +27,6 @@ for compiler in gcc ; do
 	test_tree samba_3_next source3 $compiler
 	export config="--with-acl-support --with-libiconv=/usr/local --with-included-popt"
 	test_tree samba_3_master source3 $compiler
-	test_tree samba_3_waf source3 $compiler
 
 done
 

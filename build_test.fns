@@ -353,15 +353,6 @@ action_configure() {
 		echo "CONFIGURE STATUS: $cstatus"
 		return $cstatus
 		;;
-	    samba_3_waf)
-		$builddir/timelimit $MAXTIME $srcdir/autogen-waf.sh
-		cstatus=$?
-		echo "autogen-waf.sh STATUS: $cstatus"
-		if [ x"$cstatus" != x"0" ]; then
-		    return $cstatus
-		fi
-		# fall through
-		;;
 	esac
 
 	if [ ! -x $srcdir/configure -a -r $srcdir/Makefile.PL ]; then
@@ -965,7 +956,7 @@ per_run_hook() {
 
 	old_trees="web popt distcc samba-gtk smb-build lorikeet-heimdal samba_3_2"
 	old_trees="$old_tree samba_3_2_test samba4 samba_4_0_waf samba_4_0_waf.metze"
-	old_trees="$old_tree samba_3_X_test samba_3_X_devel samba_3_X_devel"
+	old_trees="$old_tree samba_3_X_test samba_3_X_devel samba_3_X_devel samba_3_waf"
 	for d in $old_trees; do
 		delete_old_tree $d
 	done
