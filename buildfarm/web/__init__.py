@@ -167,6 +167,8 @@ def subunit_to_buildfarm_result(subunit_result):
         return "failed"
     elif subunit_result == "xfail":
         return "xfailed"
+    elif subunit_result == "uxsuccess":
+        return "uxpassed"
     else:
         return "unknown"
 
@@ -239,7 +241,7 @@ class LogPrettyPrinter(object):
         log = re.sub("""
               ^test: ([\w\-=,_:\ /.&; \(\)]+).*?
               (.*?)
-              (success|xfail|failure|skip): [\w\-=,_:\ /.&; \(\)]+( \[.*?\])?.*?
+              (success|xfail|failure|skip|uxsuccess): [\w\-=,_:\ /.&; \(\)]+( \[.*?\])?.*?
            """, self._format_test, log)
 
         return "<pre>%s</pre>" % log
