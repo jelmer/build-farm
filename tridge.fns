@@ -2,7 +2,6 @@ per_run_hook
 
 global_lock
 
-. install_python.fns
 compilers="gcc"
 
 for compiler in $compilers; do
