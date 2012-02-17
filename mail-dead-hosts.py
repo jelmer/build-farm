@@ -53,7 +53,7 @@ why we have not heard from your host?
 If you no longer wish your host to participate in the Samba Build
 Farm, then please let us know so we can remove its records.
 
-You can see the summary for your host at:
+You can see the summary for your host at: %s
 
 Thanks,
 
