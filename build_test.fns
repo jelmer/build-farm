@@ -344,6 +344,9 @@ action_lcovreport() {
 action_callcatcherreport() {
 	if [ "$CALLCATCHER_REPORT" = "yes" ]; then
 		case "$tree" in
+		tdb|talloc|ldb)
+			callanalyse `find $builddir/bin -name \*.so*` $builddir/bin/* > $builddir/coverage/unused-fns.txt
+			;;
 		samba_3_master*)
 			callanalyse `find $builddir/bin -name \*.so*` $builddir/bin/* | grep -v -f $srcdir/callcatcher-exceptions.grep > $builddir/coverage/unused-fns.txt
 			;;
