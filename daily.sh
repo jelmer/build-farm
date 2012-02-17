@@ -6,7 +6,7 @@ set -x
 (
 date
 set -x
-sqlite3 `dirname $0`/hostdb.sqlite 'VACUUM;'
+sqlite3 `dirname $0`/db/hostdb.sqlite 'VACUUM;'
 cd `dirname $0` && ./mail-dead-hosts.py
 
 echo "deleting old file that are not used any more"
