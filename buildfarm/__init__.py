@@ -52,7 +52,7 @@ def lcov_extract_percentage(f):
 
 class BuildFarm(object):
 
-    LCOVHOST = "magni"
+    LCOVHOST = "coverage"
     OLDAGE = 60*60*4,
     DEADAGE = 60*60*24*4
 
@@ -109,6 +109,20 @@ class BuildFarm(object):
             return lcov_extract_percentage(lcov_html)
         finally:
             lcov_html.close()
+
+    def unused_fns(self, tree):
+        """get status of build"""
+        from buildfarm.build import NoSuchBuildError
+        file = os.path.join(self.lcovdir, self.LCOVHOST, tree, "unused-fns.txt")
+        try:
+            unused_fns_file = open(file, 'r')
+        except (OSError, IOError):
+            # File does not exist
+            raise NoSuchBuildError(tree, self.LCOVHOST, "unused_fns")
+        try:
+            return "unused-fns.txt"
+        finally:
+            unused_fns_file.close()
 
     def get_build(self, tree, host, compiler, rev=None, checksum=None):
         if rev is not None:

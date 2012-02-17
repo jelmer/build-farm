@@ -740,6 +740,7 @@ class ViewSummaryPage(BuildFarmPage):
             else:
                     yield "<td>"
             yield "%d</td>" % panic_count[tree]
+
             try:
                 lcov_status = self.buildfarm.lcov_status(tree)
             except NoSuchBuildError:
@@ -748,6 +749,17 @@ class ViewSummaryPage(BuildFarmPage):
                 if lcov_status is not None:
                     yield "<td><a href=\"/lcov/data/%s/%s\">%s %%</a></td>" % (
                         self.buildfarm.LCOVHOST, tree, lcov_status)
+                else:
+                    yield "<td></td>"
+
+            try:
+                unused_fns = self.buildfarm.unused_fns(tree)
+            except NoSuchBuildError:
+                yield "<td></td>"
+            else:
+                if unused_fns is not None:
+                    yield "<td><a href=\"/lcov/data/%s/%s/%s\">Unused Functions</a></td>" % (
+                        self.buildfarm.LCOVHOST, tree, unused_fns)
                 else:
                     yield "<td></td>"
             yield "</tr>"

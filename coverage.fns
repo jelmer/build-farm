@@ -1,0 +1,17 @@
+# We need to disable ccache for the lcov love to work
+export CCACHE_DISABLE=yes
+export LCOV_REPORT=yes
+export CALLCATCHER_REPORT=yes
+export EXTRA_ACTIONS="lcovreport callcatcherreport"
+
+compiler="callcatcher-gcc"
+
+. common.fns
+
+export PIDL_TESTS_SKIP=yes
+test_tree samba_4_0_test . $compiler
+
+test_tree samba_3_current source3 $compiler
+test_tree samba_3_next source3 $compiler
+test_tree samba_3_master source3 $compiler
+

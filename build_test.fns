@@ -321,9 +321,11 @@ action_lcovreport() {
 		samba_3_master*)
 			lcov --base-directory $builddir --directory $builddir/.. --capture --output-file $builddir/$tree.lcov.info
 			;;
-		samba_4*)
-			# rm -f heimdal/lib/*/{lex,parse,sel-lex}.{gcda,gcno}
-			lcov --base-directory $builddir --directory $builddir/.. --capture --output-file $builddir/$tree.lcov.info
+		samba_4*|tdb|talloc|ldb|libreplace)
+			lcov --base-directory $builddir/bin --directory $builddir/bin --capture --output-file $builddir/$tree.lcov.info
+			;;
+		waf)
+			lcov --base-directory $builddir/demos --directory $builddir/demos --capture --output-file $builddir/$tree.lcov.info
 			;;
 		*)
 			lcov --base-directory $builddir --directory $builddir --capture --output-file $builddir/$tree.lcov.info
@@ -334,6 +336,25 @@ action_lcovreport() {
 		echo "return code: $rc"
 	else
 		echo "LCOV_REPORT not set and lcovreport asked"
+		echo "Most probably an error please fix !"
+		return 1
+	fi
+}
+
+action_callcatcherreport() {
+	if [ "$CALLCATCHER_REPORT" = "yes" ]; then
+		case "$tree" in
+		samba_3_master*)
+			callanalyse `find $builddir/bin -name \*.so*` $builddir/bin/* | grep -v -f $srcdir/callcatcher-exceptions.grep > $builddir/coverage/unused-fns.txt
+			;;
+		samba_4*)
+			callanalyse `find $builddir/bin -name \*.so*` $builddir/bin/* | grep -v -f $srcdir/callcatcher-exceptions.grep > $builddir/coverage/unused-fns.txt
+			;;
+		esac
+		rc=$?
+		echo "return code: $rc"
+	else
+		echo "CALLCATCHER_REPORT not set and callcatcher asked"
 		echo "Most probably an error please fix !"
 		return 1
 	fi
@@ -740,6 +761,8 @@ test_tree() {
 	esac
 
 	if [ "$LCOV_REPORT" = "yes" ]; then
+	        PRE_GCOV_CFLAGS=$CFLAGS
+	        PRE_GCOV_LDFLAGS=$LDFLAGS
 		GCOV_FLAGS="--coverage"
 		CFLAGS="$CFLAGS $GCOV_FLAGS" 
 		LDFLAGS="$LDFLAGS $GCOV_FLAGS" 
@@ -758,6 +781,11 @@ test_tree() {
 		send_logs_skip "$log" "$err"
 		unlock_file "$lck"
 		echo "Ending build of $tree.$compiler in process $$ at `date`"
+		if [ "$LCOV_REPORT" = "yes" ]; then
+	            CFLAGS=$PRE_GCOV_CFLAGS
+	            LDFLAGS=$PRE_GCOV_LDFLAGS
+		    export CFLAGS LDFLAGS
+		fi
 		return
 	fi
 
@@ -769,7 +797,7 @@ test_tree() {
 	actions="$*"
 
 	if [ "$actions" = "" ]; then
-		actions="configure config_log config_header build install test"
+		actions="configure config_log config_header build install test $EXTRA_ACTIONS"
 	fi
 
 	# start the build
@@ -894,6 +922,9 @@ test_tree() {
 		chmod u=rwX,g=rX,o=rX -R $builddir/coverage
 		rsync -rct -q --password-file=.password -z --timeout=200 \
 			$builddir/coverage/ $host@build.samba.org::lcov_data/$host/$tree/
+	        CFLAGS=$PRE_GCOV_CFLAGS
+	        LDFLAGS=$PRE_GCOV_LDFLAGS
+		export CFLAGS LDFLAGS
 	fi
 
 	cd $test_root
