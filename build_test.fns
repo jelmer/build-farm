@@ -347,11 +347,9 @@ action_callcatcherreport() {
 		tdb|talloc|ldb)
 			callanalyse `find $builddir/bin -name \*.so*` $builddir/bin/* > $builddir/coverage/unused-fns.txt
 			;;
-		samba_3_master*)
-			callanalyse `find $builddir/bin -name \*.so*` $builddir/bin/* | grep -v -f $srcdir/callcatcher-exceptions.grep > $builddir/coverage/unused-fns.txt
-			;;
-		samba_4*)
-			callanalyse `find $builddir/bin -name \*.so*` $builddir/bin/* | grep -v -f $srcdir/callcatcher-exceptions.grep > $builddir/coverage/unused-fns.txt
+		samba_3_master|samba_4*)
+			callanalyse `find $builddir/bin -name \*.so*` $builddir/bin/* > $builddir/coverage/all-unused-fns.txt 
+			grep -v -f $srcdir/callcatcher-exceptions.grep $builddir/coverage/all-unused-fns.txt > $builddir/coverage/unused-fns.txt
 			;;
 		esac
 		rc=$?
