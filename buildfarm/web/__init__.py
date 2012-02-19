@@ -533,6 +533,10 @@ class ViewRecentBuildsPage(BuildFarmPage):
         all_builds = []
 
         def build_platform(build):
+            host = self.buildfarm.hostdb[build.host]
+            return host.platform.encode("utf-8")
+
+        def build_platform_safe(build):
             try:
                 host = self.buildfarm.hostdb[build.host]
             except hostdb.NoSuchHost:
@@ -544,7 +548,7 @@ class ViewRecentBuildsPage(BuildFarmPage):
             "revision": lambda a, b: cmp(a.revision, b.revision),
             "age": lambda a, b: cmp(a.age, b.age),
             "host": lambda a, b: cmp(a.host, b.host),
-            "platform": lambda a, b: cmp(build_platform(a), build_platform(b)),
+            "platform": lambda a, b: cmp(build_platform_safe(a), build_platform_safe(b)),
             "compiler": lambda a, b: cmp(a.compiler, b.compiler),
             "status": lambda a, b: cmp(a.status(), b.status()),
             }
@@ -579,15 +583,19 @@ class ViewRecentBuildsPage(BuildFarmPage):
         yield "<tbody>"
 
         for build in all_builds:
-            yield "<tr>"
-            yield "<td>%s</td>" % util.dhm_time(build.age)
-            yield "<td>%s</td>" % revision_link(myself, build.revision, build.tree)
-            yield "<td>%s</td>" % build.tree
-            yield "<td>%s</td>" % build_platform(build)
-            yield "<td>%s</td>" % host_link(myself, build.host)
-            yield "<td>%s</td>" % build.compiler
-            yield "<td>%s</td>" % build_link(myself, build)
-            yield "</tr>"
+            try:
+                build_platform_name = build_platform(build)
+                yield "<tr>"
+                yield "<td>%s</td>" % util.dhm_time(build.age)
+                yield "<td>%s</td>" % revision_link(myself, build.revision, build.tree)
+                yield "<td>%s</td>" % build.tree
+                yield "<td>%s</td>" % build_platform_name
+                yield "<td>%s</td>" % host_link(myself, build.host)
+                yield "<td>%s</td>" % build.compiler
+                yield "<td>%s</td>" % build_link(myself, build)
+                yield "</tr>"
+            except hostdb.NoSuchHost:
+                pass
         yield "</tbody></table>"
         yield "</div>"
 
@@ -619,7 +627,6 @@ class ViewHostPage(BuildFarmPage):
             try:
                 host = self.buildfarm.hostdb[hostname]
             except hostdb.NoSuchHost:
-                deadhosts.append(hostname)
                 continue
             builds = list(self.buildfarm.get_host_builds(hostname))
             if len(builds) > 0:
@@ -675,7 +682,7 @@ class ViewHostPage(BuildFarmPage):
             try:
                 platform = self.buildfarm.hostdb[host].platform.encode("utf-8")
             except hostdb.NoSuchHost:
-                platform = "UNKNOWN"
+                continue
             yield "<tr><td>%s</td><td>%s</td><td>%s</td></tr>" %\
                     (host, platform, util.dhm_time(age))
 
