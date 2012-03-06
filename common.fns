@@ -10,5 +10,6 @@ test_tree ccache . $compiler
 test_tree ccache-maint . $compiler
 test_tree talloc . $compiler
 test_tree tdb . $compiler
+test_tree tdb2 . $compiler
 test_tree ldb . $compiler
 test_tree waf demos $compiler

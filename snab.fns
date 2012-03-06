@@ -14,7 +14,7 @@ for d in samba_3_current samba_3_next samba_3_master; do
     test_tree $d source checker configure config_log config_header build cc_checker install test
 done
 
-for d in ldb tdb talloc libreplace lorikeet-heimdal ccache rsync; do
+for d in ldb tdb tdb2 talloc libreplace lorikeet-heimdal ccache rsync; do
     export CFLAGS="$CHECK_FLAGS --beam::data=/home/tridge/beam/$d"
     mkdir -p /home/tridge/beam/$d
     test_tree $d . checker configure config_log config_header build cc_checker install test
