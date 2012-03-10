@@ -1030,7 +1030,13 @@ class BuildFarmApp(object):
                 yield "".join(self.html_page(form, page.render_html(myself, wsgiref.util.shift_path_info(environ))))
             elif fn == "build":
                 build_checksum = wsgiref.util.shift_path_info(environ)
-                build = self.buildfarm.builds.get_by_checksum(build_checksum)
+                try:
+                    build = self.buildfarm.builds.get_by_checksum(build_checksum)
+                except NoSuchBuildError:
+                    start_response('404 Page Not Found', [
+                        ('Content-Type', 'text/html; charset=utf8')])
+                    yield "No build with checksum %s found" % build_checksum
+                    return
                 page = ViewBuildPage(self.buildfarm)
                 subfn = wsgiref.util.shift_path_info(environ)
                 if subfn == "+plain":
