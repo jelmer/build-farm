@@ -259,6 +259,7 @@ class LogPrettyPrinter(object):
             buf = "%s\n<A href='#%s'>%s</A>" % (buf, tst[1], tst[0])
 
         if not buf == "":
+            buf = "%s\n" % buf
             divhtml = "".join(make_collapsible_html('testlinks', 'Shortcut to failed tests', buf, self.indice, ""))
             log = re.sub("Running action\s+test", divhtml, log)
         return "<pre>%s</pre>" % log
