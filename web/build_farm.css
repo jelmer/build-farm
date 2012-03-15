@@ -5,6 +5,7 @@
 	font-weight: bold;
 	font-family: sans-serif;
 }
+#log .status { margin-left: 0.5ex; }
 #log .status.failed {	color: rgb(153, 0,   0);   }
 #log .status.passed {	color: rgb(0,   153, 0);   }
 #log .status.skipped {	color: rgb(0,   0,   153); }
