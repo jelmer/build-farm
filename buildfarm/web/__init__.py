@@ -385,8 +385,10 @@ class BuildFarmPage(object):
 
 class ViewBuildPage(BuildFarmPage):
 
-    def show_oldrevs(self, myself, tree, host, compiler):
+    def show_oldrevs(self, myself, build, host, compiler, limit):
         """show the available old revisions, if any"""
+
+        tree = build.tree
         old_builds = self.buildfarm.builds.get_old_builds(tree, host, compiler)
 
         if not old_builds:
@@ -398,7 +400,11 @@ class ViewBuildPage(BuildFarmPage):
         yield "<thead><tr><th>Revision</th><th>Status</th><th>Age</th></tr></thead>\n"
         yield "<tbody>\n"
 
+        nb = 0
         for old_build in old_builds:
+            if limit >= 0 and nb >= limit:
+                break
+            nb = nb + 1
             yield "<tr><td>%s</td><td>%s</td><td>%s</td></tr>\n" % (
                 revision_link(myself, old_build.revision, tree),
                 build_link(myself, old_build),
@@ -406,7 +412,9 @@ class ViewBuildPage(BuildFarmPage):
 
         yield "</tbody></table>\n"
 
-    def render(self, myself, build, plain_logs=False):
+        yield "<p><a href='%s/limit/-1'>Show all previous build list</a>\n" % (build_uri(myself, build))
+
+    def render(self, myself, build, plain_logs=False, limit=10):
         """view one build in detail"""
 
         uname = None
@@ -464,7 +472,7 @@ class ViewBuildPage(BuildFarmPage):
             yield "<tr><td>configure options:</td><td>%s</td></tr>\n" % config
         yield "</table>\n"
 
-        yield "".join(self.show_oldrevs(myself, build.tree, build.host, build.compiler))
+        yield "".join(self.show_oldrevs(myself, build, build.host, build.compiler, limit))
 
         # check the head of the output for our magic string
         rev_var = ""
@@ -1071,10 +1079,17 @@ class BuildFarmApp(object):
                     import difflib
                     yield "".join(difflib.unified_diff(subunit_other, subunit_this))
 
-                elif subfn in ("", None):
+                elif subfn in ("", "limit", None):
+                    if subfn == "limit":
+                        try:
+                            limit = int(wsgiref.util.shift_path_info(environ))
+                        except:
+                            limit = 10
+                    else:
+                        limit = 10
                     start_response('200 OK', [
                         ('Content-type', 'text/html; charset=utf-8')])
-                    yield "".join(self.html_page(form, page.render(myself, build, False)))
+                    yield "".join(self.html_page(form, page.render(myself, build, False, limit)))
             elif fn in ("", None):
                 start_response('200 OK', [
                     ('Content-type', 'text/html; charset=utf-8')])
