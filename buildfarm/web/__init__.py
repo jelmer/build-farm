@@ -203,6 +203,10 @@ class LogPrettyPrinter(object):
         self.indice += 1
         return "".join(make_collapsible_html('test', m.group(1), '', self.indice, 'skipped'))
 
+    def _format_pretestsuite(self, m):
+        self.indice += 1
+        return m.group(1)+"".join(make_collapsible_html('pretest', 'Pretest infos', m.group(2), self.indice, 'ok'))+"\n"+m.group(3)
+
     def _format_testsuite(self, m):
         testName = m.group(1)
         content = m.group(2)
@@ -212,6 +216,8 @@ class LogPrettyPrinter(object):
         else:
             errorReason = ""
         self.indice += 1
+        if m.group(3) in ("error", "failure"):
+            self.test_links.append([testName, 'lnk-test-%d' %self.indice])
         return "".join(make_collapsible_html('test', testName, content+errorReason, self.indice, status))
 
     def _format_test(self, m):
@@ -222,6 +228,7 @@ class LogPrettyPrinter(object):
         # do some pretty printing for the actions
         pattern = re.compile("(Running action\s+([\w\-]+)$(?:\s^.*$)*?\sACTION\ (PASSED|FAILED):\ ([\w\-]+)$)", re.M)
         log = pattern.sub(self._pretty_print, log)
+        buf = ""
 
         log = re.sub("""
               --==--==--==--==--==--==--==--==--==--==--.*?
@@ -233,9 +240,13 @@ class LogPrettyPrinter(object):
               ==========================================\s+
             """, self._format_stage, log)
 
+        pattern = re.compile("(Running action test).*$\s((?:^.*$\s)*?)^((?:skip-)?testsuite: )", re.M)
+        log = pattern.sub(self._format_pretestsuite, log)
+
         log = re.sub("skip-testsuite: ([\w\-=,_:\ /.&; \(\)]+).*?",
                 self._format_skip_testsuite, log)
 
+        self.test_links = []
         pattern = re.compile("^testsuite: (.+)$\s((?:^.*$\s)*?)testsuite-(\w+): .*?(?:(\[$\s(?:^.*$\s)*?^\]$)|$)", re.M)
         log = pattern.sub(self._format_testsuite, log)
         log = re.sub("""
@@ -244,6 +255,12 @@ class LogPrettyPrinter(object):
               (success|xfail|failure|skip|uxsuccess): [\w\-=,_:\ /.&; \(\)]+( \[.*?\])?.*?
            """, self._format_test, log)
 
+        for tst in self.test_links:
+            buf = "%s\n<A href='#%s'>%s</A>" % (buf, tst[1], tst[0])
+
+        if not buf == "":
+            divhtml = "".join(make_collapsible_html('testlinks', 'Shortcut to failed tests', buf, self.indice, ""))
+            log = re.sub("Running action\s+test", divhtml, log)
         return "<pre>%s</pre>" % log
 
 
@@ -325,7 +342,7 @@ def make_collapsible_html(type, title, output, id, status=""):
     # note that we may be inside a <pre>, so we don't put any extra whitespace
     # in this html
     yield "<div class='%s unit %s' id='%s-%s'>" % (type, status, type, id)
-    yield "<a href=\"javascript:handle('%s');\">" % id
+    yield "<a name='lnk-%s-%s' href=\"javascript:handle('%s');\">" % (type, id, id)
     yield "<img id='img-%s' name='img-%s' alt='%s' src='%s' />" % (id, id, status, icon)
     yield "<div class='%s title'>%s</div></a>" % (type, title)
     yield "<div class='%s status %s'>%s</div>" % (type, status, status)
