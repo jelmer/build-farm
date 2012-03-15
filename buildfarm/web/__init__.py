@@ -2,7 +2,7 @@
 # This CGI script presents the results of the build_farm build
 
 # Copyright (C) Jelmer Vernooij <jelmer@samba.org>     2010
-# Copyright (C) Matthieu Patou <mat@matws.net>         2010
+# Copyright (C) Matthieu Patou <mat@matws.net>         2010-2012
 #
 # Based on the original web/build.pl:
 #
