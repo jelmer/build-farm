@@ -216,9 +216,11 @@ class LogPrettyPrinter(object):
         else:
             errorReason = ""
         self.indice += 1
+        backlink = ""
         if m.group(3) in ("error", "failure"):
             self.test_links.append([testName, 'lnk-test-%d' %self.indice])
-        return "".join(make_collapsible_html('test', testName, content+errorReason, self.indice, status))
+            backlink = "<p><a href='#shortcut2errors'>back to error list</a>"
+        return "".join(make_collapsible_html('test', testName, content+errorReason+backlink, self.indice, status))
 
     def _format_test(self, m):
         self.indice += 1
@@ -259,7 +261,7 @@ class LogPrettyPrinter(object):
             buf = "%s\n<A href='#%s'>%s</A>" % (buf, tst[1], tst[0])
 
         if not buf == "":
-            divhtml = "".join(make_collapsible_html('testlinks', 'Shortcut to failed tests', buf, self.indice, ""))+"\n"
+            divhtml = "".join(make_collapsible_html('testlinks', 'Shortcut to failed tests', "<a name='shortcut2errors'></a>%s" % buf, self.indice, ""))+"\n"
             log = re.sub("Running action\s+test", divhtml, log)
         return "<pre>%s</pre>" % log
 
