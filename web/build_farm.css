@@ -18,9 +18,10 @@
 	color: rgb(0, 0, 0);
 	font-family: monospace;
 }
-#log .output .pretest { display: none;}
 #log div.unit {
-	margin: 5px;
+	/* We have already a margin that is implied by the \n in the HTML
+	 * no need to remargin
+	 * margin: 5px;*/
 	padding: 10px;
 	border: 2px solid black;
 }
