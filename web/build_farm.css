@@ -18,6 +18,7 @@
 	color: rgb(0, 0, 0);
 	font-family: monospace;
 }
+#log .output .pretest { display: none;}
 #log div.unit {
 	margin: 5px;
 	padding: 10px;
