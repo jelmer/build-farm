@@ -196,7 +196,9 @@ lock_file() {
 			return 0
 		fi
 
-		if test -f "$lckf"; then
+		# We need to assert that the file is > 0 size, as otherwise we never
+                # recover from disk full situations
+		if test -f "$lckf" && test -s "$lckf"; then
 			test x$machine = x$host || {
 				echo "lock file $lckf is valid for other machine $machine"
 				return 1
