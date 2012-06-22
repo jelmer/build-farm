@@ -20,3 +20,7 @@ compiler="xlc_r"
 test_tree samba_4_0_test . $compiler
 
 global_unlock
+
+# as long as killbysubdir doesn't work on AIX, let's killall our build user's
+# background processes:
+killall -
