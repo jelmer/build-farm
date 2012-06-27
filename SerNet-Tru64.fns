@@ -1,6 +1,3 @@
-per_run_hook
-
-global_lock
 compilers="cc"
 
 MAXTIME=18000
@@ -11,24 +8,4 @@ export MAXTIME SMBD_MAXTIME SAMBA_MAXTIME
 CFLAGS="-g $CFLAGS"
 export CFLAGS
 
-for compiler in $compilers; do
-
-	. common.fns
-	TDB_NO_FSYNC=1
-	SAVED_CPPFLAGS="$CPPFLAGS"
-	CPPFLAGS=""
-	export TDB_NO_FSYNC
-	export CPPFLAGS
-	test_tree samba_4_0_test . $compiler
-	CPPFLAGS="$SAVED_CPPFLAGS"
-	export CPPFLAGS
-
-	test_tree samba_3_current source3 $compiler
-	test_tree samba_3_next source3 $compiler
-	test_tree samba_3_master source3 $compiler
-	TDB_NO_FSYNC=0
-	export TDB_NO_FSYNC
-
-done
-
-global_unlock
+. generic.fns
