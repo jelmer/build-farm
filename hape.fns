@@ -31,3 +31,7 @@ for compiler in gcc ; do
 done
 
 global_unlock
+# as long as killbysubdir doesn't work on HP-UX, let's killall our build user's
+# processes:
+cd / ; killall
+
