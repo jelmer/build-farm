@@ -749,8 +749,7 @@ test_tree() {
 		sw_config="$config --enable-selftest"
 		;;
 	samba_3*)
-		sw_config="$config --enable-socket-wrapper"
-		sw_config="$sw_config --enable-nss-wrapper"
+		sw_config="$config --enable-selftest"
 		;;
 	samba-gtk)
 		PKG_CONFIG_PATH="$test_root/prefix/samba_4_0_test.$compiler/lib/pkgconfig"
