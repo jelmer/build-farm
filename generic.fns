@@ -73,11 +73,12 @@ for compiler in $compilers; do
       fi
     fi
   fi
-done
 
-# only attempt pidl if we have perl
-if which perl > /dev/null; then
-  test_tree pidl . cc
-fi
+  # only attempt pidl if we have perl
+  if which perl > /dev/null; then
+    test_tree pidl . cc
+  fi
+
+done
 
 global_unlock
