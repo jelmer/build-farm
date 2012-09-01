@@ -610,9 +610,9 @@ test_tree() {
 	# darn, this affects sparse files too! disable it
 	# ulimit -f 100000 2> /dev/null
 
-	# try and limit the number of open files to 250. That means we'll discover
-	# fd leaks faster
-	ulimit -n 250 2> /dev/null
+	# try and limit the number of open files to 500, up from 250. That means we'll discover
+	# fd leaks faster while allowing our very complex make test to run
+	ulimit -n 500 2> /dev/null
 
 	# Keep stuff private
 	umask 077
@@ -799,9 +799,14 @@ test_tree() {
 
 	#Action == what to do ie. configure config_log ...
 	actions="$*"
+	extra_actions="$EXTRA_ACTIONS"
 
 	if [ "$actions" = "" ]; then
-		actions="configure config_log config_header build install test $EXTRA_ACTIONS"
+		actions="configure config_log config_header build install test"
+	fi
+
+	if [ "$extra_actions" = "" ]; then
+		actions="none"
 	fi
 
 	# start the build
@@ -865,6 +870,54 @@ test_tree() {
 		fi
 
 		for action in $actions; do
+
+			echo Running action $action
+
+			date
+
+			cd $builddir || exit 1
+			export srcdir
+			df .
+			mount
+			vmstat
+
+			if [ "x$PREHOOKS" != "x" ]; then
+				for hooks in $PREHOOKS; do
+					if [ "x$hooks" = "x$action" ]; then
+						( prehook_$action )
+					fi
+				done
+			fi
+
+			( action_$action )
+			action_status=$?
+
+			if [ "x$POSTHOOKS" != "x" ]; then
+				for hooks in $POSTHOOKS; do
+					if [ "x$hooks" = "x$action" ]; then
+						( posthook_$action )
+					fi
+				done
+			fi
+
+			df .
+
+			if [ $action_status != 0 ]; then
+				echo "ACTION FAILED: $action";
+				echo " return code $action_status $action";
+			else
+				echo "ACTION PASSED: $action";
+			fi
+
+			if [ $action_status != 0 ]; then 
+				break;
+			fi
+		done
+
+		for action in $extra_actions; do
+		        if [ "x$action" = "x" ]; then
+                              break;
+			fi
 
 			echo Running action $action
 
