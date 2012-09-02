@@ -579,6 +579,14 @@ action_test() {
 	esac
 }
 
+#############################
+# Do nothing (needed if we have nothing to do for extra_actions)
+#############################
+
+action_none() {
+    return 0;
+}
+
 ###########################
 # do a test build of a particular tree
 # This is the master function called by generic.fns or
