@@ -814,7 +814,7 @@ test_tree() {
 	fi
 
 	if [ "$extra_actions" = "" ]; then
-		actions="none"
+		extra_actions="none"
 	fi
 
 	# start the build
