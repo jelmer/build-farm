@@ -89,7 +89,7 @@ elif op == "modify":
         mod_op = "platform"
     if mod_op == "platform":
         platform = raw_input("Enter new platform: ")
-        host.update_platform(platform)
+        host.update_platform(platform.decode('utf-8'))
         buildfarm.commit()
     elif mod_op == "owner":
         owner = raw_input("Enter new owner's name: ")
