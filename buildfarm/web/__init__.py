@@ -54,7 +54,7 @@ import time
 import wsgiref.util
 webdir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "web"))
 
-GITWEB_BASE = "http://gitweb.samba.org"
+GITWEB_BASE = "https://gitweb.samba.org"
 HISTORY_HORIZON = 1000
 
 # this is automatically filled in
@@ -533,7 +533,7 @@ class ViewBuildPage(BuildFarmPage):
                 yield "<h2>Build log:</h2>\n"
                 yield print_log_pretty(log)
 
-            yield "<p><small>Some of the above icons derived from the <a href='http://www.gnome.org'>Gnome Project</a>'s stock icons.</small></p>"
+            yield "<p><small>Some of the above icons derived from the <a href='https://www.gnome.org'>Gnome Project</a>'s stock icons.</small></p>"
             yield "</div>"
         else:
             yield "<p>Switch to the <a href='%s?function=View+Build;host=%s;tree=%s;"\
@@ -954,8 +954,8 @@ class BuildFarmApp(object):
         yield "    <meta name='description' contents='Home of the Samba Build Farm, the automated testing facility.'/>\n"
         yield "    <meta name='robots' contents='noindex'/>"
         yield "    <link rel='stylesheet' href='/build_farm.css' type='text/css' media='all'/>"
-        yield "    <link rel='stylesheet' href='http://www.samba.org/samba/style/common.css' type='text/css' media='all'/>"
-        yield "    <link rel='shortcut icon' href='http://www.samba.org/samba/images/favicon.ico'/>"
+        yield "    <link rel='stylesheet' href='//www.samba.org/samba/style/common.css' type='text/css' media='all'/>"
+        yield "    <link rel='shortcut icon' href='//www.samba.org/samba/images/favicon.ico'/>"
         yield "  </head>"
         yield "<body>"
 
