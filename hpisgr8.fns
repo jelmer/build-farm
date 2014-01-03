@@ -15,7 +15,7 @@ for compiler in $compilers; do
 
 	. common.fns
 
-	config="--without-gettext --without-acl-support"
+	config="--without-acl-support"
 	export config
 	test_tree samba_4_0_test . $compiler
 	config=""
