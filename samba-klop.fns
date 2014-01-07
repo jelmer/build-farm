@@ -1,3 +1,0 @@
-export MAKE="gmake"
-
-. generic.fns
