@@ -1,3 +1,0 @@
- unset TEST_LDAP
- unset TEST_OPTIONS
-. generic.fns
