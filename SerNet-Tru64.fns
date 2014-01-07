@@ -1,11 +1,29 @@
-compilers="cc"
+per_run_hook
+
+global_lock
 
 MAXTIME=18000
 SMBD_MAXTIME=8500
 SAMBA_MAXTIME=8500
 export MAXTIME SMBD_MAXTIME SAMBA_MAXTIME
 
+compilers="cc"
+
 CFLAGS="-g $CFLAGS"
 export CFLAGS
 
-. generic.fns
+for compiler in $compilers; do
+
+	. common.fns
+
+	config="--without-gettext"
+	export config
+	test_tree samba_4_0_test . $compiler
+	config=""
+	export config
+
+	test_tree samba_3_current source3 $compiler
+	test_tree samba_3_next source3 $compiler
+done
+
+global_unlock
