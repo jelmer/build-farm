@@ -320,9 +320,6 @@ action_lcovreport() {
 		lorikeet-heimdal*)
 			lcov --directory $builddir --capture --output-file $builddir/$tree.lcov.info
 			;;
-		samba_3_master*)
-			lcov --base-directory $builddir --directory $builddir/.. --capture --output-file $builddir/$tree.lcov.info
-			;;
 		samba_4*|tdb*|talloc|ldb|libreplace)
 			lcov --base-directory $builddir/bin --directory $builddir/bin --capture --output-file $builddir/$tree.lcov.info
 			;;
@@ -349,7 +346,7 @@ action_callcatcherreport() {
 		tdb*|talloc|ldb)
 			callanalyse `find $builddir/bin -name \*.so*` $builddir/bin/* > $builddir/coverage/unused-fns.txt
 			;;
-		samba_3_master|samba_4*)
+		samba_4*)
 			callanalyse `find $builddir/bin -name \*.so*` $builddir/bin/* > $builddir/coverage/all-unused-fns.txt 
 			grep -v -f $srcdir/callcatcher-exceptions.grep $builddir/coverage/all-unused-fns.txt > $builddir/coverage/unused-fns.txt
 			;;
@@ -756,9 +753,6 @@ test_tree() {
 	samba_4*)
 		sw_config="$config --enable-selftest"
 		;;
-	samba_3_master)
-		sw_config="$config --enable-selftest"
-		;;
 	samba_3*)
 		sw_config="$config --enable-socket-wrapper"
 		sw_config="$sw_config --enable-nss-wrapper"
@@ -1052,7 +1046,7 @@ per_run_hook() {
 
 	old_trees="web popt distcc samba-gtk smb-build lorikeet-heimdal samba_3_2"
 	old_trees="$old_tree samba_3_2_test samba4 samba_4_0_waf samba_4_0_waf.metze"
-	old_trees="$old_tree samba_3_X_test samba_3_X_devel samba_3_X_devel samba_3_waf"
+	old_trees="$old_tree samba_3_X_test samba_3_X_devel samba_3_X_devel samba_3_waf samba_3_master"
 	for d in $old_trees; do
 		delete_old_tree $d
 	done
