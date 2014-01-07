@@ -15,7 +15,11 @@ for compiler in $compilers; do
 	#export config="--with-included-popt"
 	. common.fns
 
+	config="--without-gettext"
+	export config
 	test_tree samba_4_0_test . $compiler
+	config=""
+	export config
 
 	test_tree samba_3_current source3 $compiler
 	test_tree samba_3_next source3 $compiler
