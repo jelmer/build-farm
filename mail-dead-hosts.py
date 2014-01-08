@@ -33,7 +33,7 @@ buildfarm = BuildFarm(timeout=40.0)
 smtp = smtplib.SMTP()
 smtp.connect()
 
-hosts = buildfarm.hostdb.dead_hosts(7 * 86400)
+hosts = buildfarm.hostdb.dead_hosts(21 * 86400)
 for host in hosts:
     if host.last_update:
         last_update = time.strftime("%a %b %e %H:%M:%S %Y", time.gmtime(host.last_update))
