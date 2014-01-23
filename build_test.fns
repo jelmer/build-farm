@@ -1046,7 +1046,7 @@ per_run_hook() {
 
 	old_trees="web popt distcc samba-gtk smb-build lorikeet-heimdal samba_3_2"
 	old_trees="$old_tree samba_3_2_test samba4 samba_4_0_waf samba_4_0_waf.metze"
-	old_trees="$old_tree samba_3_X_test samba_3_X_devel samba_3_X_devel samba_3_waf samba_3_master"
+	old_trees="$old_tree samba_3_X_test samba_3_X_devel samba_3_X_devel samba_3_waf samba_3_master tdb2"
 	for d in $old_trees; do
 		delete_old_tree $d
 	done
