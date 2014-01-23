@@ -164,7 +164,7 @@ choose_scm() {
 	tree=$1
 
 	case "$tree" in
-			samba* | rsync | libreplace | talloc | tdb* | ldb | pidl | ccache* | waf*)
+			samba* | rsync | libreplace | talloc | tdb | ntdb | ldb | pidl | ccache* | waf*)
 			echo "git"
 				return 0
 			;;
@@ -255,7 +255,7 @@ do_make() {
 	MMTIME=$MAXTIME
 	# some trees don't need as much time
 	case "$tree" in
-		rsync | tdb* | talloc | libreplace | ccache* | waf*)
+		rsync | tdb | ntdb | talloc | libreplace | ccache* | waf*)
 			if [ "$compiler" != "checker" ]; then
 				MMTIME=`expr $MMTIME / 5`
 			fi
@@ -320,7 +320,7 @@ action_lcovreport() {
 		lorikeet-heimdal*)
 			lcov --directory $builddir --capture --output-file $builddir/$tree.lcov.info
 			;;
-		samba_4*|tdb*|talloc|ldb|libreplace)
+		samba_4*|tdb|ntdb|talloc|ldb|libreplace)
 			lcov --base-directory $builddir/bin --directory $builddir/bin --capture --output-file $builddir/$tree.lcov.info
 			;;
 		waf)
@@ -343,7 +343,7 @@ action_lcovreport() {
 action_callcatcherreport() {
 	if [ "$CALLCATCHER_REPORT" = "yes" ]; then
 		case "$tree" in
-		tdb*|talloc|ldb)
+		tdb|ntdb|talloc|ldb)
 			callanalyse `find $builddir/bin -name \*.so*` $builddir/bin/* > $builddir/coverage/unused-fns.txt
 			;;
 		samba_4*)
