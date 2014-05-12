@@ -752,6 +752,8 @@ test_tree() {
 		;;
 	samba_4*)
 		sw_config="$config --enable-selftest"
+		sw_config="$sw_config --with-perl-lib-install-dir=$prefix/perl.lib"
+		sw_config="$sw_config --with-perl-arch-install-dir=$prefix/perl.arch"
 		;;
 	samba_3*)
 		sw_config="$config --enable-socket-wrapper"
