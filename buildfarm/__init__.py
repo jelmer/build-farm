@@ -159,7 +159,8 @@ class BuildFarm(object):
         if self.store is not None:
             return self.store
         db_dir_path = os.path.join(self.path, "db")
-        os.mkdir(db_dir_path)
+        if not os.path.isdir(db_dir_path):
+            os.mkdir(db_dir_path)
         db_path = os.path.join(db_dir_path, "hostdb.sqlite")
         db = create_database("sqlite:%s?timeout=%f" % (db_path, self.timeout))
         self.store = Store(db)
