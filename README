@@ -1,8 +1,12 @@
 This is the build system for build.samba.org
 
 tridge@samba.org, April 2001
+abartlet@samba.org / jelmer@samba.org, October 2010
 
-To set it up on a new box you need to do this:
+New build machines
+==================
+
+To set up a new build machine, you need to do this:
 
 1) create an account on the box (I'll assume its called "build")
 2) copy over build_test to ~build/build_farm/
@@ -14,3 +18,36 @@ To set it up on a new box you need to do this:
 6) add the host to the buildfarm using admin.py.
 7) if desired, create a HOSTNAME.fns file that defines what gets built on
    build.samba.org
+
+Running the site
+================
+
+The current build farm site is written in Python. It
+manages a directory with raw build logs that get parsed and
+displayed when viewing individual builds.
+
+A sqlite database is used to store metadata about builds
+(to prevent rereading all the logs when e.g. creating
+the summary page). Information about the build farm machines
+and their owners can also be found in the sqlite database.
+
+You will need to have python-storm (our ORM), sqlite
+and python-dulwich (pure-Python Git implementation) installed.
+We don't use any fancy webby frameworks, everything just
+outputs raw HTML.
+
+To run the web site locally, run:
+
+ % python -m buildfarm.web.__init__
+
+For build machine management, you can use the cli tool ./admin.py.
+It should be fairly self-explanatory.
+
+Logs are initially uploaded to data/upload/. Once they are processed
+and an entry has been created in the database for them, they are
+moved over to data/oldrevs/. After they have been moved they should only be
+accessed when the full build log output is viewed.
+
+There are some unit tests for the build farm objects. Run them using:
+
+ % python -m unittest buildfarm.tests.test_suite
