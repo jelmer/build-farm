@@ -404,7 +404,7 @@ class BuildFarmPage(object):
 
 class ViewBuildPage(BuildFarmPage):
 
-    def show_oldrevs(self, myself, build, host, compiler, limit):
+    def show_oldrevs(self, myself, build, host, compiler, limit=None):
         """show the available old revisions, if any"""
 
         tree = build.tree
@@ -419,11 +419,7 @@ class ViewBuildPage(BuildFarmPage):
         yield "<thead><tr><th>Revision</th><th>Status</th><th>Age</th></tr></thead>\n"
         yield "<tbody>\n"
 
-        nb = 0
-        for old_build in old_builds:
-            if limit >= 0 and nb >= limit:
-                break
-            nb = nb + 1
+        for old_build in old_builds[:limit]:
             yield "<tr><td>%s</td><td>%s</td><td>%s</td></tr>\n" % (
                 revision_link(myself, old_build.revision, tree),
                 build_link(myself, old_build),
