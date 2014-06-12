@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # This CGI script presents the results of the build_farm build
 
-# Copyright (C) Jelmer Vernooij <jelmer@samba.org>     2010
+# Copyright (C) Jelmer Vernooij <jelmer@samba.org>     2010-2014
 # Copyright (C) Matthieu Patou <mat@matws.net>         2010-2012
 #
 # Based on the original web/build.pl:
@@ -33,6 +33,7 @@
 
 from collections import defaultdict
 import os
+import sys
 
 from buildfarm import (
     hostdb,
@@ -125,7 +126,8 @@ def build_uri(myself, build):
 
 
 def build_link(myself, build):
-    return "<a href='%s'>%s</a>" % (build_uri(myself, build), html_build_status(build.status()))
+    return "<a href='%s'>%s</a>" % (
+        build_uri(myself, build), html_build_status(build.status()))
 
 
 def tree_uri(myself, tree):
@@ -134,7 +136,8 @@ def tree_uri(myself, tree):
 
 def tree_link(myself, tree):
     """return a link to a particular tree"""
-    return "<a href='%s' title='View recent builds for %s'>%s:%s</a>" % (tree_uri(myself, tree), tree.name, tree.name, tree.branch)
+    return "<a href='%s' title='View recent builds for %s'>%s:%s</a>" % (
+        tree_uri(myself, tree), tree.name, tree.name, tree.branch)
 
 
 def host_uri(myself, host):
@@ -1119,6 +1122,8 @@ class BuildFarmApp(object):
 if __name__ == '__main__':
     import optparse
     parser = optparse.OptionParser("[options]")
+    parser.add_option("--debug-storm", help="Enable storm debugging",
+                      default=False, action='store_true')
     parser.add_option("--port", help="Port to listen on [localhost:8000]",
         default="localhost:8000", type=str)
     opts, args = parser.parse_args()
@@ -1146,6 +1151,9 @@ if __name__ == '__main__':
     except ValueError:
         address = "localhost"
         port = opts.port
+    if opts.debug_storm:
+        from storm.tracer import debug
+        debug(True, stream=sys.stdout)
     httpd = make_server(address, int(port), standaloneApp)
     print "Serving on %s:%d..." % (address, int(port))
     httpd.serve_forever()
