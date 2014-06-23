@@ -143,6 +143,10 @@ class BuildFarm(object):
         result = self._get_store().find(StormBuild)
         return distinct_builds(result.order_by(Desc(StormBuild.upload_time)))
 
+    def get_summary_builds(self):
+        store = self._get_store()
+        return store.execute("SELECT tree,status FROM build GROUP BY tree,host,compiler having max(age);")
+
     def get_tree_builds(self, tree):
         result = self._get_store().find(StormBuild,
             Cast(StormBuild.tree, "TEXT") == Cast(tree, "TEXT"))

@@ -42,6 +42,7 @@ from buildfarm.build import (
     LogFileMissing,
     NoSuchBuildError,
     NoTestOutput,
+    BuildStatus,
     )
 
 import cgi
@@ -728,16 +729,16 @@ class ViewSummaryPage(BuildFarmPage):
         # output when we want
         broken_table = ""
 
-        builds = self.buildfarm.get_last_builds()
+        builds = self.buildfarm.get_summary_builds()
 
         for build in builds:
-            host_count[build.tree]+=1
-            status = build.status()
+            host_count[build[0]]+=1
+            status = BuildStatus.__deserialize__(build[1])
 
             if status.failed:
-                broken_count[build.tree]+=1
+                broken_count[build[0]]+=1
                 if "panic" in status.other_failures:
-                    panic_count[build.tree]+=1
+                    panic_count[build[0]]+=1
         return (host_count, broken_count, panic_count)
 
     def render_text(self, myself):
