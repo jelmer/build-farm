@@ -889,7 +889,7 @@ class RecentCheckinsPage(HistoryPage):
 
     limit = 10
 
-    def render(self, myself, tree, gitstart, author = None):
+    def render(self, myself, tree, gitstart, author=None):
         t = self.buildfarm.trees[tree]
         interesting = list()
         authors = {"ALL": "ALL"}
@@ -922,7 +922,7 @@ class RecentCheckinsPage(HistoryPage):
         yield "<form method='GET'>"
         yield "<div class='newform'>\n"
         if gitstart != 0:           
-            yield "<button name='gitstart' type='submit' value=" + str(gitstop - ( 2 * self.limit )) + " style='position:absolute;left:0px;'>Previous</button>"
+            yield "<button name='gitstart' type='submit' value=" + str(gitstart - self.limit) + " style='position:absolute;left:0px;'>Previous</button>"
         if len(interesting) > gitstop:
             yield "<button name='gitstart' type='submit' value=" + str(gitstop) + " style='position:absolute;right:0px;'>Next</button>"
         yield "<input type='hidden' name='function', value='Recent Checkins'/>"
@@ -1040,7 +1040,7 @@ class BuildFarmApp(object):
                 # validate the tree
                 author = get_param(form, 'author')
                 gitstart = get_param(form, 'gitstart')
-                if gitstart == None:
+                if gitstart is None:
                     gitstart = 0
                 else:
                     gitstart = int(gitstart)
