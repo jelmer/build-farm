@@ -886,14 +886,15 @@ class DiffPage(HistoryPage):
 
 class RecentCheckinsPage(HistoryPage):
 
-    limit = 40
+    limit = 10
 
-    def render(self, myself, tree, author=None):
+    def render(self, myself, tree, gitstart, author=None):
         t = self.buildfarm.trees[tree]
         interesting = list()
         authors = {"ALL": "ALL"}
         branch = t.get_branch()
         re_author = re.compile("^(.*) <(.*)>$")
+ 
         for entry in branch.log(limit=HISTORY_HORIZON):
             m = re_author.match(entry.author)
             authors[m.group(2)] = m.group(1)
@@ -910,10 +911,27 @@ class RecentCheckinsPage(HistoryPage):
         yield "<input type='hidden' name='function', value='Recent Checkins'/>"
         yield "</form>"
 
-        for entry in interesting[:self.limit]:
+        gitstop = gitstart + self.limit
+
+        for entry in interesting[gitstart:gitstop]:           
             changes = branch.changes_summary(entry.revision)
             yield "".join(self.history_row_html(myself, entry, t, changes))
         yield "\n"
+        
+        yield "<form method='GET'>"
+        yield "<div class='newform'>\n"
+        if gitstart != 0:           
+            yield "<button name='gitstart' type='submit' value=" + str(gitstart - self.limit) + " style='position:absolute;left:0px;'>Previous</button>"
+        if len(interesting) > gitstop:
+            yield "<button name='gitstart' type='submit' value=" + str(gitstop) + " style='position:absolute;right:0px;'>Next</button>"
+        yield "<input type='hidden' name='function', value='Recent Checkins'/>"
+        yield "<input type='hidden' name='gitcount' value='%s'/>" % gitstop
+        if author and author != "ALL":
+            yield "<input type='hidden' name='author' value='%s'/>" % author
+        yield "<input type='hidden' name='tree' value='%s'/>" % tree
+        yield "</div>\n"
+        yield "</form>"
+        yield "<br>"
 
 
 class BuildFarmApp(object):
@@ -1020,8 +1038,13 @@ class BuildFarmApp(object):
             elif fn_name == "Recent_Checkins":
                 # validate the tree
                 author = get_param(form, 'author')
+                gitstart = get_param(form, 'gitstart')
+                if gitstart is None:
+                    gitstart = 0
+                else:
+                    gitstart = int(gitstart)
                 page = RecentCheckinsPage(self.buildfarm)
-                yield "".join(self.html_page(form, page.render(myself, tree, author)))
+                yield "".join(self.html_page(form, page.render(myself, tree, gitstart, author)))
             elif fn_name == "diff":
                 revision = get_param(form, 'revision')
                 page = DiffPage(self.buildfarm)
