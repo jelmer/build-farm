@@ -913,14 +913,14 @@ class RecentCheckinsPage(HistoryPage):
 
         gitstop = gitstart + self.limit
 
-        for entry in interesting[gitstart:gitstop]:           
+        for entry in interesting[gitstart:gitstop]:
             changes = branch.changes_summary(entry.revision)
             yield "".join(self.history_row_html(myself, entry, t, changes))
         yield "\n"
-        
+
         yield "<form method='GET'>"
         yield "<div class='newform'>\n"
-        if gitstart != 0:           
+        if gitstart != 0:
             yield "<button name='gitstart' type='submit' value=" + str(gitstart - self.limit) + " style='position:absolute;left:0px;'>Previous</button>"
         if len(interesting) > gitstop:
             yield "<button name='gitstart' type='submit' value=" + str(gitstop) + " style='position:absolute;right:0px;'>Next</button>"
