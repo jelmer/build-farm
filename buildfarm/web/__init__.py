@@ -727,7 +727,7 @@ class ViewSummaryPage(BuildFarmPage):
         # output when we want
         broken_table = ""
 
-        builds = self.buildfarm.get_summary_builds(min_age=(7 * 24 * 60 * 60))
+        builds = self.buildfarm.get_summary_builds(min_age=time.time() - (7 * 24 * 60 * 60))
 
         for tree, status in builds:
             host_count[tree]+=1
