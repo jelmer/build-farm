@@ -144,9 +144,10 @@ class BuildFarm(object):
         result = self._get_store().find(StormBuild)
         return distinct_builds(result.order_by(Desc(StormBuild.upload_time)))
 
-    def get_summary_builds(self):
+    def get_summary_builds(self, min_age=0):
         """Return last build age, status for each tree/host/compiler.
 
+        :param min_age: Minimum timestamp of builds to report
         :return: iterator over tree, status
         """
         store = self._get_store()
@@ -157,12 +158,13 @@ FROM build obd
 INNER JOIN(
     SELECT MAX(age) age, tree, host, compiler
     FROM build
+    WHERE age > ?
     GROUP BY tree, host, compiler
 ) ibd ON obd.age = ibd.age AND
          obd.tree = ibd.tree AND
          obd.host = ibd.host AND
          obd.compiler = ibd.compiler;
-"""))
+""", min_age))
 
     def get_tree_builds(self, tree):
         result = self._get_store().find(StormBuild,
