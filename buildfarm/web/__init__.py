@@ -58,6 +58,11 @@ webdir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "we
 GITWEB_BASE = "https://gitweb.samba.org"
 HISTORY_HORIZON = 1000
 
+# Maximum age of builds to consider when displaying summary page statistics.
+# Note that trees only get rebuilt when they change, so this value is
+# intentionally set to a high value to cope with trees that don't change often.
+SUMMARY_MAX_BUILD_AGE = (180 * 24 * 60 * 60)
+
 # this is automatically filled in
 deadhosts = []
 
@@ -727,7 +732,7 @@ class ViewSummaryPage(BuildFarmPage):
         # output when we want
         broken_table = ""
 
-        builds = self.buildfarm.get_summary_builds(min_age=time.time() - (7 * 24 * 60 * 60))
+        builds = self.buildfarm.get_summary_builds(min_age=time.time() - SUMMARY_MAX_BUILD_AGE)
 
         for tree, status in builds:
             host_count[tree]+=1
