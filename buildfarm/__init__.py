@@ -164,7 +164,7 @@ INNER JOIN(
          obd.tree = ibd.tree AND
          obd.host = ibd.host AND
          obd.compiler = ibd.compiler;
-""", min_age))
+""", (min_age, )))
 
     def get_tree_builds(self, tree):
         result = self._get_store().find(StormBuild,
