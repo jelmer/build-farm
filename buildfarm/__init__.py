@@ -143,6 +143,19 @@ class BuildFarm(object):
         result = self._get_store().find(StormBuild)
         return distinct_builds(result.order_by(Desc(StormBuild.upload_time)))
 
+    def get_summary_builds(self):
+        """returns tree and status to the ViewSummaryPage class"""
+        store = self._get_store()
+        return store.execute("""
+SELECT obd.tree, obd.status AS status_str 
+FROM build obd
+INNER JOIN(
+	SELECT MAX(age) age, tree, host, compiler
+	FROM build
+	GROUP BY tree, host, compiler
+) ibd ON obd.age = ibd.age AND obd.tree = ibd.tree AND  obd.host = ibd.host AND obd.compiler = ibd.compiler;
+""")
+
     def get_tree_builds(self, tree):
         result = self._get_store().find(StormBuild,
             Cast(StormBuild.tree, "TEXT") == Cast(tree, "TEXT"))

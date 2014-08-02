@@ -566,8 +566,9 @@ class BuildResultStore(object):
         os.link(build.basename+".log", new_basename+".log")
         if os.path.exists(build.basename+".err"):
             os.link(build.basename+".err", new_basename+".err")
-        new_build = StormBuild(new_basename, build.tree, build.host,
-            build.compiler, rev)
+        # They are supposed to be in unicode only but since comparision for sumary page depends on them 
+        # the unicode conversion is done to avoid duplicates when running query in summary_builds
+        new_build = StormBuild(new_basename, unicode(build.tree), unicode(build.host), unicode(build.compiler), rev)
         new_build.checksum = build.log_checksum()
         new_build.upload_time = build.upload_time
         new_build.status_str = build.status().__serialize__()
