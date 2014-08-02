@@ -119,6 +119,25 @@ class BuildFarmTests(BuildFarmTestCase):
         self.assertEquals("12", builds[1].revision_details())
         self.assertEquals("other", builds[1].tree)
 
+    def test_get_summary_builds_empty(self):
+        self.assertEquals([], list(self.x.get_summary_builds()))
+
+    def test_get_summary_builds(self):
+        path = self.upload_mock_logfile(self.x.builds, "other", "myhost", "cc",
+            "BUILD COMMIT REVISION: 12\n", mtime=1200)
+        path = self.upload_mock_logfile(self.x.builds, "trivial", "myhost", "cc",
+            "BUILD COMMIT REVISION: 13\n", mtime=1300)
+        path = self.upload_mock_logfile(self.x.builds, "trivial", "myhost", "cc",
+            "BUILD COMMIT REVISION: 42\n", mtime=4200)
+        builds = list(self.x.get_summary_builds())
+        self.assertEquals(2, len(builds))
+        self.assertEquals(4200, builds[0].upload_time)
+        self.assertEquals("42", builds[0].revision_details())
+        self.assertEquals("trivial", builds[0].tree)
+        self.assertEquals(1200, builds[1].upload_time)
+        self.assertEquals("12", builds[1].revision_details())
+        self.assertEquals("other", builds[1].tree)
+
     def test_get_host_builds_empty(self):
         self.assertEquals([], list(self.x.get_host_builds("myhost")))
 

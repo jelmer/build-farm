@@ -43,7 +43,6 @@ from buildfarm.build import (
     LogFileMissing,
     NoSuchBuildError,
     NoTestOutput,
-    BuildStatus,
     )
 
 import cgi
@@ -730,9 +729,8 @@ class ViewSummaryPage(BuildFarmPage):
 
         builds = self.buildfarm.get_summary_builds()
 
-        for tree, status_str in builds:
+        for tree, status in builds:
             host_count[tree]+=1
-            status = BuildStatus.__deserialize__(status_str)
 
             if status.failed:
                 broken_count[tree]+=1

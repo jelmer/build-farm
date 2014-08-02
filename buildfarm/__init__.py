@@ -17,6 +17,7 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+from buildfarm.build import BuildStatus
 from buildfarm.sqldb import distinct_builds, Cast, StormBuild, setup_schema, StormHostDatabase
 from buildfarm.tree import Tree
 from storm.database import create_database
@@ -144,17 +145,24 @@ class BuildFarm(object):
         return distinct_builds(result.order_by(Desc(StormBuild.upload_time)))
 
     def get_summary_builds(self):
-        """returns tree and status to the ViewSummaryPage class"""
+        """Return last build age, status for each tree/host/compiler.
+
+        :return: iterator over tree, status
+        """
         store = self._get_store()
-        return store.execute("""
-SELECT obd.tree, obd.status AS status_str 
+        return ((tree, BuildStatus.__deserialize__(status_str))
+                for (tree, status_str) in store.execute("""
+SELECT obd.tree, obd.status AS status_str
 FROM build obd
 INNER JOIN(
-	SELECT MAX(age) age, tree, host, compiler
-	FROM build
-	GROUP BY tree, host, compiler
-) ibd ON obd.age = ibd.age AND obd.tree = ibd.tree AND  obd.host = ibd.host AND obd.compiler = ibd.compiler;
-""")
+    SELECT MAX(age) age, tree, host, compiler
+    FROM build
+    GROUP BY tree, host, compiler
+) ibd ON obd.age = ibd.age AND
+         obd.tree = ibd.tree AND
+         obd.host = ibd.host AND
+         obd.compiler = ibd.compiler;
+"""))
 
     def get_tree_builds(self, tree):
         result = self._get_store().find(StormBuild,
