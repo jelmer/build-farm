@@ -137,6 +137,10 @@ class BuildFarmTests(BuildFarmTestCase):
         self.assertEquals(1200, builds[1].upload_time)
         self.assertEquals("12", builds[1].revision_details())
         self.assertEquals("other", builds[1].tree)
+        builds = list(self.x.get_summary_builds(min_age=4000))
+        self.assertEquals(1, len(builds))
+        builds = list(self.x.get_summary_builds(min_age=5000))
+        self.assertEquals(0, len(builds))
 
     def test_get_host_builds_empty(self):
         self.assertEquals([], list(self.x.get_host_builds("myhost")))
