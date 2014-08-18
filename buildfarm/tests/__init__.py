@@ -109,6 +109,7 @@ def test_suite():
     names = [
         '__init__',
         'test_build',
+        'test_buildfarm',
         'test_history',
         'test_hostdb',
         'test_sqldb',
