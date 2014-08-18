@@ -49,4 +49,21 @@ for
         self.assertEquals(4, len(l))
         self.assertEquals("three", l[2])
 
+class SambaWebFileLoadTest(testtools.TestCase):
+
+    def test_simple(self):
+        fd, name = tempfile.mkstemp()
+        self.addCleanup(os.remove, name)
+        f = os.fdopen(fd, 'w')
+        f.write('href="/samba/index.html"')
+        f.close()
+        l = util.SambaWebFileLoad(os.getcwd(),name)
+        self.assertEquals('href="http://www.samba.org/samba/index.html"', l)
+        fd1, name1 = tempfile.mkstemp()
+        self.addCleanup(os.remove, name1)
+        f1 = os.fdopen(fd1, 'w')
+        f1.write('<!--#include virtual="/samba/name2" -->')
+        f1.close()
+        l1 = util.SambaWebFileLoad(os.path.dirname(os.path.realpath("name1")),name1)
+        self.assertEquals('', l1)
 

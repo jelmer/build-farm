@@ -1,0 +1,3 @@
+[submodule "web/samba-web"]
+	path = web/samba-web
+	url = https://git.samba.org/samba-web.git

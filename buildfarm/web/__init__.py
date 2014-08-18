@@ -55,7 +55,7 @@ import time
 import wsgiref.util
 webdir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "web"))
 
-GITWEB_BASE = "https://gitweb.samba.org"
+GITWEB_BASE = "//gitweb.samba.org"
 HISTORY_HORIZON = 1000
 
 # this is automatically filled in
@@ -418,7 +418,7 @@ class ViewBuildPage(BuildFarmPage):
 
         yield "<h2>Older builds:</h2>\n"
 
-        yield "<table class='real'>\n"
+        yield "<table class='newtable'>\n"
         yield "<thead><tr><th>Revision</th><th>Status</th><th>Age</th></tr></thead>\n"
         yield "<tbody>\n"
 
@@ -473,7 +473,7 @@ class ViewBuildPage(BuildFarmPage):
         if os.path.exists(host_web_file):
             yield util.FileLoad(host_web_file)
 
-        yield "<table class='real'>\n"
+        yield "<table class='newtable'>\n"
         yield "<tr><td>Host:</td><td><a href='%s?function=View+Host;host=%s;tree=%s;"\
               "compiler=%s#'>%s</a> - %s</td></tr>\n" %\
                 (myself, build.host, build.tree, build.compiler, build.host, self.buildfarm.hostdb[build.host].platform.encode("utf-8"))
@@ -532,7 +532,7 @@ class ViewBuildPage(BuildFarmPage):
                 yield "<h2>Build log:</h2>\n"
                 yield print_log_pretty(log)
 
-            yield "<p><small>Some of the above icons derived from the <a href='https://www.gnome.org'>Gnome Project</a>'s stock icons.</small></p>"
+            yield "<p><small>Some of the above icons derived from the <a href='//www.gnome.org'>Gnome Project</a>'s stock icons.</small></p>"
             yield "</div>"
         else:
             yield "<p>Switch to the <a href='%s?function=View+Build;host=%s;tree=%s;"\
@@ -596,7 +596,7 @@ class ViewRecentBuildsPage(BuildFarmPage):
 
         yield "<div id='recent-builds' class='build-section'>"
         yield "<h2>Recent builds of %s (%s branch %s)</h2>" % (tree, t.scm, t.branch)
-        yield "<table class='real'>"
+        yield "<table class='newtable'>"
         yield "<thead>"
         yield "<tr>"
         yield "<th><a href='%s;sortby=age' title='Sort by build age'>Age</a></th>" % sorturl
@@ -629,10 +629,10 @@ class ViewRecentBuildsPage(BuildFarmPage):
 class ViewHostPage(BuildFarmPage):
 
     def _render_build_list_header(self, host):
-        yield "<div class='host summary'>"
+        yield "<div>"
         yield "<a id='host' name='host'/>"
-        yield "<h3>%s - %s</h3>" % (host.name, host.platform.encode("utf-8"))
-        yield "<table class='real'>"
+        yield "<h2>%s - %s</h2>" % (host.name, host.platform.encode("utf-8"))
+        yield "<table class='newtable'>"
         yield "<thead><tr><th>Target</th><th>Build<br/>Revision</th><th>Build<br />Age</th><th>Status<br />config/build<br />install/test</th><th>Warnings</th></tr></thead>"
         yield "<tbody>"
 
@@ -698,7 +698,7 @@ class ViewHostPage(BuildFarmPage):
 
         yield "<div class='build-section' id='dead-hosts'>"
         yield "<h2>Dead Hosts:</h2>"
-        yield "<table class='real'>"
+        yield "<table class='newtable'>"
         yield "<thead><tr><th>Host</th><th>OS</th><th>Min Age</th></tr></thead>"
         yield "<tbody>"
 
@@ -758,8 +758,8 @@ class ViewSummaryPage(BuildFarmPage):
 
         yield "<div id='build-counts' class='build-section'>"
         yield "<h2>Build counts:</h2>"
-        yield "<table class='real'>"
-        yield "<thead><tr><th>Tree</th><th>Total</th><th>Broken</th><th>Panic</th><th>Test coverage</th></tr></thead>"
+        yield "<table class='newtable'>"
+        yield "<thead><tr><th>Tree</th><th>Total</th><th>Broken</th><th>Panic</th><th>Test coverage</th><th></th></tr></thead>"
         yield "<tbody>"
 
         for tree in sorted(self.buildfarm.trees.keys()):
@@ -824,8 +824,8 @@ class HistoryPage(BuildFarmPage):
         <div class=\"diff\">
             <span class=\"html\"><a href=\"%s?function=diff;tree=%s;date=%s;%s\">show diffs</a></span>
         <br />
-            <span class=\"text\"><a href=\"%s?function=text_diff;tree=%s;date=%s;%s\">download diffs</a></span>
-            <br />
+            <span class=\"text\"><a href=\"%s?function=text_diff;tree=%s;date=%s;%s\">download diffs</a></span><br />
+            <span class=\"label\">Message:</span><br />
             <div class=\"history_log_message\">
                 <pre>%s</pre>
             </div>
@@ -857,8 +857,25 @@ class HistoryPage(BuildFarmPage):
         if builds:
             yield "<div class=\"builds\">\n"
             yield "<span class=\"label\">Builds: </span>\n"
+            yield "<table class=\"buildtable\">"
+            count=1
             for build in builds:
+                if count == 1:
+                    yield "<tr>"
+                yield "<td>"
                 yield "%s(%s) " % (build_link(myself, build), host_link(myself, build.host))
+                yield "</td>"
+                if count == 3:
+                    yield "</tr>"
+                    count = 1
+                else:
+                    count = count + 1
+            if count == 2:
+               yield "<td></td>"
+               yield "<td></td>"
+               yield "</tr>"
+               count = 1
+            yield "</table>"
             yield "</div>\n"
         yield "</div>\n"
 
@@ -880,7 +897,8 @@ class DiffPage(HistoryPage):
         changes = branch.changes_summary(revision)
         yield "".join(self.history_row_html(myself, entry, t, changes))
         diff = highlight(diff, DiffLexer(), HtmlFormatter())
-        yield "<pre>%s</pre>\n" % diff.encode("utf-8")
+        yield "<h2>Diff Result:</h2>"
+        yield "<pre>%s</pre>" % diff.encode("utf-8")
 
 
 class RecentCheckinsPage(HistoryPage):
@@ -893,7 +911,7 @@ class RecentCheckinsPage(HistoryPage):
         authors = {"ALL": "ALL"}
         branch = t.get_branch()
         re_author = re.compile("^(.*) <(.*)>$")
- 
+
         for entry in branch.log(limit=HISTORY_HORIZON):
             m = re_author.match(entry.author)
             authors[m.group(2)] = m.group(1)
@@ -903,11 +921,13 @@ class RecentCheckinsPage(HistoryPage):
         yield "<h2>Recent checkins for %s (%s branch %s)</h2>\n" % (
             tree, t.scm, t.branch)
         yield "<form method='GET'>"
+        yield "<div class='newform'>\n"
         yield "Select Author: "
         yield "".join(select(name="author", values=authors, default=author))
         yield "<input type='submit' name='sub_function' value='Refresh'/>"
         yield "<input type='hidden' name='tree' value='%s'/>" % tree
         yield "<input type='hidden' name='function', value='Recent Checkins'/>"
+        yield "</div>\n"
         yield "</form>"
 
         gitstop = gitstart + self.limit
@@ -930,7 +950,6 @@ class RecentCheckinsPage(HistoryPage):
         yield "<input type='hidden' name='tree' value='%s'/>" % tree
         yield "</div>\n"
         yield "</form>"
-        yield "<br>"
 
 
 class BuildFarmApp(object):
@@ -938,28 +957,33 @@ class BuildFarmApp(object):
     def __init__(self, buildfarm):
         self.buildfarm = buildfarm
 
-    def main_menu(self, tree, host, compiler):
+    def main_menu(self, tree, host, compiler, function):
         """main page"""
 
         yield "<form method='GET'>\n"
-        yield "<div id='build-menu'>\n"
+        yield "<div id='newbuildmenu'>\n"
         host_dict = {}
         for h in self.buildfarm.hostdb.hosts():
-            host_dict[h.name] = "%s -- %s" % (h.platform.encode("utf-8"), h.name)
+            host_dict[h.name] = "%s-%s" % (h.platform.encode("utf-8"), h.name)
         yield "".join(select("host", host_dict, default=host))
+        yield "<br/><br/>"
+
         tree_dict = {}
         for t in self.buildfarm.trees.values():
             tree_dict[t.name] = "%s:%s" % (t.name, t.branch)
         yield "".join(select("tree", tree_dict, default=tree))
+        yield "<br/><br/>"
         yield "".join(select("compiler", dict(zip(self.buildfarm.compilers, self.buildfarm.compilers)), default=compiler))
-        yield "<br/>\n"
-        yield "<input type='submit' name='function' value='View Build'/>\n"
-        yield "<input type='submit' name='function' value='View Host'/>\n"
-        yield "<input type='submit' name='function' value='Recent Checkins'/>\n"
-        yield "<input type='submit' name='function' value='Summary'/>\n"
-        yield "<input type='submit' name='function' value='Recent Builds'/>\n"
-        yield "</div>\n"
-        yield "</form>\n"
+        yield "<br/><br/>"
+        functions_dict = {
+            'View Build': 'View Build', 'Summary': 'Summary', 'View Host': 'View Host',
+            'Recent Builds': 'Recent Builds', 'Recent Checkins': 'Recent Checkins',
+            }
+        yield "".join(select("function", functions_dict, default=function))
+        yield "<br/><br/>"
+        yield "<br/><input type='submit' name='search' value='Go'/>"
+        yield "</div>"
+        yield "</form>"
 
     def html_page(self, form, lines):
         yield "<html>\n"
@@ -970,22 +994,29 @@ class BuildFarmApp(object):
         yield "    <meta name='description' contents='Home of the Samba Build Farm, the automated testing facility.'/>\n"
         yield "    <meta name='robots' contents='noindex'/>"
         yield "    <link rel='stylesheet' href='/build_farm.css' type='text/css' media='all'/>"
-        yield "    <link rel='stylesheet' href='//www.samba.org/samba/style/common.css' type='text/css' media='all'/>"
         yield "    <link rel='shortcut icon' href='//www.samba.org/samba/images/favicon.ico'/>"
+        yield "    <link rel='shortcut icon' href='//www.samba.org/samba/style/2010/grey/favicon.ico'/>"
+        yield "    <link rel='stylesheet' type='text/css' media='screen,projection' href='//www.samba.org/samba/style/2010/grey/screen.css'/>"
+        yield "    <link rel='stylesheet' type='text/css' media='print' href='//www.samba.org/samba/style/2010/grey/print.css'/> "
         yield "  </head>"
         yield "<body>"
-
-        yield util.FileLoad(os.path.join(webdir, "header2.html"))
 
         tree = get_param(form, "tree")
         host = get_param(form, "host")
         compiler = get_param(form, "compiler")
-        yield "".join(self.main_menu(tree, host, compiler))
-        yield util.FileLoad(os.path.join(webdir, "header3.html"))
+        function = get_param(form, "function")
+        yield "".join(self.main_menu(tree, host, compiler, function))
+        yield util.FileLoad(os.path.join(webdir, "bannernav1.html"))
+        yield util.SambaWebFileLoad(os.path.join(webdir, "samba-web"), "menu_think_samba_closed.html")
+        yield util.SambaWebFileLoad(os.path.join(webdir, "samba-web"), "menu_get_samba_closed.html")
+        yield util.SambaWebFileLoad(os.path.join(webdir, "samba-web"), "menu_learn_samba_closed.html")
+        yield util.SambaWebFileLoad(os.path.join(webdir, "samba-web"), "menu_talk_samba_closed.html")
+        yield util.SambaWebFileLoad(os.path.join(webdir, "samba-web"), "menu_hack_samba_closed.html")
+        yield util.SambaWebFileLoad(os.path.join(webdir, "samba-web"), "menu_contact_samba_closed.html")
+        yield util.FileLoad(os.path.join(webdir, "bannernav2.html"))
         yield "".join(lines)
-        yield util.FileLoad(os.path.join(webdir, "footer.html"))
-        yield "</body>"
-        yield "</html>"
+        yield util.SambaWebFileLoad(os.path.join(webdir, "samba-web"), "footer.html")
+        yield util.FileLoad(os.path.join(webdir, "closingtags.html"))
 
     def __call__(self, environ, start_response):
         form = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
@@ -1076,6 +1107,16 @@ class BuildFarmApp(object):
                     ('Content-type', 'text/html; charset=utf-8')])
                 page = ViewHostPage(self.buildfarm)
                 yield "".join(self.html_page(form, page.render_html(myself, wsgiref.util.shift_path_info(environ))))
+            elif fn == "about":
+                start_response('200 OK', [
+                    ('Content-type', 'text/html; charset=utf-8')])
+                lines = util.FileLoad(os.path.join(webdir, "about.html"))
+                yield "".join(self.html_page(form, lines))
+            elif fn == "instructions":
+                start_response('200 OK', [
+                    ('Content-type', 'text/html; charset=utf-8')])
+                lines = util.FileLoad(os.path.join(webdir, "instructions.html"))
+                yield "".join(self.html_page(form, lines))
             elif fn == "build":
                 build_checksum = wsgiref.util.shift_path_info(environ)
                 try:

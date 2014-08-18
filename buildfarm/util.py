@@ -17,6 +17,9 @@
 #   along with this program; if not, write to the Free Software
 #   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+import re
+import os
+
 def load_list(fname):
     """load a list from a file, using : to separate"""
     ret = []
@@ -40,6 +43,27 @@ def FileLoad(filename):
     finally:
         f.close()
 
+def SambaWebFileLoad(webdir, filename):
+    """loads file and changes the links to suit buildfarm"""
+    try:
+        f = open(os.path.join(webdir, filename), 'r')
+        text = f.read()
+    except IOError:
+        return ''
+    else:
+        f.close()
+    def add_virtual_headers(m):
+        try:
+            f = open(os.path.join(webdir, m.group(1)), 'r')
+            text = f.read()
+        except:
+            return ''
+        else:
+            f.close()
+            return text
+    text = re.sub('<!--#include virtual="/samba/(.*)" -->',add_virtual_headers , text)
+    text = re.sub('href="/samba', 'href="http://www.samba.org/samba', text)
+    return text
 
 def dhm_time(sec):
     """display a time as days, hours, minutes"""

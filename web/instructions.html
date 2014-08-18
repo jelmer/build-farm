@@ -1,7 +1,3 @@
-<!--#include virtual="/header.html"-->
-<title>samba.org build farm</title>
-<!--#include virtual="/header2.html"-->
-<!--#include virtual="/header3.html"-->
 
 <h2>Adding a machine to the build farm</h2>
 
@@ -11,7 +7,7 @@ If you have a machine that you wish to add to our build farm then please follow 
 
 <ul>
 
-  <li>Decide if your machine is suitable for the task:
+  <li><b>Decide if your machine is suitable for the task:</b>
   <ul>
     <li>Is it a production machine?</li>
     <li>Is it security-sensitive?</li>
@@ -32,13 +28,13 @@ If you have a machine that you wish to add to our build farm then please follow 
   <li><p>Make sure your machine is able to open an outgoing TCP connection
   to build.samba.org on port 873 (the rsync port). Test this by running
   <pre>
-    rsync build.samba.org::
+    <b>rsync build.samba.org::</b>
   </pre>
   and seeing if you get back the list of rsync modules.</p>
   <p>
   Note: there has been reports that rsync will work via http proxy. A simple
   <pre>
-     export RSYNC_PROXY=cache:3128
+     <b>export RSYNC_PROXY=cache:3128</b>
   </pre>
   before running rsync should be all that is needed.</p></li>
 
@@ -76,10 +72,10 @@ If you have a machine that you wish to add to our build farm then please follow 
   
   <li>Setup a cron job to run build_test regularly. You may wish to use
   "nice" to reduce its priority, for example I use the following cron
-  entry:
-  <pre>
-    0,30 * * * * /bin/nice /home/build/build_farm/build_test 2> /home/build/cron.err
-  </pre>
+  entry:<br>
+
+    <b>0,30 * * * * /bin/nice /home/build/build_farm/build_test 2> /home/build/cron.err</b>
+
   </li>
   <li>Check that <a href="https://build.samba.org/">build.samba.org</a>
   is showing your new host and that it is being updated regularly. </li>
@@ -94,4 +90,3 @@ If you have a machine that you wish to add to our build farm then please follow 
 </p>
 <p>Thanks!</p>
 
-<!--#include virtual="/footer.html" -->
