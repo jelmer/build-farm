@@ -90,7 +90,7 @@ The build may have been broken by one of the following commits:
         "old_rev": diff.old_rev,
         "cur_status": diff.new_status,
         "old_status": diff.old_status,
-        "build_link": build_uri("http://build.samba.org/build.cgi", cur)
+        "build_link": build_uri("https://build.samba.org/build.cgi", cur)
         }
 
     msg = MIMEText(body)

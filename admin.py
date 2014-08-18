@@ -142,7 +142,7 @@ Your host %(hostname)s has been added to the Samba Build farm.
 We have recorded that it is running %(platform)s.  
 
 If you have not already done so, please read:
-http://build.samba.org/instructions.html
+https://build.samba.org/instructions.html
 
 The password for your rsync .password file is %(password)s
 

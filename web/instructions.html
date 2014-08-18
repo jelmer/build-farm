@@ -47,19 +47,19 @@ If you have a machine that you wish to add to our build farm then please follow 
   account, no special privileges are needed, just change ~build to your
   home directory in the instructions below.</li>
 
-  <li>Make sure a recent version of <a href="http://rsync.samba.org/">rsync</a>
+  <li>Make sure a recent version of <a href="https://rsync.samba.org/">rsync</a>
   is installed on the machine</li>
 
   <li>Create a directory ~build/build_farm/. You will need about 120MB of
   free space for this directory.</li>
 
-  <li>(optional) Install <a href="http://ccache.samba.org">ccache</a>
+  <li>(optional) Install <a href="https://ccache.samba.org">ccache</a>
   and set a reasonable cache size (300MB would be plenty).  This
   massively reduces the compilation times and system load for certain
   changes.</li>
 
   <li>Grab the script build_test from cvs or from <a
-  href="http://www.samba.org/ftp/unpacked/build_farm/build_test">http://www.samba.org/ftp/unpacked/build_farm/build_test</a>
+  href="https://www.samba.org/ftp/unpacked/build_farm/build_test">https://www.samba.org/ftp/unpacked/build_farm/build_test</a>
   and put it in ~build/build_farm/ .</li>
 
   <li>Edit the script if necessary to update the location of the build_farm
@@ -81,7 +81,7 @@ If you have a machine that you wish to add to our build farm then please follow 
     0,30 * * * * /bin/nice /home/build/build_farm/build_test 2> /home/build/cron.err
   </pre>
   </li>
-  <li>Check that <a href="http://build.samba.org/">build.samba.org</a>
+  <li>Check that <a href="https://build.samba.org/">build.samba.org</a>
   is showing your new host and that it is being updated regularly. </li>
   
 </ul>

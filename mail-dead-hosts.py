@@ -42,7 +42,7 @@ for host in hosts:
 
     body = """
 Your host %s has been part of the Samba Build farm, hosted
-at http://build.samba.org/.
+at https://build.samba.org/.
 
 Sadly however we have not heard from it since %s.
 
@@ -59,7 +59,7 @@ Thanks,
 
 The Build Farm administration team.
 
-""" % (host.name, last_update, host_uri("http://build.samba.org/build.cgi", host.name))
+""" % (host.name, last_update, host_uri("https://build.samba.org/build.cgi", host.name))
 
     msg = MIMEText(body)
 
